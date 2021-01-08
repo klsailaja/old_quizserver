@@ -25,6 +25,7 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
+		logger.debug("Hi");
 		try {
 			logger.debug("Starting the TeluguMovieQuizApplication application");
 			GamesGenerator gameGenerator = GamesGenerator.getInstance();
