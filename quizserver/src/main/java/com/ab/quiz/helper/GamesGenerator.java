@@ -73,9 +73,6 @@ public class GamesGenerator implements Runnable {
 			initialGameSet.addAll(set);
 			logger.info("Done with the initial set for mode {} size {}", 
 					mode, initialGameSet.size());
-			for (GameHandler gh : set) {
-				logger.info(gh.toString());
-			}
 		}
 		catch(SQLException ex) {
 			logger.error("SQL Exception in GamesGenerator buildInitialGameSet", ex);
@@ -89,9 +86,6 @@ public class GamesGenerator implements Runnable {
 			nextGameSet.addAll(set);
 			logger.info("Done with the next set for mode {} size {}", 
 					mode, nextGameSet.size());
-			for (GameHandler gh : set) {
-				logger.info(gh.toString());
-			}
 		}
 		catch(SQLException ex) {
 			logger.error("SQL Exception in GamesGenerator nextGameSet", ex);
@@ -178,7 +172,6 @@ public class GamesGenerator implements Runnable {
 				GameDetails gameDetails = new GameDetails();
 				
 				lastGameId = GameIdGenerator.getInstance().getNextGameId();
-				logger.info("lastGameId is {}",lastGameId);
 				gameDetails.setGameId(lastGameId);
 				gameDetails.setTicketRate(QuizConstants.GAMES_RATES_IN_ONE_SLOT[j]);
 				gameDetails.setStartTime(lastProcessedTime);
