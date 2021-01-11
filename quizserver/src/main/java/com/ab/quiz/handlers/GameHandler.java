@@ -17,7 +17,6 @@ import com.ab.quiz.constants.UserMoneyOperType;
 import com.ab.quiz.db.UserMoneyDBHandler;
 import com.ab.quiz.db.UserProfileDBHandler;
 import com.ab.quiz.exceptions.NotAllowedException;
-import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.helper.LeaderBoard;
 import com.ab.quiz.helper.PaymentProcessor;
 import com.ab.quiz.helper.Utils;
@@ -30,7 +29,6 @@ import com.ab.quiz.pojo.PrizeDetail;
 import com.ab.quiz.pojo.Question;
 import com.ab.quiz.pojo.UserMoney;
 import com.ab.quiz.pojo.UserProfile;
-import com.ab.quiz.tasks.CreateTransactionTask;
 
 public class GameHandler {
 	
@@ -260,5 +258,9 @@ public class GameHandler {
 			return true;
 		}
 		return false;
+	}
+	
+	public String toString() {
+		return gameDetails.toString();
 	}
 }

@@ -14,7 +14,6 @@ import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.db.QuestionDBHandler;
 import com.ab.quiz.handlers.GameHandler;
 import com.ab.quiz.handlers.GameManager;
-import com.ab.quiz.handlers.MyRandom;
 import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.PlayerAnswer;
 import com.ab.quiz.pojo.Question;
@@ -31,8 +30,8 @@ public class GamesGenerator implements Runnable {
 	
 	private long lastGameId;
 	private long lastProcessedTime;
+	private long firstGameTime;
 	
-	private MyRandom random = new MyRandom(QuizConstants.QUESTION_COUNT);
 	private int mode = 1; // 1 - public, 2 - celebraties
 	
 	public GamesGenerator(int mode) {
@@ -40,16 +39,14 @@ public class GamesGenerator implements Runnable {
 	}
 	
 	public void initialize() throws SQLException {
-		logger.debug("This is in getInitialGameSet()");
-		//lastGameId = GameIdGenerator.getInstance().getNextGameId();
-		logger.debug("The last game id read from db is {}", lastGameId);
-		
+		logger.debug("This is in GamesGenerator with mode {}", mode);
 		lastProcessedTime = System.currentTimeMillis();
 		if (mode == 1) {
 			lastProcessedTime = lastProcessedTime + QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS;
 		} else {
 			lastProcessedTime = lastProcessedTime + 5 * 60 * 1000;
 		}
+		
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(lastProcessedTime);
 		
@@ -66,29 +63,60 @@ public class GamesGenerator implements Runnable {
 		calendar.set(Calendar.MINUTE, minute);
 		calendar.set(Calendar.SECOND, 0);
 		lastProcessedTime = calendar.getTimeInMillis();
-		long firstGameTime = lastProcessedTime; 
+		firstGameTime = lastProcessedTime; 
+	}
+	
+	public void buildInitialGameSet() {
+		logger.info("Creating the initial set for mode {}", mode);
+		try {
+			List<GameHandler> set = generateGameData(1);
+			initialGameSet.addAll(set);
+			logger.info("Done with the initial set for mode {} size {}", 
+					mode, initialGameSet.size());
+			for (GameHandler gh : set) {
+				logger.info(gh.toString());
+			}
+		}
+		catch(SQLException ex) {
+			logger.error("SQL Exception in GamesGenerator buildInitialGameSet", ex);
+		}
+	}
+	
+	public void buildNextGameSet() {
+		logger.info("Creating the next game set for mode {}", mode);
+		try {
+			List<GameHandler> set = generateGameData(1);
+			nextGameSet.addAll(set);
+			logger.info("Done with the next set for mode {} size {}", 
+					mode, nextGameSet.size());
+			for (GameHandler gh : set) {
+				logger.info(gh.toString());
+			}
+		}
+		catch(SQLException ex) {
+			logger.error("SQL Exception in GamesGenerator nextGameSet", ex);
+		}
+	}
+	
+	public long getFirstGameTime() {
+		return firstGameTime;
+	}
+	
+	public void setupGames() {
 		
-		logger.info("Creating the initial set");
-		initialGameSet = generateGameData(QuizConstants.MAX_LIVE_SLOTS);
-		logger.info("Done with the initial set creation {}", initialGameSet.size());
-		logger.info("Creating the next game set");
-		nextGameSet = generateGameData(QuizConstants.MAX_LIVE_SLOTS);
-		logger.info("Done with the next game set creation {}", nextGameSet.size());
+		GameManager.getInstance().addNewGames(initialGameSet);
 		
-		long repeatedTaskInterval = QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS + 2 * 1000 - 20 * 1000;
+		long repeatedTaskInterval = QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS 
+				+ 1 * 1000;
 		long initailDelay = firstGameTime - System.currentTimeMillis() + repeatedTaskInterval; 
 		
 		LazyScheduler.getInstance().submitRepeatedTask(this, initailDelay, 
 					repeatedTaskInterval, TimeUnit.MILLISECONDS);
 		
 	}
-	
-	public List<GameHandler> getInitialGameSet() {
-		return initialGameSet; 
-	}
-	
+
 	public void run() {
-		logger.info("Running Repeated Task");
+		logger.info("Running Repeated Task for mode {}", mode);
 		try {
 			if (initialGameSet.size() > 0) { 
 				initialGameSet.clear();
@@ -101,14 +129,13 @@ public class GamesGenerator implements Runnable {
 			
 			GameManager.getInstance().addNewGames(newGames);
 			
-			List<GameHandler> completedGames = GameManager.getInstance().getCompletedGameHandlers();
+			List<GameHandler> completedGames = GameManager.getInstance().getCompletedGameHandlers(mode);
 			int completedGameCount = completedGames.size();
 			logger.info("Completed games count is {}", completedGameCount);
 			
 			long maxId = -1;
 			List<Long> completedGameIds = new ArrayList<>();
 			
-			logger.info("");
 			long paymentTimeTaken = System.currentTimeMillis();
 			for (GameHandler completedGame : completedGames) {
 				logger.info("Making payments for Game# {}", completedGame.getGameDetails().getGameId());
@@ -200,7 +227,10 @@ public class GamesGenerator implements Runnable {
 		int max = QuizConstants.MAX_PLAYERS_PER_GAME;
 		int randomPlayerCount = min + (int) (Math.random() * (max - min));
 		
-		int userIdOffset = 0; 
+		int userIdOffset = 0;
+		if (mode == 2) {
+			userIdOffset = 10;
+		}
 		
 		if (QuizConstants.TESTMODE == 1) {
 			
@@ -208,27 +238,27 @@ public class GamesGenerator implements Runnable {
 			
 			switch (tktRate) {
 				case 10: {
-					userIdOffset = 10;
+					userIdOffset = 21;
 					randomPlayerCount = 10;
 					break;
 				}
 				case 20: {
-					userIdOffset = 20;
+					userIdOffset = 31;
 					randomPlayerCount = 10;
 					break;
 				}
 				case 50: {
-					userIdOffset = 30;
+					userIdOffset = 41;
 					randomPlayerCount = 10;
 					break;
 				}
 				case 75: {
-					userIdOffset = 40;
+					userIdOffset = 51;
 					randomPlayerCount = 10;
 					break;
 				}
 				case 100: {
-					userIdOffset = 50;
+					userIdOffset = 61;
 					randomPlayerCount = 9;
 					break;
 				}

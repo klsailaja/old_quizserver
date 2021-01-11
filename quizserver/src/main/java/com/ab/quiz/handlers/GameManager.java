@@ -422,7 +422,7 @@ public class GameManager {
 		return gameHandler.withdraw(gameOper.getUserProfileId());
 	}
 	
-	public List<GameHandler> getCompletedGameHandlers() {
+	public List<GameHandler> getCompletedGameHandlers(int mode) {
 		// Tested
 		List<GameHandler> list = new ArrayList<>();
 		
@@ -432,9 +432,12 @@ public class GameManager {
 		
 		for (Map.Entry<Long, GameHandler> eachEntry : setValues) {
 			GameHandler gameHandler = eachEntry.getValue();
+			if (gameHandler.getGameDetails().getGameType() != mode) {
+				continue;
+			}
 			long startTime = gameHandler.getGameDetails().getStartTime();
 			long diff = currentTime - startTime;
-			if (diff >= (QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS - 20 * 1000)) {
+			if (diff >= (QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS - 10 * 1000)) {
 				// Completed
 				list.add(gameHandler);
 			}

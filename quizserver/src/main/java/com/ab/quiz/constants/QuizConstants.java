@@ -2,7 +2,7 @@ package com.ab.quiz.constants;
 
 public class QuizConstants {
 	
-	public static final int MAX_LIVE_SLOTS = 5;
+	public static final int MAX_LIVE_SLOTS = 4;
 	
 	public static final int[] GAMES_RATES_IN_ONE_SLOT = {0, 10 , 20, 50, 75, 100};
 	

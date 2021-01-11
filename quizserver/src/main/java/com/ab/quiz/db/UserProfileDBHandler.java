@@ -12,7 +12,6 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.pojo.ReferalDetails;
 import com.ab.quiz.pojo.UserProfile;
 import com.ab.quiz.pojo.UserReferal;
@@ -376,8 +375,29 @@ public class UserProfileDBHandler {
 		
 		UserProfileDBHandler dbHandler = UserProfileDBHandler.getInstance();
 		
-		for (int index = 1; index <= 50; index ++) {
+		// System Users from 1 - 20
+		for (int index = 1; index <= 20; index ++) {
 			UserProfile userProfile = new UserProfile();
+			userProfile.setEmailAddress("systemuser" + index + "@gmail.com");
+			userProfile.setName("Systemuser" + index);
+			userProfile.setPasswordHash("5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5");
+			userProfile.setBossReferredId("Rajasekh10");
+			userProfile.setCreatedDate(1609861020944L);
+			userProfile.setLastLoggedTime(1609861020944L);
+			
+			dbHandler.createUserProfile(userProfile);
+		}
+		
+		UserProfile userProfile = new UserProfile();
+		userProfile.setEmailAddress("ggraj.pec@gmail.com");
+		userProfile.setName("Rajasekhar");
+		userProfile.setPasswordHash("5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5");
+		userProfile.setBossReferredId("NoOne");
+		userProfile.setCreatedDate(1609861020944L);
+		userProfile.setLastLoggedTime(1609861020944L);
+		
+		for (int index = 1; index <= 50; index ++) {
+			userProfile = new UserProfile();
 			userProfile.setEmailAddress("testuser" + index + ".com");
 			userProfile.setName("Testuser" + index);
 			userProfile.setPasswordHash("5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5");
@@ -385,9 +405,7 @@ public class UserProfileDBHandler {
 			userProfile.setCreatedDate(1609861020944L);
 			userProfile.setLastLoggedTime(1609861020944L);
 			
-			
 			dbHandler.createUserProfile(userProfile);
 		}
-		
 	}
 }

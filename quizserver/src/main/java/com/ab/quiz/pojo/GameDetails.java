@@ -1,5 +1,6 @@
 package com.ab.quiz.pojo;
 
+import java.util.Date;
 import java.util.List;
 
 public class GameDetails {
@@ -69,8 +70,7 @@ public class GameDetails {
 		this.flipQuestion = question;
 	}
 	
-	
 	public String toString() {
-		return getGameId() + "";
+		return getGameId() + ":" + new Date(startTime);
 	}
 }
