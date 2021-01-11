@@ -29,10 +29,10 @@ public class GamesController extends BaseController {
 	
 	private static final Logger logger = LogManager.getLogger(GamesController.class);
 	
-	@RequestMapping(value = "/future", method = RequestMethod.GET, produces = "application/json")
-	public @ResponseBody List<GameDetails> getFutureGames() {
+	@RequestMapping(value = "/{gametype}/future", method = RequestMethod.GET, produces = "application/json")
+	public @ResponseBody List<GameDetails> getFutureGames(@PathVariable("gametype") int gametype) {
 		logger.info("Call to getFutureGames()");
-		List<GameDetails> futureGames = GameManager.getInstance().getFutureGames();
+		List<GameDetails> futureGames = GameManager.getInstance().getFutureGames(gametype);
 		logger.info("Call to getFutureGames() returned with {}", futureGames.size());
 		return futureGames;
 	}
@@ -46,9 +46,10 @@ public class GamesController extends BaseController {
 		return historyGames;
 	}
 	
-	@RequestMapping(value = "/enrolled/{userProfileId}", method = RequestMethod.GET)
-	public @ResponseBody List<GameDetails> getEnrolledGames(@PathVariable("userProfileId") long userProfileId) {
-		return GameManager.getInstance().getEnrolledGames(userProfileId);
+	@RequestMapping(value = "/{gametype}/enrolled/{userProfileId}", method = RequestMethod.GET)
+	public @ResponseBody List<GameDetails> getEnrolledGames(@PathVariable("gametype") int gametype, 
+			@PathVariable("userProfileId") long userProfileId) {
+		return GameManager.getInstance().getEnrolledGames(gametype, userProfileId);
 	}
 	
 	@RequestMapping(value = "/{gameId}", method = RequestMethod.GET, produces = "application/json")
@@ -61,14 +62,15 @@ public class GamesController extends BaseController {
 		return GameManager.getInstance().getGameStatus(gameId);
 	}
 	
-	@RequestMapping(value = "/status", method = RequestMethod.GET, produces = "application/json") 
-	public @ResponseBody GameStatusHolder getAllGamesStatus() throws NotAllowedException, SQLException {
-		return GameManager.getInstance().getAllGamesStatus();
+	@RequestMapping(value = "/{gametype}/status", method = RequestMethod.GET, produces = "application/json") 
+	public @ResponseBody GameStatusHolder getAllGamesStatus(@PathVariable("gametype") int gametype) throws NotAllowedException, SQLException {
+		return GameManager.getInstance().getAllGamesStatus(gametype);
 	}
 	
-	@RequestMapping(value = "/enrolled/{userProfileId}/status", method = RequestMethod.GET, produces = "application/json") 
-	public @ResponseBody GameStatusHolder getUserEnrolledGamesStatus(@PathVariable("userProfileId") long userProfileId) throws NotAllowedException, SQLException {
-		return GameManager.getInstance().getUserEnrolledGamesStatus(userProfileId);
+	@RequestMapping(value = "/{gametype}/enrolled/{userProfileId}/status", method = RequestMethod.GET, produces = "application/json") 
+	public @ResponseBody GameStatusHolder getUserEnrolledGamesStatus(@PathVariable("gametype") int gametype,
+			@PathVariable("userProfileId") long userProfileId) throws NotAllowedException, SQLException {
+		return GameManager.getInstance().getUserEnrolledGamesStatus(gametype,userProfileId);
 	}
 	
 	@RequestMapping(value = "/{gameId}/join", method = RequestMethod.POST, produces = "application/json")

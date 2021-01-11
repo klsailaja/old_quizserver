@@ -25,17 +25,27 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
-		logger.debug("Hi");
 		try {
 			logger.debug("Starting the TeluguMovieQuizApplication application");
-			GamesGenerator gameGenerator = GamesGenerator.getInstance();
-			gameGenerator.initialize();
+			GamesGenerator gameGenerator1 = new GamesGenerator(1);
+			gameGenerator1.initialize();
 			
-			List<GameHandler> initialGameHandlersList = gameGenerator.getInitialGameSet();
+			List<GameHandler> initialGameHandlersList = gameGenerator1.getInitialGameSet();
 			logger.debug("Fetched initialGameHandlersList successfully. The size is {}", 
 					initialGameHandlersList.size());
 			
 			GameManager.getInstance().addNewGames(initialGameHandlersList);
+			
+			GamesGenerator gameGenerator2 = new GamesGenerator(2);
+			gameGenerator2.initialize();
+			
+			initialGameHandlersList = gameGenerator2.getInitialGameSet();
+			logger.debug("Fetched celebrity special successfully. The size is {}", 
+					initialGameHandlersList.size());
+			
+			GameManager.getInstance().addNewGames(initialGameHandlersList);
+			
+			
 			
 		} catch(SQLException ex) {
 			logger.error("SQLException in TeluguMovieQuizApplication", ex);

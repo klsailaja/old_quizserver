@@ -11,7 +11,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.constants.UserMoneyAccountType;
-import com.ab.quiz.db.LastGameIdDBHandler;
 import com.ab.quiz.db.QuestionDBHandler;
 import com.ab.quiz.handlers.GameHandler;
 import com.ab.quiz.handlers.GameManager;
@@ -26,7 +25,6 @@ import com.ab.quiz.tasks.UpdateMaxGameIdTask;
 public class GamesGenerator implements Runnable {
 	
 	private static final Logger logger = LogManager.getLogger(GamesGenerator.class);
-	private static GamesGenerator instance = null;
 	
 	private List<GameHandler> initialGameSet = new ArrayList<>(QuizConstants.MAX_TOTAL_GAMES);
 	private List<GameHandler> nextGameSet = new ArrayList<>(QuizConstants.MAX_TOTAL_GAMES);
@@ -35,30 +33,36 @@ public class GamesGenerator implements Runnable {
 	private long lastProcessedTime;
 	
 	private MyRandom random = new MyRandom(QuizConstants.QUESTION_COUNT);
+	private int mode = 1; // 1 - public, 2 - celebraties
 	
-	private GamesGenerator() {
-	}
-	
-	public static GamesGenerator getInstance() {
-		if (instance == null) {
-			logger.debug("In GamesGenerator getInstance() method instance created");
-			instance = new GamesGenerator();
-		}
-		return instance;
+	public GamesGenerator(int mode) {
+		this.mode = mode;
 	}
 	
 	public void initialize() throws SQLException {
 		logger.debug("This is in getInitialGameSet()");
-		lastGameId = LastGameIdDBHandler.getInstance().getLastGameId();
+		//lastGameId = GameIdGenerator.getInstance().getNextGameId();
 		logger.debug("The last game id read from db is {}", lastGameId);
 		
 		lastProcessedTime = System.currentTimeMillis();
-		lastProcessedTime = lastProcessedTime + QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS;
+		if (mode == 1) {
+			lastProcessedTime = lastProcessedTime + QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS;
+		} else {
+			lastProcessedTime = lastProcessedTime + 5 * 60 * 1000;
+		}
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTimeInMillis(lastProcessedTime);
 		
 		int minute = calendar.get(Calendar.MINUTE);
-		minute = (minute/QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MINS) * QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MINS;
+		if (mode == 1) {
+			minute = (minute/QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MINS) * QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MINS;
+		} else {
+			minute = minute/5;
+			if ((minute % 2) == 0) {
+				minute++;
+			}
+			minute = minute * 5;
+		}
 		calendar.set(Calendar.MINUTE, minute);
 		calendar.set(Calendar.SECOND, 0);
 		lastProcessedTime = calendar.getTimeInMillis();
@@ -75,7 +79,8 @@ public class GamesGenerator implements Runnable {
 		long initailDelay = firstGameTime - System.currentTimeMillis() + repeatedTaskInterval; 
 		
 		LazyScheduler.getInstance().submitRepeatedTask(this, initailDelay, 
-				repeatedTaskInterval, TimeUnit.MILLISECONDS);
+					repeatedTaskInterval, TimeUnit.MILLISECONDS);
+		
 	}
 	
 	public List<GameHandler> getInitialGameSet() {
@@ -145,13 +150,19 @@ public class GamesGenerator implements Runnable {
 			for (int j = 0; j < QuizConstants.GAMES_RATES_IN_ONE_SLOT.length; j ++) {
 				GameDetails gameDetails = new GameDetails();
 				
-				gameDetails.setGameId(++lastGameId);
+				lastGameId = GameIdGenerator.getInstance().getNextGameId();
+				logger.info("lastGameId is {}",lastGameId);
+				gameDetails.setGameId(lastGameId);
 				gameDetails.setTicketRate(QuizConstants.GAMES_RATES_IN_ONE_SLOT[j]);
 				gameDetails.setStartTime(lastProcessedTime);
+				gameDetails.setGameType(mode);
 				
-				Long [] randomIds = random.generateList(11);				
+				int publicView = -1;
+				if (mode == 2) {
+					publicView = 104;
+				}
 				
-				List<Question> quizQuestions = QuestionDBHandler.getInstance().getQuestionSet(randomIds);
+				List<Question> quizQuestions = QuestionDBHandler.getInstance().getRandomQues(publicView);
 				Question flipQuestion = quizQuestions.remove(10);
 				gameDetails.setFlipQuestion(flipQuestion);
 				

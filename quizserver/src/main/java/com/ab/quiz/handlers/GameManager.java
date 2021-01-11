@@ -55,7 +55,11 @@ public class GameManager {
 		lock.writeLock().lock();
 		for (GameHandler gameHandler : gameHandlers) {
 			long gameId = gameHandler.getGameDetails().getGameId();
-			gameIdToGameHandler.put(gameId, gameHandler);
+			Long keyLong = new Long(gameId);
+			if (gameIdToGameHandler.get(keyLong) != null) {
+				logger.debug("*********" + keyLong);
+			}
+			gameIdToGameHandler.put(keyLong, gameHandler);
 		}
 		lock.writeLock().unlock();
 		logger.debug("New games are added. The size is {}", gameIdToGameHandler.size());
@@ -74,7 +78,7 @@ public class GameManager {
 		logger.debug("Completed games are deleted. Now the size is {}", gameIdToGameHandler.size());
 	}
 	
-	public List<GameDetails> getFutureGames() {
+	public List<GameDetails> getFutureGames(int gametype) {
 		// Iterate through the Tree Map and return the list
 		
 		logger.debug("In getFutureGames()");
@@ -90,6 +94,9 @@ public class GameManager {
 		
 		for (Map.Entry<Long, GameHandler> eachEntry : setValues) {
 			GameHandler gameHandler = eachEntry.getValue();
+			if (gametype != gameHandler.getGameDetails().getGameType()) {
+				continue;
+			}
 			long startTime = gameHandler.getGameDetails().getStartTime();
 			if ((currentTime < startTime) && ((startTime - currentTime) >= QuizConstants.GAME_BEFORE_LOCK_PERIOD_IN_MILLIS)) {
 				logger.debug("Adding Game Id : " + gameHandler.getGameDetails());
@@ -105,7 +112,7 @@ public class GameManager {
 		return null;
 	}
 	
-	public List<GameDetails> getEnrolledGames(long userProfileId) {
+	public List<GameDetails> getEnrolledGames(int gametype, long userProfileId) {
 		
 		List<GameDetails> list = new ArrayList<>();
 		
@@ -116,6 +123,9 @@ public class GameManager {
 		
 		for (Map.Entry<Long, GameHandler> eachEntry : setValues) {
 			GameHandler gameHandler = eachEntry.getValue();
+			if (gametype != gameHandler.getGameDetails().getGameType()) {
+				continue;
+			}
 			long startTime = gameHandler.getGameDetails().getStartTime();
 			if (currentTime > startTime) {
 				if ((currentTime - startTime) >= QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS) {
@@ -166,7 +176,7 @@ public class GameManager {
 		return gameStatus;
 	}
 	
-	private GameStatusHolder getGamesStatus(long userProfileId) throws SQLException {
+	private GameStatusHolder getGamesStatus(int gameType, long userProfileId) throws SQLException {
 		// Discard completed state games
 		// Include Locked, In-Progress, Future
 		HashMap <Long, GameStatus> gameIdToGameStatus = new HashMap<>();
@@ -179,6 +189,9 @@ public class GameManager {
 		
 		for (Map.Entry<Long, GameHandler> eachEntry : setValues) {
 			GameHandler gameHandler = eachEntry.getValue();
+			if (gameHandler.getGameDetails().getGameType() != gameType) {
+				continue;
+			}
 			if (userProfileId != -1) {
 				if (!gameHandler.isUserEnrolled(userProfileId)) {
 					continue;
@@ -223,12 +236,12 @@ public class GameManager {
 		return holder;
 	}
 	
-	public GameStatusHolder getUserEnrolledGamesStatus(long userProfileId) throws SQLException {
-		return getGamesStatus(userProfileId);
+	public GameStatusHolder getUserEnrolledGamesStatus(int gameType,long userProfileId) throws SQLException {
+		return getGamesStatus(gameType,userProfileId);
 	}
 	
-	public GameStatusHolder getAllGamesStatus() throws SQLException {
-		return getGamesStatus(-1);
+	public GameStatusHolder getAllGamesStatus(int gameType) throws SQLException {
+		return getGamesStatus(gameType, -1);
 	}
 	
 	public boolean joinGame(long gameId, GameOperation gameOper) 
@@ -245,10 +258,11 @@ public class GameManager {
 		if (gameHandler == null) {
 			throw new NotAllowedException("Game does not exist " + gameId);
 		}
+		int gameType = gameHandler.getGameDetails().getGameType();
 		
 		// Step 2
 		long currentGameStartTime = gameHandler.getGameDetails().getStartTime();
-		List<GameDetails> enrolledGames = getEnrolledGames(gameOper.getUserProfileId());
+		List<GameDetails> enrolledGames = getEnrolledGames(gameType, gameOper.getUserProfileId());
 		if (enrolledGames.size() > 0) {
 			HashMap<Long, Long> startTimeToGameId = new HashMap<>();
 			for (GameDetails gameDetails : enrolledGames) {

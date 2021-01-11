@@ -3,6 +3,8 @@ package com.ab.quiz.pojo;
 public class Question {
 	
 	private int questionNumber;
+	private long category;
+	private int timeLine;
 	private String nStatement;
 	private String nOptionA;
 	private String nOptionB;
@@ -10,6 +12,20 @@ public class Question {
 	private String nOptionD;
 	private int correctOption;
 	private long questionStartTime;
+	
+	public long getCategory() {
+		return category;
+	}
+	public void setCategory(long category) {
+		this.category = category;
+	}
+	
+	public int getTimeLine() {
+		return timeLine;
+	}
+	public void setTimeLine(int timeline) {
+		this.timeLine = timeline;
+	}
 	
 	public int getQuestionNumber() {
 		return questionNumber;
@@ -62,9 +78,8 @@ public class Question {
 	}
 	@Override
 	public String toString() {
-		return "Question [nStatement=" + nStatement + ", nOptionA=" + nOptionA + ", nOptionB=" + nOptionB
-				+ ", nOptionC=" + nOptionC + ", nOptionD=" + nOptionD + ", correctOption=" + correctOption + "]";
+		return "Question [category=" + category + ", timeLine=" + timeLine + ", nStatement=" + nStatement
+				+ ", nOptionA=" + nOptionA + ", nOptionB=" + nOptionB + ", nOptionC=" + nOptionC + ", nOptionD="
+				+ nOptionD + ", correctOption=" + correctOption + "]";
 	}
-	
-	
 }

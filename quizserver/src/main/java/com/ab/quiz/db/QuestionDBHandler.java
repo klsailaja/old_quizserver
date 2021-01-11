@@ -27,6 +27,8 @@ import com.ab.quiz.pojo.Question;
 /*
 CREATE TABLE QuizQuestions(id bigint NOT NULL AUTO_INCREMENT, 
 		nStatement varchar(200) NOT NULL,
+		category bigint NOT NULL,
+		timeline int NOT NULL,
 		nOptionA varchar(100) NOT NULL,
 		nOptionB varchar(100) NOT NULL,
 		nOptionC varchar(100) NOT NULL,
@@ -39,6 +41,8 @@ public class QuestionDBHandler {
 	
 	private static String ID = "id";
 	private static String NSTATEMENT = "nstatement";
+	private static String CATEGORY = "category";
+	private static String TIMELINE = "timeline";
 	private static String NOPTION_A = "nOptionA";
 	private static String NOPTION_B = "nOptionB";
 	private static String NOPTION_C = "nOptionC";
@@ -47,10 +51,15 @@ public class QuestionDBHandler {
 	
 	private static final String CREATE_QUESTION_ENTRY = "INSERT INTO " + TABLE_NAME   
 			+ "(" + NSTATEMENT + "," + NOPTION_A + "," + NOPTION_B + "," + NOPTION_C + ","
-			+ NOPTION_D + "," + CORRECTOPTION + ") VALUES"
-			+ "(?,?,?,?,?,?)";
+			+ NOPTION_D + "," + CORRECTOPTION + "," +
+			CATEGORY + "," + TIMELINE + ") VALUES"
+			+ "(?,?,?,?,?,?,?,?)";
 	private static final String GET_QUESTION_ENTRY_SET = "SELECT * FROM " + TABLE_NAME 
-			+ " WHERE " + ID + " IN (?,?,?,?,?,?,?,?,?,?,?)";  
+			+ " WHERE " + ID + " IN (?,?,?,?,?,?,?,?,?,?,?)";
+	private static final String GET_QUESTIONS_BY_RANDOM = "SELECT * FROM " + TABLE_NAME
+			+ " ORDER BY RAND() LIMIT 11";
+	private static final String GET_QUESTIONS_RANDOM_CELEBRITY = "SELECT * FROM " +
+			TABLE_NAME + " WHERE MOD(" + CATEGORY + ",?) = 0 ORDER BY RAND() LIMIT 11";
 	
 	private static final Logger logger = LogManager.getLogger(QuestionDBHandler.class);
 	private static QuestionDBHandler instance = null;
@@ -82,9 +91,10 @@ public class QuestionDBHandler {
 			ps.setString(4, question.getnOptionC());
 			ps.setString(5, question.getnOptionD());
 			ps.setInt(6, question.getCorrectOption());
+			ps.setLong(7, question.getCategory());
+			ps.setInt(8, question.getTimeLine());
 			
 			int createResult = ps.executeUpdate();
-			logger.debug(" createResult {}", createResult);
 			return (createResult > 0);
 		} catch(SQLException ex) {
 			logger.error("Error creating question", ex);
@@ -99,10 +109,56 @@ public class QuestionDBHandler {
 		}
 	}
 	
-	public List<Question> getQuestionSet(Long[] ids) throws SQLException {
+	public List<Question> getRandomQues(int category) throws SQLException {
+		String psSql = GET_QUESTIONS_BY_RANDOM;
+		if (category != -1) {
+			psSql = GET_QUESTIONS_RANDOM_CELEBRITY;
+		}
 		
-		//logger.info("getQuestionSet called with {}", ids.length);
-		//logger.debug("In getQuestionSet() with {}", ids.length);
+		ConnectionPool cp = ConnectionPool.getInstance();
+		Connection dbConn = cp.getDBConnection();
+		PreparedStatement ps = dbConn.prepareStatement(psSql);
+		
+		if (category != -1) {
+			ps.setLong(1, category);
+		}
+		
+		List<Question> questionSet = new ArrayList<>(11);
+		int qNo = 1;
+		
+		try {
+			ResultSet rs = ps.executeQuery();
+			if (rs != null) {
+				while (rs.next()) {
+					Question question = new Question();
+					
+					question.setQuestionNumber(qNo++);
+					question.setnStatement(rs.getString(NSTATEMENT));
+					question.setnOptionA(rs.getString(NOPTION_A));
+					question.setnOptionB(rs.getString(NOPTION_B));
+					question.setnOptionC(rs.getString(NOPTION_C));
+					question.setnOptionD(rs.getString(NOPTION_D));
+					question.setCorrectOption(rs.getInt(CORRECTOPTION));
+					
+					questionSet.add(question);
+				}
+				rs.close();
+			}
+		} catch (SQLException ex) {
+			logger.error("SQLException in getRandomQues()", ex);
+			throw ex;
+		} finally {
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
+		return questionSet;
+	}
+	
+	public List<Question> getQuestionSet(Long[] ids) throws SQLException {
 		
 		ConnectionPool cp = ConnectionPool.getInstance();
 		Connection dbConn = cp.getDBConnection();
@@ -152,8 +208,6 @@ public class QuestionDBHandler {
 				dbConn.close();
 			}
 		}
-		//logger.debug("Question set size is {}" , questionSet.size());
-		//logger.info("Question set size is {}" , questionSet.size());
 		return questionSet;
 	}
 	
@@ -172,9 +226,6 @@ public class QuestionDBHandler {
             
             for (String line : list) {
             	line = line.trim();
-            	System.out.println("line1 : " + line);
-            	System.out.println("Len :" + line.length());
-            	
             	if (line.length() == 0) {
             		continue;
             	}
@@ -190,6 +241,9 @@ public class QuestionDBHandler {
     	    	String optionD = strTokenizer.nextToken().trim();
     	    	String correctOptionStr = strTokenizer.nextToken().trim();
     	    	int correctOption = Integer.parseInt(correctOptionStr);
+    	    	String categoryStr = strTokenizer.nextToken().trim();
+    	    	String timeLineStr = strTokenizer.nextToken().trim();
+    	    	int timeLineInt = Integer.parseInt(timeLineStr);
 
     	    	Question question = new Question();
     	    	question.setnStatement(statement);
@@ -198,6 +252,18 @@ public class QuestionDBHandler {
     	    	question.setnOptionC(optionC);
     	    	question.setnOptionD(optionD);
     	    	question.setCorrectOption(correctOption);
+    	    	question.setTimeLine(timeLineInt);
+    	    	
+    	    	System.out.println("categoryStr :" + categoryStr);
+    	    	StringTokenizer catTokenizer = new StringTokenizer(categoryStr, ",");
+    	    	long finalCategoryInt = 1;
+    	    	while (catTokenizer.hasMoreTokens()) {
+    	    		String token = catTokenizer.nextToken().trim();
+    	    		int tokenInt = Integer.parseInt(token);
+    	    		finalCategoryInt = finalCategoryInt * tokenInt; 
+    	    	}
+    	    	question.setCategory(finalCategoryInt);
+    	    	System.out.println("Ques " + question);
     	    	QuestionDBHandler.getInstance().createQuestion(question);
             }
         } catch (Exception e) {
@@ -265,5 +331,4 @@ public class QuestionDBHandler {
 	    	e.printStackTrace();  
 	    }
 	}
-
-	}
+}

@@ -10,7 +10,7 @@ import com.ab.quiz.pojo.PlayerAnswer;
 public class Test {
 	public void method1() {
 		System.out.println(System.currentTimeMillis());
-		List<GameDetails> futureGames = GameManager.getInstance().getFutureGames();
+		List<GameDetails> futureGames = GameManager.getInstance().getFutureGames(1);
 		
 		GameDetails gd = futureGames.get(0);
 		

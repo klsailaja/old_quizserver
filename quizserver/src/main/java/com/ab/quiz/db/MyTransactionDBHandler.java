@@ -161,9 +161,10 @@ public class MyTransactionDBHandler {
 					
 					int total = totalRs.getInt("COUNT(*)");
 					transactionsDetails.setTotal(total);
+					System.out.println("The total is " + total);
 					
 					int lowerRange = startRowNumber + 1;
-					int higherRange = startRowNumber + 4;
+					int higherRange = startRowNumber + 5;
 					
 					if (higherRange < total) {
 						transactionsDetails.setNextEnabled(true);

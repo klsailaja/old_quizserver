@@ -250,7 +250,7 @@ public class UserProfileDBHandler {
 					int total = totalRs.getInt("COUNT(*)");
 					
 					int lowerRange = startRowNumber + 1;
-					int higherRange = startRowNumber + 9;
+					int higherRange = startRowNumber + 10;
 					
 					if (higherRange < total) {
 						referalDetails.setNextEnabled(true);

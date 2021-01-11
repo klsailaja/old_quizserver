@@ -11,7 +11,6 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.ab.quiz.handlers.GameHandler;
 import com.ab.quiz.pojo.PlayerSummary;
 import com.ab.quiz.pojo.PrizeDetail;
 
@@ -35,7 +34,7 @@ public class LeaderBoard {
 				Integer correctQuestionCount2 = new Integer(summary2.getCorrectCount());
 				int c = correctQuestionCount1.compareTo(correctQuestionCount2);
 				c = c * -1;
-				if (c== 0) {
+				if (c == 0) {
 					Long totalTimeTake1 = new Long(summary1.getTotalTime());
 					Long totalTimeTake2 = new Long(summary2.getTotalTime());
 					c = totalTimeTake1.compareTo(totalTimeTake2);
