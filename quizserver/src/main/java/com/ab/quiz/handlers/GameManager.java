@@ -56,9 +56,6 @@ public class GameManager {
 		for (GameHandler gameHandler : gameHandlers) {
 			long gameId = gameHandler.getGameDetails().getGameId();
 			Long keyLong = new Long(gameId);
-			if (gameIdToGameHandler.get(keyLong) != null) {
-				logger.debug("*********" + keyLong);
-			}
 			gameIdToGameHandler.put(keyLong, gameHandler);
 		}
 		lock.writeLock().unlock();
