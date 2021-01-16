@@ -12,6 +12,11 @@ public class Question {
 	private String nOptionD;
 	private int correctOption;
 	private long questionStartTime;
+	private boolean isFlipUsed;
+	
+	public boolean isFlipUsed() { return isFlipUsed; }
+	
+	public void setFlipUsed(boolean isFlipUsed) { this.isFlipUsed = isFlipUsed; }
 	
 	public long getCategory() {
 		return category;

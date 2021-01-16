@@ -11,6 +11,7 @@ public class GameIdGenerator {
 	private static final Logger logger = LogManager.getLogger(GameIdGenerator.class);
 	private static GameIdGenerator instance = null;
 	private long lastGameId;
+	private int tempGameId;
 	
 	private GameIdGenerator() {
 	}
@@ -36,5 +37,13 @@ public class GameIdGenerator {
 	}
 	public long getNextGameId() {
 		return ++lastGameId;
+	}
+	
+	public int getTempGameId() {
+		if (tempGameId == 3501) {
+			tempGameId = 0;
+		}
+		++tempGameId;
+		return tempGameId;
 	}
 }

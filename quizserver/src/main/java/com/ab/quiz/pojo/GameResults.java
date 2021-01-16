@@ -1,15 +1,24 @@
 package com.ab.quiz.pojo;
 
+import java.util.Date;
+
 public class GameResults {
 	
 	private long id;
 	private long gameId;
 	private long gamePlayedTime;
-	private int ticketRate; 
-	private int currentCount;
+	private String celabrityName;
+	private int tktRate;
 	private String WinnersList;
 	
 	//userName:rank:correctCount:totalTime:amountWon;
+	
+	public int getTktRate() {
+		return tktRate;
+	}
+	public void setTktRate(int tktRate) {
+		this.tktRate = tktRate;
+	}
 	
 	public long getId() {
 		return id;
@@ -29,17 +38,11 @@ public class GameResults {
 	public void setGamePlayedTime(long gamePlayedTime) {
 		this.gamePlayedTime = gamePlayedTime;
 	}
-	public int getTicketRate() {
-		return ticketRate;
+	public String getCelabrityName() {
+		return celabrityName;
 	}
-	public void setTicketRate(int ticketRate) {
-		this.ticketRate = ticketRate;
-	}
-	public int getCurrentCount() {
-		return currentCount;
-	}
-	public void setCurrentCount(int currentCount) {
-		this.currentCount = currentCount;
+	public void setCelabrityName(String celabrityName) {
+		this.celabrityName = celabrityName;
 	}
 	public String getWinnersList() {
 		return WinnersList;
@@ -47,4 +50,15 @@ public class GameResults {
 	public void setWinnersList(String winnersList) {
 		WinnersList = winnersList;
 	}
+	
+	public String getGameTime() {
+		return new Date(gamePlayedTime).toString();
+	}
+	@Override
+	public String toString() {
+		return "GameResults [id=" + id + ", gameId=" + gameId + ", gamePlayedTime=" + gamePlayedTime + ", celabrityName="
+				+ celabrityName + ", WinnersList=" + WinnersList + "]";
+	}
+	
+	
 }

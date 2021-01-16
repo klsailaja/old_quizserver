@@ -24,4 +24,10 @@ public class GamePlayers {
 	public void setUserId(long userId) {
 		this.userId = userId;
 	}
+	@Override
+	public String toString() {
+		return "GamePlayers [id=" + id + ", gameId=" + gameId + ", userId=" + userId + "]";
+	}
+	
+	
 }

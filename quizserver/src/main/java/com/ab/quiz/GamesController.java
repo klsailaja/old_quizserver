@@ -62,7 +62,7 @@ public class GamesController extends BaseController {
 		return GameManager.getInstance().getGameStatus(gameId);
 	}
 	
-	@RequestMapping(value = "/{gametype}/status", method = RequestMethod.GET, produces = "application/json") 
+	@RequestMapping(value = "/{gametype}/allstatus", method = RequestMethod.GET, produces = "application/json") 
 	public @ResponseBody GameStatusHolder getAllGamesStatus(@PathVariable("gametype") int gametype) throws NotAllowedException, SQLException {
 		return GameManager.getInstance().getAllGamesStatus(gametype);
 	}
@@ -105,12 +105,6 @@ public class GamesController extends BaseController {
 			throws NotAllowedException {
 		return GameManager.getInstance().getLeaderBoard(gameId, qNo);
 	}
-	
-	
-	/*public List<MyTransactionsDAO> getMyTransactions(long userProfileId) {
-	  //get the list
-	}*/
-	
 	
 	/*public UserMoneyDAO getUserMoney(long userProfileId) {
 	}*/

@@ -395,13 +395,14 @@ public class UserProfileDBHandler {
 		userProfile.setBossReferredId("NoOne");
 		userProfile.setCreatedDate(1609861020944L);
 		userProfile.setLastLoggedTime(1609861020944L);
+		dbHandler.createUserProfile(userProfile);
 		
 		for (int index = 1; index <= 50; index ++) {
 			userProfile = new UserProfile();
 			userProfile.setEmailAddress("testuser" + index + ".com");
 			userProfile.setName("Testuser" + index);
 			userProfile.setPasswordHash("5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5");
-			userProfile.setBossReferredId("Rajasekh10");
+			userProfile.setBossReferredId("Rajase21");
 			userProfile.setCreatedDate(1609861020944L);
 			userProfile.setLastLoggedTime(1609861020944L);
 			

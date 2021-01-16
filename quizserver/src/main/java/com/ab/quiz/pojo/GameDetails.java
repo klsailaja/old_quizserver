@@ -11,9 +11,25 @@ public class GameDetails {
 	private int maxCapacity = 10;
 	private long startTime;
 	private int gameType;
+	private String celabrityName;
 	private int status;
+	private int tempGameId;
 	private List<Question> gameQuestions;
 	private Question flipQuestion;
+	
+	public String getCelabrityName() {
+		return celabrityName;
+	}
+	public void setCelabrityName(String celabrityName) {
+		this.celabrityName = celabrityName;
+	}
+	
+	public int getTempGameId() {
+		return tempGameId;
+	}
+	public void setTempGameId(int tempGameId) {
+		this.tempGameId = tempGameId;
+	}
 	
 	public long getGameId() {
 		return gameId;

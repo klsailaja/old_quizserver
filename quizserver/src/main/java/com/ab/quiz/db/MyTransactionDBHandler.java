@@ -50,11 +50,11 @@ public class MyTransactionDBHandler {
 			+ COMMENTS + ") VALUES"
 			+ "(?,?,?,?,?,?,?,?,?)";
 	private static final String GET_TRANSACTIONS_BY_USER_ID_ACC_TYPE = "SELECT * FROM " + TABLE_NAME 
-			+ " WHERE " + USERID + " = ? AND " + ACCOUNT_TYPE + " = ? ORDER BY " + DATE + " LIMIT ?, 5";
+			+ " WHERE " + USERID + " = ? AND " + ACCOUNT_TYPE + " = ? ORDER BY " + ID + " ASC LIMIT ?, 5";
 	
 	private static final String GET_TRANSACTIONS_BY_USER_ID = "SELECT * FROM " + TABLE_NAME 
-			+ " WHERE " + USERID + " = ? ORDER BY " + DATE + " LIMIT ?, 5";
-	
+			+ " WHERE " + USERID + " = ? ORDER BY " + ID + " ASC LIMIT ?, 5";
+		
 	private static final String GET_TOTAL_COUNT = "SELECT COUNT(*) FROM " + TABLE_NAME + " WHERE "
 			+ USERID + " = ?";
 	private static final String GET_TOTAL_COUNT_BY_ACCTYPE = "SELECT COUNT(*) FROM " + TABLE_NAME + " WHERE "
@@ -131,11 +131,6 @@ public class MyTransactionDBHandler {
 		ConnectionPool cp = ConnectionPool.getInstance();
 		Connection dbConn = cp.getDBConnection();
 		
-		System.out.println("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%");
-		System.out.println(totalSql);
-		System.out.println(sql);
-		
-		
 		PreparedStatement totalPs = dbConn.prepareStatement(totalSql);
 		PreparedStatement ps = dbConn.prepareStatement(sql);
 		
@@ -160,8 +155,8 @@ public class MyTransactionDBHandler {
 				if (totalRs.next()) {
 					
 					int total = totalRs.getInt("COUNT(*)");
+					logger.debug("total : {}", total);
 					transactionsDetails.setTotal(total);
-					System.out.println("The total is " + total);
 					
 					int lowerRange = startRowNumber + 1;
 					int higherRange = startRowNumber + 5;

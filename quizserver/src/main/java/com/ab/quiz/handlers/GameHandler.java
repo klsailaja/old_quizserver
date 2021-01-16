@@ -40,6 +40,7 @@ public class GameHandler {
 	private Map<Long, PlayerSummary> userProfileIdVsSummary = new HashMap<>();
 	private Map<Long, List<PlayerAnswer>> userProfileIdVsAnswers = new HashMap<>();
 	
+	// This map maintains the question number vs all game players summary as of that question 
 	private Map<Integer, List<PlayerSummary>> questionNoVsSummary = new HashMap<>();
 	
 	private static final Logger logger = LogManager.getLogger(GameHandler.class);
@@ -214,6 +215,7 @@ public class GameHandler {
 			GamePlayers player = new GamePlayers();
 			player.setGameId(gameDetails.getGameId());
 			player.setUserId(entry.getKey());
+			playersList.add(player);
 			
 		}
 		return playersList;

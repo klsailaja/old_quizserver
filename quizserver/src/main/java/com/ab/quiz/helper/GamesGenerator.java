@@ -147,7 +147,7 @@ public class GamesGenerator implements Runnable {
 			
 			LazyScheduler.getInstance().submit(new UpdateMaxGameIdTask(maxId));
 			LazyScheduler.getInstance().submit(new HistoryGameSaveTask(completedGames));
-			LazyScheduler.getInstance().submit(new DeleteCompletedGamesTask(completedGameIds), 2, TimeUnit.MINUTES);
+			LazyScheduler.getInstance().submit(new DeleteCompletedGamesTask(completedGameIds), 1, TimeUnit.MINUTES);
 			
 			List<GameHandler> inMemGames = null;
 			try {
@@ -173,6 +173,7 @@ public class GamesGenerator implements Runnable {
 				
 				lastGameId = GameIdGenerator.getInstance().getNextGameId();
 				gameDetails.setGameId(lastGameId);
+				gameDetails.setTempGameId(GameIdGenerator.getInstance().getTempGameId());
 				gameDetails.setTicketRate(QuizConstants.GAMES_RATES_IN_ONE_SLOT[j]);
 				gameDetails.setStartTime(lastProcessedTime);
 				gameDetails.setGameType(mode);
@@ -180,6 +181,7 @@ public class GamesGenerator implements Runnable {
 				int publicView = -1;
 				if (mode == 2) {
 					publicView = 104;
+					gameDetails.setCelabrityName("Samantha");
 				}
 				
 				List<Question> quizQuestions = QuestionDBHandler.getInstance().getRandomQues(publicView);
@@ -232,12 +234,12 @@ public class GamesGenerator implements Runnable {
 			switch (tktRate) {
 				case 10: {
 					userIdOffset = 21;
-					randomPlayerCount = 10;
+					randomPlayerCount = 0;
 					break;
 				}
 				case 20: {
 					userIdOffset = 31;
-					randomPlayerCount = 10;
+					randomPlayerCount = 0;
 					break;
 				}
 				case 50: {

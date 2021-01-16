@@ -8,11 +8,9 @@ import java.sql.SQLException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
 import com.ab.quiz.helper.LazyScheduler;
-import com.ab.quiz.helper.Utils;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.UserMoney;
 import com.ab.quiz.tasks.CreateTransactionTask;
