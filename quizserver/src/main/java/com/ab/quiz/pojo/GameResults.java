@@ -1,17 +1,22 @@
 package com.ab.quiz.pojo;
 
-import java.util.Date;
-
 public class GameResults {
 	
-	private long id;
+	private int sNo;
 	private long gameId;
 	private long gamePlayedTime;
-	private String celabrityName;
+	private String celebrityName;
 	private int tktRate;
 	private String WinnersList;
 	
 	//userName:rank:correctCount:totalTime:amountWon;
+	
+	public int getsNo() {
+		return sNo;
+	}
+	public void setsNo(int sNo) {
+		this.sNo = sNo;
+	}
 	
 	public int getTktRate() {
 		return tktRate;
@@ -20,12 +25,6 @@ public class GameResults {
 		this.tktRate = tktRate;
 	}
 	
-	public long getId() {
-		return id;
-	}
-	public void setId(long id) {
-		this.id = id;
-	}
 	public long getGameId() {
 		return gameId;
 	}
@@ -38,11 +37,11 @@ public class GameResults {
 	public void setGamePlayedTime(long gamePlayedTime) {
 		this.gamePlayedTime = gamePlayedTime;
 	}
-	public String getCelabrityName() {
-		return celabrityName;
+	public String getCelebrityName() {
+		return celebrityName;
 	}
-	public void setCelabrityName(String celabrityName) {
-		this.celabrityName = celabrityName;
+	public void setCelebrityName(String celebrityName) {
+		this.celebrityName = celebrityName;
 	}
 	public String getWinnersList() {
 		return WinnersList;
@@ -50,15 +49,4 @@ public class GameResults {
 	public void setWinnersList(String winnersList) {
 		WinnersList = winnersList;
 	}
-	
-	public String getGameTime() {
-		return new Date(gamePlayedTime).toString();
-	}
-	@Override
-	public String toString() {
-		return "GameResults [id=" + id + ", gameId=" + gameId + ", gamePlayedTime=" + gamePlayedTime + ", celabrityName="
-				+ celabrityName + ", WinnersList=" + WinnersList + "]";
-	}
-	
-	
 }

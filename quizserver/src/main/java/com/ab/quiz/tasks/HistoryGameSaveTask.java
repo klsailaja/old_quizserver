@@ -37,9 +37,9 @@ public class HistoryGameSaveTask implements Runnable {
 			gameResult.setGameId(gameId);
 			gameResult.setGamePlayedTime(startTime);
 			gameResult.setTktRate(ticketRate);
-			gameResult.setCelabrityName("NA");
+			gameResult.setCelebrityName("NA");
 			if (gameHandler.getGameDetails().getGameType() == 2) {
-				gameResult.setCelabrityName(gameHandler.getGameDetails().getCelabrityName());
+				gameResult.setCelebrityName(gameHandler.getGameDetails().getCelabrityName());
 			}
 			
 			List<PlayerSummary> winnersList = gameHandler.getLeaderBoardPositions(10);
@@ -57,7 +57,7 @@ public class HistoryGameSaveTask implements Runnable {
 				strBuffer.append(timeStr);
 				strBuffer.append(";");
 				strBuffer.append(winner.getAmountWon());
-				strBuffer.append(";");
+				strBuffer.append(":");
 				
 				UpdateUserLastLoggedTime run = new UpdateUserLastLoggedTime(winner.getUserProfileId());
 				//LazyScheduler.getInstance().submit(run);

@@ -16,12 +16,12 @@ import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.GameManager;
 import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.GameOperation;
-import com.ab.quiz.pojo.GameResults;
 import com.ab.quiz.pojo.GameStatus;
 import com.ab.quiz.pojo.GameStatusHolder;
 import com.ab.quiz.pojo.PlayerAnswer;
 import com.ab.quiz.pojo.PlayerSummary;
 import com.ab.quiz.pojo.PrizeDetail;
+import com.ab.quiz.pojo.UserHistoryGameDetails;
 
 @RestController
 @RequestMapping("/game")
@@ -37,19 +37,20 @@ public class GamesController extends BaseController {
 		return futureGames;
 	}
 
-	@RequestMapping(value = "/past/{userProfileId}", method = RequestMethod.GET, produces = "application/json")
-	public @ResponseBody List<GameResults> getHistoryGames(@PathVariable("userProfileId") long userProfileId) {
-		// Query from DB
-		logger.info("Call to getHistoryGames() with userProfileId {}", userProfileId);
-		List<GameResults> historyGames = GameManager.getInstance().getHistoryGames(userProfileId);
-		logger.info("Call to getHistoryGames() returned with {}", historyGames.size());
-		return historyGames;
-	}
-	
 	@RequestMapping(value = "/{gametype}/enrolled/{userProfileId}", method = RequestMethod.GET)
 	public @ResponseBody List<GameDetails> getEnrolledGames(@PathVariable("gametype") int gametype, 
 			@PathVariable("userProfileId") long userProfileId) {
+		
 		return GameManager.getInstance().getEnrolledGames(gametype, userProfileId);
+	}
+	
+	@RequestMapping(value = "/past/{userProfileId}/{startRowNo}", method = RequestMethod.GET)
+	public @ResponseBody UserHistoryGameDetails getHistoryGames(@PathVariable("userProfileId") long userProfileId, 
+			@PathVariable("startRowNo") int startRowNo) throws SQLException {
+		logger.info("Call to getHistoryGames() with userProfileId {}", userProfileId);
+		UserHistoryGameDetails userGameDetails = GameManager.getInstance().getHistoryGames(userProfileId, startRowNo);
+		logger.info("Call to getHistoryGames() returned with {}", userGameDetails.getHistoryGames().size());
+		return userGameDetails;
 	}
 	
 	@RequestMapping(value = "/{gameId}", method = RequestMethod.GET, produces = "application/json")

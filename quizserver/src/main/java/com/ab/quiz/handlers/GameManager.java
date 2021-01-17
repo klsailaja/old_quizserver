@@ -17,18 +17,19 @@ import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
+import com.ab.quiz.db.GameHistoryDBHandler;
 import com.ab.quiz.db.UserMoneyDBHandler;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.helper.Utils;
 import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.GameOperation;
-import com.ab.quiz.pojo.GameResults;
 import com.ab.quiz.pojo.GameStatus;
 import com.ab.quiz.pojo.GameStatusHolder;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.PlayerAnswer;
 import com.ab.quiz.pojo.PlayerSummary;
 import com.ab.quiz.pojo.PrizeDetail;
+import com.ab.quiz.pojo.UserHistoryGameDetails;
 import com.ab.quiz.pojo.UserMoney;
 
 public class GameManager {
@@ -105,8 +106,11 @@ public class GameManager {
 		return list;
 	}
 	
-	public List<GameResults> getHistoryGames(long userProfileId) {
-		return null;
+	public UserHistoryGameDetails getHistoryGames(long userProfileId, 
+			int startRowNo) throws SQLException {
+		
+		return GameHistoryDBHandler.getInstance().getUserPlayedGameDetails(userProfileId, 
+				startRowNo);
 	}
 	
 	public List<GameDetails> getEnrolledGames(int gametype, long userProfileId) {

@@ -10,9 +10,9 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.pojo.GamePlayers;
 import com.ab.quiz.pojo.GameResults;
 import com.ab.quiz.pojo.UserHistoryGameDetails;
-import com.ab.quiz.pojo.GamePlayers;
 
 /*
 CREATE TABLE GameHistory(id bigint NOT NULL AUTO_INCREMENT, 
@@ -56,9 +56,6 @@ public class GameHistoryDBHandler {
 			+ "(" + PLAYER_GAMEID + "," + PLAYER_USERID + ") VALUES"
 			+ "(?,?)";
 	
-	private static final String GET_PLAYER_HISTORY_ENTRY_BY_USERID = "SELECT " + PLAYER_GAMEID + " FROM " + PLAYER_HISTORY_TABLE_NAME 
-			+ " WHERE " + PLAYER_USERID + " = ?";
-	
 	private static final String GET_GAMEID_SET_BY_USERID = "SELECT " + PLAYER_GAMEID + " FROM " + PLAYER_HISTORY_TABLE_NAME 
 			+ " WHERE " + PLAYER_USERID + " = ? " + "ORDER BY " + PLAYER_ID + " LIMIT ?,10";
 	private static final String GET_TOTAL_COUNT = "SELECT COUNT(*) FROM " +  PLAYER_HISTORY_TABLE_NAME + " WHERE "
@@ -95,7 +92,7 @@ public class GameHistoryDBHandler {
 			ps.setLong(1, gameResults.getGameId());
 			ps.setLong(2, gameResults.getGamePlayedTime());
 			ps.setInt(3, gameResults.getTktRate());
-			ps.setString(4, gameResults.getCelabrityName());
+			ps.setString(4, gameResults.getCelebrityName());
 			ps.setString(5, gameResults.getWinnersList());
 			
 			int createResult = ps.executeUpdate();
@@ -176,7 +173,7 @@ public class GameHistoryDBHandler {
 		return gameIds;
 	}
 	
-	public List<GameResults> getUserPlayedGameDetails(long userId, int startRowNo)
+	public UserHistoryGameDetails getUserPlayedGameDetails(long userId, int startRowNo)
 			throws SQLException {
 		
 		logger.debug("getUserPlayedGameDetails is called with userId {} : startRowNo {}",
@@ -228,12 +225,14 @@ public class GameHistoryDBHandler {
 				rs = ps.executeQuery();
 				if (rs.next()) {
 					
+			
 					GameResults gameResult = new GameResults();
 					
+					gameResult.setsNo(++startRowNo);
 					gameResult.setGameId(rs.getLong(GAMEID));
 					gameResult.setGamePlayedTime(rs.getLong(GAME_PLAYED_TIME));
 					gameResult.setTktRate(rs.getInt(TICKET_RATE));
-					gameResult.setCelabrityName(rs.getString(CELEBRITY_NAME));
+					gameResult.setCelebrityName(rs.getString(CELEBRITY_NAME));
 					gameResult.setWinnersList(rs.getString(WINNERS_LIST));
 					
 					gameResultSet.add(gameResult);
@@ -261,14 +260,15 @@ public class GameHistoryDBHandler {
 			} catch (Exception ex) {
 			}
 		}
-		return gameResultSet;
+		historyGameDetails.setHistoryGames(gameResultSet);
+		return historyGameDetails;
 	}
 	
 	public static void main(String[] args) throws SQLException {
 		
 		GameHistoryDBHandler instance = GameHistoryDBHandler.getInstance();
-		List<GameResults> resultSet = instance.getUserPlayedGameDetails(48, 0);
-		for (GameResults res : resultSet) {
+		UserHistoryGameDetails results = instance.getUserPlayedGameDetails(48, 0);
+		for (GameResults res : results.getHistoryGames()) {
 			System.out.println(res);
 		}
 	}
