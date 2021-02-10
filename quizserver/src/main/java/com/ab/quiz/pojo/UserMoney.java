@@ -6,7 +6,28 @@ public class UserMoney {
 	private long loadedAmount;
 	private long winningAmount;
 	private long referalAmount;
+	private long loadedAmtLocked;
+	private long winningAmtLocked;
+	private long referalAmtLocked;
 	
+	public long getLoadedAmtLocked() {
+		return loadedAmtLocked;
+	}
+	public void setLoadedAmtLocked(long loadedAmtLocked) {
+		this.loadedAmtLocked = loadedAmtLocked;
+	}
+	public long getWinningAmtLocked() {
+		return winningAmtLocked;
+	}
+	public void setWinningAmtLocked(long winningAmtLocked) {
+		this.winningAmtLocked = winningAmtLocked;
+	}
+	public long getReferalAmtLocked() {
+		return referalAmtLocked;
+	}
+	public void setReferalAmtLocked(long referalAmtLocked) {
+		this.referalAmtLocked = referalAmtLocked;
+	}
 	public long getId() {
 		return id;
 	}

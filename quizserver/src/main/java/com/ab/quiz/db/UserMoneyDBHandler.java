@@ -10,17 +10,23 @@ import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
+import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.UserMoney;
+import com.ab.quiz.pojo.WDUserInput;
+import com.ab.quiz.pojo.WithdrawReqByPhone;
 import com.ab.quiz.tasks.CreateTransactionTask;
 
 /*
 CREATE TABLE UserMoney(id bigint NOT NULL AUTO_INCREMENT, 
-		userProfileId bigint NOT NULL, 
+		userProfileId bigint NOT NULL,
 		loadedAmount bigint, 
 		winningAmount bigint, 
-		referalAmount bigint, PRIMARY KEY (id));
+		referalAmount bigint, 
+		loadedAmtLocked bigint,
+		winningAmtLocked bigint,
+		referalAmtLocked bigint, PRIMARY KEY (id));
 */
 
 public class UserMoneyDBHandler {
@@ -33,28 +39,58 @@ public class UserMoneyDBHandler {
 	private static String LOADED_AMOUNT = "loadedAmount";
 	private static String WINNING_AMOUNT = "winningAmount";
 	private static String REFERAL_AMOUNT = "referalAmount";
+	private static String LOADED_AMOUNT_LOCKED = "loadedAmtLocked";
+	private static String WINNING_AMOUNT_LOCKED = "winningAmtLocked";
+	private static String REFERAL_AMOUNT_LOCKED = "referalAmtLocked";
+	
 	
 	private static UserMoneyDBHandler instance = null;
 	
 	private static final String CREATE_MONEY_ENTRY = "INSERT INTO UserMoney " 
-			+ "(" + USER_ID + "," + LOADED_AMOUNT + "," + WINNING_AMOUNT + "," + REFERAL_AMOUNT + ") VALUES"
-			+ "(?,?,?,?)";
+			+ "(" + USER_ID + "," + LOADED_AMOUNT + "," + WINNING_AMOUNT + ","
+			+ REFERAL_AMOUNT + "," + LOADED_AMOUNT_LOCKED + "," 
+			+ WINNING_AMOUNT_LOCKED + "," + REFERAL_AMOUNT_LOCKED + ","
+			+ ") VALUES" + "(?,?,?,?,?,?,?)";
+	
 	private static final String GET_MONEY_ENTRY_BY_USER_ID = "SELECT * FROM UserMoney WHERE " 
 			+ USER_ID + " = ?";
+	
 	private static final String UPDATE_LOADED_AMOUNT_BY_USER_ID = "UPDATE UserMoney SET " 
 			+ LOADED_AMOUNT + " = " + LOADED_AMOUNT + " + ? WHERE (" + USER_ID + " = ? AND ID <> 0)";
+	
 	private static final String UPDATE_WINNING_AMOUNT_BY_USER_ID = "UPDATE UserMoney SET " 
 			+ WINNING_AMOUNT + " = " + WINNING_AMOUNT + " + ? WHERE (" + USER_ID + " = ? AND ID <> 0)";
+	
 	private static final String UPDATE_REFERAL_AMOUNT_BY_USER_ID = "UPDATE UserMoney SET " 
 			+ REFERAL_AMOUNT + " = " + REFERAL_AMOUNT + " + ? WHERE (" + USER_ID + " = ? AND ID <> 0)";
+	
 	private static final String TRANSFER_AMOUNT_BY_USER_ID = "UPDATE UserMoney SET " 
 			+ WINNING_AMOUNT + " = " + WINNING_AMOUNT + " + ? , "
 			+ LOADED_AMOUNT + " = " + LOADED_AMOUNT + " + ? "
 			+ "WHERE (" + USER_ID + " = ? AND ID <> 0)";
+	
 	private static final String TRANSFER_RF_AMOUNT_BY_USER_ID = "UPDATE UserMoney SET " 
 			+ REFERAL_AMOUNT + " = " + REFERAL_AMOUNT + " + ? , "
 			+ LOADED_AMOUNT + " = " + LOADED_AMOUNT + " + ? "
 			+ "WHERE (" + USER_ID + " = ? AND ID <> 0)";
+	
+	public static final String WITHDRAW_LOADED_MONEY_BY_USER_ID = "UPDATE UserMoney SET " 
+			+ LOADED_AMOUNT + " = " + LOADED_AMOUNT + " + ? , "
+			+ LOADED_AMOUNT_LOCKED + " = " + LOADED_AMOUNT_LOCKED + " + ? "
+			+ "WHERE (" + USER_ID + " = ? AND ID <> 0)";
+	
+	public static final String WITHDRAW_WINNING_MONEY_BY_USER_ID = "UPDATE UserMoney SET " 
+			+ WINNING_AMOUNT + " = " + WINNING_AMOUNT + " + ? , "
+			+ WINNING_AMOUNT_LOCKED + " = " + WINNING_AMOUNT_LOCKED + " + ? "
+			+ "WHERE (" + USER_ID + " = ? AND ID <> 0)";
+	
+	public static final String WITHDRAW_REFERAL_MONEY_BY_USER_ID = "UPDATE UserMoney SET " 
+			+ REFERAL_AMOUNT + " = " + REFERAL_AMOUNT + " + ? , "
+			+ REFERAL_AMOUNT_LOCKED + " = " + REFERAL_AMOUNT_LOCKED + " + ? "
+			+ "WHERE (" + USER_ID + " = ? AND ID <> 0)";
+	
+	
+	
 	
 	
 	private UserMoneyDBHandler() {
@@ -82,6 +118,9 @@ public class UserMoneyDBHandler {
 			ps.setLong(2, userMoney.getLoadedAmount());
 			ps.setLong(3, userMoney.getWinningAmount());
 			ps.setLong(4, userMoney.getReferalAmount());
+			ps.setLong(5, userMoney.getLoadedAmtLocked());
+			ps.setLong(6, userMoney.getWinningAmtLocked());
+			ps.setLong(7, userMoney.getReferalAmtLocked());
 		
 			int createResult = ps.executeUpdate();
 			logger.debug(" createResult {}", createResult);
@@ -173,11 +212,12 @@ public class UserMoneyDBHandler {
 		
 		PreparedStatement ps = dbConn.prepareStatement(GET_MONEY_ENTRY_BY_USER_ID);
 		ps.setLong(1, userProfileId);
+		ResultSet rs = null;
 		
 		UserMoney userMoney = new UserMoney();
 		
 		try {
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 			if (rs != null) {
 				if (rs.next()) {
 					userMoney.setId(rs.getLong(ID));
@@ -185,13 +225,19 @@ public class UserMoneyDBHandler {
 					userMoney.setLoadedAmount(rs.getLong(LOADED_AMOUNT));
 					userMoney.setWinningAmount(rs.getLong(WINNING_AMOUNT));
 					userMoney.setReferalAmount(rs.getLong(REFERAL_AMOUNT));
+					userMoney.setLoadedAmtLocked(rs.getLong(LOADED_AMOUNT_LOCKED));
+					userMoney.setWinningAmtLocked(rs.getLong(WINNING_AMOUNT_LOCKED));
+					userMoney.setReferalAmtLocked(rs.getLong(REFERAL_AMOUNT_LOCKED));
 				}
-				rs.close();
+				
 			}
 		} catch (SQLException ex) {
 			logger.error("SQLException in getUserMoneyByProfileId()", ex);
 			throw ex;
 		} finally {
+			if (rs != null) {
+				rs.close();
+			}
 			if (ps != null) {
 				ps.close();
 			}
@@ -261,6 +307,69 @@ public class UserMoneyDBHandler {
 		return true;
 	}
 	
+	public boolean addWithdrawMoneyReq(WDUserInput wdUserInput, WithdrawReqByPhone byPhoneReq) 
+			throws SQLException {
+		
+		WithdrawByPhoneReqDBHandler phoneDBHandler = WithdrawByPhoneReqDBHandler.getInstance();
+		long phoneRecordId = phoneDBHandler.createReqByPhone(byPhoneReq);
+		if (phoneRecordId == -1) {
+			throw new SQLException("New Phone WithDraw Request not created for " + wdUserInput.getUserProfileId());
+		}
+		ConnectionPool cp = ConnectionPool.getInstance();
+		Connection dbConn = cp.getDBConnection();
+		String sqlQry = WITHDRAW_LOADED_MONEY_BY_USER_ID;
+		
+		int accountType = wdUserInput.getFromAccType();
+		UserMoneyAccountType userReqAccType = UserMoneyAccountType.findById(accountType);
+		if (userReqAccType == null) {
+			throw new NotAllowedException("Unknown Accont Type");
+		}
+		
+		switch (userReqAccType) {
+			case LOADED_MONEY: {
+				sqlQry = WITHDRAW_LOADED_MONEY_BY_USER_ID;
+				break;
+			}
+			case WINNING_MONEY: {
+				sqlQry = WITHDRAW_WINNING_MONEY_BY_USER_ID;
+				break;
+			}
+			case REFERAL_MONEY: {
+				sqlQry = WITHDRAW_REFERAL_MONEY_BY_USER_ID;
+				break;
+			}
+		}
+		
+		PreparedStatement ps = dbConn.prepareStatement(sqlQry);
+		
+		logger.debug("The qry is {}", sqlQry);
+		
+		int amt = wdUserInput.getAmount();
+		
+		ps.setLong(1, amt * -1);
+		ps.setLong(2, amt);
+		ps.setLong(3, wdUserInput.getUserProfileId());
+		
+		try {
+			int resultCount = ps.executeUpdate();
+			logger.debug("The updated row count {}", resultCount);
+		}
+		catch(SQLException ex) {
+			logger.error("Error in addWithdrawMoneyReq", ex);
+			throw ex;
+		} finally {
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
+		return true;
+
+		
+	}
+	
 	public boolean transferAmount(long userProfileId, long amt, int sourceAccType) throws SQLException {
 		
 		ConnectionPool cp = ConnectionPool.getInstance();
@@ -301,12 +410,14 @@ public class UserMoneyDBHandler {
 	public static void main(String[] args) throws SQLException {
 		
 		UserMoneyDBHandler userMoneyDBHandler = UserMoneyDBHandler.getInstance();
+		UserMoney userMoney = userMoneyDBHandler.getUserMoneyByProfileId(70);
 		
-		UserMoney userMoney = new UserMoney();
+		
+		/*UserMoney userMoney = new UserMoney();
 		userMoney.setUserId(1);
 		userMoney.setLoadedAmount(100);
 		userMoney.setWinningAmount(100);
-		userMoney.setReferalAmount(50);
+		userMoney.setReferalAmount(50);*/
 		
 		//UserMoney dbUserObj = userMoneyDBHandler.createUserMoney(userMoney);
 		//System.out.println(dbUserObj);
@@ -344,9 +455,9 @@ public class UserMoneyDBHandler {
 		dbUserObj = userMoneyDBHandler.getUserMoneyByProfileId(1);
 		System.out.println(dbUserObj);*/
 		
-		boolean result = userMoneyDBHandler.transferAmount(1, 30, 2);
+		/*boolean result = userMoneyDBHandler.transferAmount(1, 30, 2);
 		System.out.println("Load amt add result " + result);
 		UserMoney dbUserObj = userMoneyDBHandler.getUserMoneyByProfileId(1);
-		System.out.println(dbUserObj);
+		System.out.println(dbUserObj);*/
 	}
 }

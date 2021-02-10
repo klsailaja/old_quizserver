@@ -1,14 +1,12 @@
 package com.ab.quiz.pojo;
 
 public class WithdrawReqByBankAcc {
-	
 	private long id;
-	private long date;
-	private String accNumber;
-	private String ifscCode;
+	private String bankAccountNumber;
+	private String bankIfscCode;
 	private String bankName;
-	private String userName;
-	private long userProfielId;
+	private String bankBranchName;
+	private String bankAccountHolderName;
 	
 	public long getId() {
 		return id;
@@ -16,23 +14,17 @@ public class WithdrawReqByBankAcc {
 	public void setId(long id) {
 		this.id = id;
 	}
-	public long getDate() {
-		return date;
+	public String getBankAccountNumber() {
+		return bankAccountNumber;
 	}
-	public void setDate(long date) {
-		this.date = date;
+	public void setBankAccountNumber(String bankAccountNumber) {
+		this.bankAccountNumber = bankAccountNumber;
 	}
-	public String getAccNumber() {
-		return accNumber;
+	public String getBankIfscCode() {
+		return bankIfscCode;
 	}
-	public void setAccNumber(String accNumber) {
-		this.accNumber = accNumber;
-	}
-	public String getIfscCode() {
-		return ifscCode;
-	}
-	public void setIfscCode(String ifscCode) {
-		this.ifscCode = ifscCode;
+	public void setBankIfscCode(String bankIfscCode) {
+		this.bankIfscCode = bankIfscCode;
 	}
 	public String getBankName() {
 		return bankName;
@@ -40,16 +32,16 @@ public class WithdrawReqByBankAcc {
 	public void setBankName(String bankName) {
 		this.bankName = bankName;
 	}
-	public String getUserName() {
-		return userName;
+	public String getBankBranchName() {
+		return bankBranchName;
 	}
-	public void setUserName(String userName) {
-		this.userName = userName;
+	public void setBankBranchName(String bankBranchName) {
+		this.bankBranchName = bankBranchName;
 	}
-	public long getUserProfielId() {
-		return userProfielId;
+	public String getBankAccountHolderName() {
+		return bankAccountHolderName;
 	}
-	public void setUserProfielId(long userProfielId) {
-		this.userProfielId = userProfielId;
+	public void setBankAccountHolderName(String bankAccountHolderName) {
+		this.bankAccountHolderName = bankAccountHolderName;
 	}
 }
