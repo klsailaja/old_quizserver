@@ -1,5 +1,7 @@
 package com.ab.quiz.handlers;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -7,6 +9,7 @@ import java.sql.SQLException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.constants.PhonePaymentTypes;
 import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
@@ -14,6 +17,7 @@ import com.ab.quiz.constants.WithdrawReqType;
 import com.ab.quiz.db.ConnectionPool;
 import com.ab.quiz.db.UserMoneyDBHandler;
 import com.ab.quiz.db.WithdrawDBHandler;
+import com.ab.quiz.db.WithdrawReceiptDBHandler;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.helper.Utils;
@@ -21,7 +25,10 @@ import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.TransferRequest;
 import com.ab.quiz.pojo.UserMoney;
 import com.ab.quiz.pojo.WDUserInput;
+import com.ab.quiz.pojo.WithdrawReqByBank;
 import com.ab.quiz.pojo.WithdrawReqByPhone;
+import com.ab.quiz.pojo.WithdrawRequestInput;
+import com.ab.quiz.pojo.WithdrawRequestsHolder;
 import com.ab.quiz.tasks.CreateTransactionTask;
 
 public class UserMoneyHandler {
@@ -72,7 +79,7 @@ public class UserMoneyHandler {
 		String comments = "Loaded Money";
 		
 		MyTransaction transaction = Utils.getTransactionPojo(userProfileId,currentTime, 
-				amt, TransactionType.CREDITED.getId(), TransactionType.LOADED.getId(), userOB, userCB,
+				amt, TransactionType.CREDITED.getId(), accountType.getId(), userOB, userCB,
 				comments);
 		return UserMoneyDBHandler.getInstance().updateUserMoney(accountType, operType, userProfileId, 
 				longAmt, transaction);
@@ -99,8 +106,10 @@ public class UserMoneyHandler {
 	
 	// Withdraw support methods
 	
-	private boolean isUserEligibleForWD(WDUserInput wdUserInput, WithdrawReqByPhone byPhoneReq)
+	private boolean isUserEligibleForWD(WithdrawRequestInput wdInputObject)
 		throws NotAllowedException, SQLException {
+		
+		WDUserInput wdUserInput = wdInputObject.getWithdrawUserInput();
 		
 		long userProfileId = wdUserInput.getUserProfileId();
 		UserMoney userMoneyDb = UserMoneyDBHandler.getInstance().getUserMoneyByProfileId(userProfileId);
@@ -136,10 +145,40 @@ public class UserMoneyHandler {
 		if (wdUserInput.getAmount() > accountMoney) {
 			throw new NotAllowedException("Withdraw Amount is more than available amount");
 		}
+		
+		if (wdUserInput.getRequestType() == WithdrawReqType.BY_PHONE.getId()) {
+			WithdrawReqByPhone byPhone = wdInputObject.getByPhoneDetails();
+			if ((byPhone.getPhNumber() == null) || (byPhone.getPhNumber().length() == 0)) {
+				throw new NotAllowedException("Phone number is empty");
+			}
+			PhonePaymentTypes phonePayType = PhonePaymentTypes.findById(byPhone.getPaymentMethod());
+			if (phonePayType == null) {
+				throw new NotAllowedException("Invalid phone pay method");
+			}
+			if ((byPhone.getAccountHolderName() == null) || (byPhone.getAccountHolderName().length() == 0)) {
+				throw new NotAllowedException("User Name is empty");
+			}
+		} else if (wdUserInput.getRequestType() == WithdrawReqType.BY_BANK.getId()) {
+			
+			WithdrawReqByBank byBank = wdInputObject.getByBankDetails();
+			
+			if ((byBank.getAccountNumber() == null) || (byBank.getAccountNumber().length() == 0)) {
+				throw new NotAllowedException("Bank Account Number is empty");
+			}
+			if ((byBank.getIfscCode() == null) || (byBank.getIfscCode().length() == 0)) {
+				throw new NotAllowedException("Bank Ifsc Number is empty");
+			}
+			if ((byBank.getBankName() == null) || (byBank.getBankName().length() == 0)) {
+				throw new NotAllowedException("Bank Name is empty");
+			}
+			if ((byBank.getUserName() == null) || (byBank.getUserName().length() == 0)) {
+				throw new NotAllowedException("User Name is empty");
+			}
+		}
 		return true;
 	}
 	
-	private String getUserAccWithDrawSql(int accType) {
+	public String getUserAccWithDrawSql(int accType) {
 		
 		String wdSqlQry = UserMoneyDBHandler.WITHDRAW_LOADED_MONEY_BY_USER_ID; 
 		UserMoneyAccountType userReqAccType = UserMoneyAccountType.findById(accType);
@@ -159,16 +198,33 @@ public class UserMoneyHandler {
 		return wdSqlQry;
 	}
 	
-	public boolean withdrawMoney(WDUserInput wdUserInput, WithdrawReqByPhone byPhoneReq)
+	public boolean placeWithdrawMoneyRequest(WithdrawRequestInput wdInputObject)
 		throws NotAllowedException, SQLException {
 		
-		logger.info("WithdrawMoney is called with inputs {} and {}", wdUserInput, byPhoneReq);
-		boolean validOper = isUserEligibleForWD(wdUserInput, byPhoneReq);
+		boolean validOper = isUserEligibleForWD(wdInputObject);
+		
 		if (!validOper) {
 			return false;
 		}
+		
+		WDUserInput wdUserInput = wdInputObject.getWithdrawUserInput();
+		WithdrawReqByPhone byPhoneReq = wdInputObject.getByPhoneDetails();
+		WithdrawReqByBank byBankReq = wdInputObject.getByBankDetails();
+		if (byPhoneReq != null) {
+			byPhoneReq.setAccountHolderName(byPhoneReq.getAccountHolderName().trim());
+			byPhoneReq.setPhNumber(byPhoneReq.getPhNumber().trim());
+		}
+		if (byBankReq != null) {
+			byBankReq.setAccountNumber(byBankReq.getAccountNumber().trim());
+			byBankReq.setIfscCode(byBankReq.getIfscCode().trim());
+			byBankReq.setUserName(byBankReq.getUserName().trim());
+			byBankReq.setBankName(byBankReq.getBankName().trim());
+		}
+		
+		logger.info("WithdrawMoney is called with inputs {} and {} and {}", wdUserInput, byPhoneReq, byBankReq);
+		
 		WithdrawDBHandler wdDBHandler = WithdrawDBHandler.getInstance();
-		boolean wdrecordsCreated = wdDBHandler.createWithDrawReq(wdUserInput, byPhoneReq);
+		boolean wdrecordsCreated = wdDBHandler.createWithDrawReq(wdUserInput, byPhoneReq, byBankReq);
 		if (!wdrecordsCreated) {
 			logger.debug("Withdraw DB Records not created in DB");
 			return false;
@@ -205,7 +261,7 @@ public class UserMoneyHandler {
 		
 		
 		MyTransaction transaction = Utils.getTransactionPojo(userProfileId, timeEntry, 
-				wdUserInput.getAmount(), TransactionType.WITHDRAW_IN_PROGRESS.getId(), 
+				wdUserInput.getAmount(), TransactionType.OPEN.getId(), 
 				accType.getId(), userOB, userCB, comments);
 		
 		int operResult = 0;
@@ -243,7 +299,33 @@ public class UserMoneyHandler {
 		return true;
 	}
 	
-	public static void main(String[] args) throws NotAllowedException, SQLException {
+	public boolean cancelWithdrawRequest(long userProfileId, String withdrawRefId) 
+			throws SQLException,NotAllowedException {
+		
+		WithdrawDBHandler withdrawDbHandler = WithdrawDBHandler.getInstance();
+		return withdrawDbHandler.cancelWithdrawRequest(userProfileId, withdrawRefId);
+	}
+	
+	public boolean closeWithDrawRequest(String receiptFileName, String withdrawRefId, String wdClosedCmts) 
+			throws SQLException, NotAllowedException, FileNotFoundException {
+		
+		WithdrawDBHandler withdrawDbHandler = WithdrawDBHandler.getInstance();
+		return withdrawDbHandler.closeWithDrawRequest(receiptFileName, withdrawRefId, wdClosedCmts);
+	}
+	
+	public WithdrawRequestsHolder getWithdrawDataSet(long userProfileId, int startRowNumber, int state) 
+			throws SQLException, NotAllowedException {
+		
+		WithdrawDBHandler withdrawDbHandler = WithdrawDBHandler.getInstance();
+		return withdrawDbHandler.getWithdrawRequests(userProfileId, startRowNumber, state);
+	}
+	
+	public byte[] getReceiptContents(long id) throws NotAllowedException, SQLException {
+		WithdrawReceiptDBHandler wdReceiptDBHander = WithdrawReceiptDBHandler.getInstance();
+		return wdReceiptDBHander.getReceiptContents(id);
+	}
+	
+	public static void main(String[] args) throws NotAllowedException, SQLException, FileNotFoundException {
 		
 		WDUserInput wdInput = new WDUserInput();
 		
@@ -258,8 +340,23 @@ public class UserMoneyHandler {
 		byPhone.setPaymentMethod(1);
 		byPhone.setAccountHolderName("Rajasekhar");
 		
+		WithdrawRequestInput wdInputs = new WithdrawRequestInput();
+		wdInputs.setWithdrawUserInput(wdInput);
+		wdInputs.setByPhoneDetails(byPhone);
+		
 		UserMoneyHandler handler = UserMoneyHandler.getInstance();
-		boolean result = handler.withdrawMoney(wdInput, byPhone);
-		System.out.println("result is :" + result);
+		//boolean result = handler.placeWithdrawMoneyRequest(wdInputs);
+		//System.out.println("result is :" + result);
+		
+		/*boolean result = handler.cancelWithdrawRequest(70, "wu1np7BpZ1");
+		System.out.println("The WD Cancellation status is " + result);*/
+		
+		String filePath = "D:" + File.separator + "Projects" + File.separator + "Receipt.png";
+		
+		boolean result = handler.closeWithDrawRequest(filePath, "ZzSDhHHqP1", "Paid in Phone");
+		System.out.println("The WD Closure result is " + result);
+		
+		/*WithdrawRequestsHolder holder = handler.getWithdrawDataSet(70, 0, -1);
+		System.out.println(holder);*/
 	}
 }

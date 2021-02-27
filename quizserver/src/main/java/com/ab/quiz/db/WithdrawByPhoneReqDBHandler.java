@@ -23,6 +23,7 @@ public class WithdrawByPhoneReqDBHandler {
 	private static final Logger logger = LogManager.getLogger(WithdrawByPhoneReqDBHandler.class);
 	
 	private static String TABLE_NAME = "WithdrawByPhoneReq";
+	
 	private static String ID = "id";
 	private static String PHONE_NUMBER = "phoneNumber";
 	private static String PH_PAYMENT_METHOD = "paymentMethod";
@@ -31,6 +32,7 @@ public class WithdrawByPhoneReqDBHandler {
 	private static final String CREATE_WITHDRAW_BY_PHONE = "INSERT INTO " + TABLE_NAME   
 			+ "(" + PHONE_NUMBER + "," + PH_PAYMENT_METHOD + "," + USERNAME    
 			+ ") VALUES" + "(?,?,?)";
+	private static final String GET_WITHDRAW_BY_PHONE_BY_ID = "SELECT * FROM " + TABLE_NAME + " WHERE " + ID + " = ?";
 	
 	private static WithdrawByPhoneReqDBHandler instance = null;
 	
@@ -43,6 +45,44 @@ public class WithdrawByPhoneReqDBHandler {
 			instance = new WithdrawByPhoneReqDBHandler();
 		}
 		return instance;
+	}
+	
+	public WithdrawReqByPhone getWithdrawReqByPhoneById(long id) throws SQLException {
+		
+		logger.debug("getWithdrawReqByPhoneById called with {}", id);
+		ConnectionPool cp = null;
+		Connection dbConn = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		
+		try {
+			cp = ConnectionPool.getInstance();
+			dbConn = cp.getDBConnection();
+			ps = dbConn.prepareStatement(GET_WITHDRAW_BY_PHONE_BY_ID);
+			
+			ps.setLong(1, id);
+			rs = ps.executeQuery();
+			if (rs != null) {
+				if (rs.next()) {
+					
+					WithdrawReqByPhone byPhoneEntry = new WithdrawReqByPhone();
+					
+					byPhoneEntry.setId(id);
+					byPhoneEntry.setPhNumber(rs.getString(PHONE_NUMBER));
+					byPhoneEntry.setPaymentMethod(rs.getInt(PH_PAYMENT_METHOD));
+					byPhoneEntry.setAccountHolderName(rs.getString(USERNAME));
+					
+					rs.close();
+					ps.close();
+					dbConn.close();
+					return byPhoneEntry;
+				}
+			}
+		} catch (SQLException ex) {
+			logger.error("SQLException while getting the phone withdraw request details by id ", ex);
+			throw ex;
+		}
+		return null;
 	}
 	
 	/*
@@ -70,19 +110,18 @@ public class WithdrawByPhoneReqDBHandler {
 			
 			int createResult = ps.executeUpdate();
 			logger.debug("In createReqByPhone create op result : {}", createResult);
+			long withdrawReqId = -1;
 			
 			if (createResult > 0) {
 				rs = ps.getGeneratedKeys();
-				long withdrawReqId = -1;
 				if ((rs != null) && (rs.next())) {
 					withdrawReqId = rs.getLong(1);
 				}
-				if (withdrawReqId == -1) {
-					throw new SQLException("createReqByPhone new rec id is -1");
-				}
-				return withdrawReqId;
 			}
-			return -1;
+			if (withdrawReqId == -1) {
+				throw new SQLException("createReqByPhone new rec id is -1");
+			}
+			return withdrawReqId;
 		}
 		catch(SQLException ex) {
 			logger.error("Error creating withdraw req by phone ", ex);

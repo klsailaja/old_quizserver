@@ -1,9 +1,8 @@
 package com.ab.quiz.constants;
 
 public enum TransactionType {
-	
-	LOADED (1), WITHDRAW_IN_PROGRESS (2), CREDITED (3), DEBITED(4), 
-	TRANSFERRED_TO(5), TRANSFERRED_FROM(6), WITHDRAW_CANCELLED (7), WITHDRAW_CLOSED (8); 
+	CREDITED (1), DEBITED(2), OPEN (3), CANCELLED(4), CLOSED(5); 
+	// Loaded, WithdrawInitiated, WithdrawCompleted, Debited, Credited, TransferedTo, Refunded, TransferedFrom, PaidToReferal
 	
 	private final int id;
 	

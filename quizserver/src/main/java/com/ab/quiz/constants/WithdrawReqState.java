@@ -1,7 +1,7 @@
 package com.ab.quiz.constants;
 
 public enum WithdrawReqState {
-	OPEN (1), CLOSED (2);
+	OPEN (1), CLOSED(2), CANCELLED(3);
 	
 	private final int id;
 	

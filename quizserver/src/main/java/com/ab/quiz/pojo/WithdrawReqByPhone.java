@@ -30,6 +30,7 @@ public class WithdrawReqByPhone {
 	public void setAccountHolderName(String accountHolderName) {
 		this.accountHolderName = accountHolderName;
 	}
+	
 	@Override
 	public String toString() {
 		return "WithdrawReqByPhone [id=" + id + ", phNumber=" + phNumber + ", paymentMethod=" + paymentMethod

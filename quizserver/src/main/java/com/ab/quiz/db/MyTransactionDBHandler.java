@@ -44,16 +44,18 @@ public class MyTransactionDBHandler {
 	private static String CB = "closingBalance";
 	private static String COMMENTS = "comments";
 	
+	private static int MAX_ROWS = 5;
+	
 	private static final String CREATE_TRANSACTION_ENTRY = "INSERT INTO " + TABLE_NAME   
 			+ "(" + USERID + "," + DATE + "," + AMOUNT + "," + ACCOUNT_TYPE + ","
 			+ TRANSACTION_TYPE + "," + RESULT + "," + OB + "," + CB + "," 
 			+ COMMENTS + ") VALUES"
 			+ "(?,?,?,?,?,?,?,?,?)";
 	private static final String GET_TRANSACTIONS_BY_USER_ID_ACC_TYPE = "SELECT * FROM " + TABLE_NAME 
-			+ " WHERE " + USERID + " = ? AND " + ACCOUNT_TYPE + " = ? ORDER BY " + ID + " ASC LIMIT ?, 5";
+			+ " WHERE " + USERID + " = ? AND " + ACCOUNT_TYPE + " = ? ORDER BY " + ID + " ASC LIMIT ?, " + MAX_ROWS;
 	
 	private static final String GET_TRANSACTIONS_BY_USER_ID = "SELECT * FROM " + TABLE_NAME 
-			+ " WHERE " + USERID + " = ? ORDER BY " + ID + " ASC LIMIT ?, 5";
+			+ " WHERE " + USERID + " = ? ORDER BY " + ID + " ASC LIMIT ?, " + MAX_ROWS;
 		
 	private static final String GET_TOTAL_COUNT = "SELECT COUNT(*) FROM " + TABLE_NAME + " WHERE "
 			+ USERID + " = ?";
@@ -62,6 +64,8 @@ public class MyTransactionDBHandler {
 	
 	private static final Logger logger = LogManager.getLogger(MyTransactionDBHandler.class);
 	private static MyTransactionDBHandler instance = null;
+	
+	
 	
 	private MyTransactionDBHandler() {
 	}
@@ -159,14 +163,14 @@ public class MyTransactionDBHandler {
 					transactionsDetails.setTotal(total);
 					
 					int lowerRange = startRowNumber + 1;
-					int higherRange = startRowNumber + 5;
+					int higherRange = startRowNumber + MAX_ROWS;
 					
 					if (higherRange < total) {
 						transactionsDetails.setNextEnabled(true);
 					} else {
 						transactionsDetails.setNextEnabled(false);
 					}
-					if ((lowerRange - 5) > 0) {
+					if ((lowerRange - MAX_ROWS) > 0) {
 						transactionsDetails.setPrevEnabled(true);
 					} else {
 						transactionsDetails.setPrevEnabled(false);
@@ -196,7 +200,6 @@ public class MyTransactionDBHandler {
 					
 					myTransactions.add(userTrans);
 				}
-				transactionsDetails.setTransactionsList(myTransactions);
 				rs.close();
 			}
 		} catch (SQLException ex) {

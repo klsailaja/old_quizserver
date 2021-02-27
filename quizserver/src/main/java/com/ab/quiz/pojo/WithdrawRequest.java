@@ -7,12 +7,37 @@ public class WithdrawRequest {
 	private int fromAccType; // from user
 	private int reqStatus;
 	private int requestType; // from user
-	private int accountDetailsId;
+	private long accountDetailsId;
 	private int amount; // from user
-	private int openedTime; // from user
-	private int closedTime;
+	private long openedTime; // from user
+	private long closedTime;
 	private long receiptId;
 	private String closedComents;
+	private int sNo;
+	private WithdrawReqByPhone byPhone;
+	private WithdrawReqByBank byBank;
+	private byte[] receiptContents;
+	
+	public byte[] getReceiptContents() {
+		return receiptContents;
+	}
+	public void setReceiptContents(byte[] receiptContents) {
+		this.receiptContents = receiptContents;
+	}
+	
+	public void setByBank(WithdrawReqByBank byBank) {
+		this.byBank = byBank;
+	}
+	public WithdrawReqByBank getByBank() {
+		return byBank;
+	}
+	
+	public WithdrawReqByPhone getByPhone() {
+		return byPhone;
+	}
+	public void setByPhone(WithdrawReqByPhone byPhone) {
+		this.byPhone = byPhone;
+	}
 	
 	public long getId() {
 		return id;
@@ -50,10 +75,10 @@ public class WithdrawRequest {
 	public void setRequestType(int requestType) {
 		this.requestType = requestType;
 	}
-	public int getAccountDetailsId() {
+	public long getAccountDetailsId() {
 		return accountDetailsId;
 	}
-	public void setAccountDetailsId(int accountDetailsId) {
+	public void setAccountDetailsId(long accountDetailsId) {
 		this.accountDetailsId = accountDetailsId;
 	}
 	public int getAmount() {
@@ -62,16 +87,16 @@ public class WithdrawRequest {
 	public void setAmount(int amount) {
 		this.amount = amount;
 	}
-	public int getOpenedTime() {
+	public long getOpenedTime() {
 		return openedTime;
 	}
-	public void setOpenedTime(int openedTime) {
+	public void setOpenedTime(long openedTime) {
 		this.openedTime = openedTime;
 	}
-	public int getClosedTime() {
+	public long getClosedTime() {
 		return closedTime;
 	}
-	public void setClosedTime(int closedTime) {
+	public void setClosedTime(long closedTime) {
 		this.closedTime = closedTime;
 	}
 	public long getReceiptId() {
@@ -85,5 +110,20 @@ public class WithdrawRequest {
 	}
 	public void setClosedComents(String closedComents) {
 		this.closedComents = closedComents;
+	}
+	
+	public int getsNo() {
+		return sNo;
+	}
+	public void setsNo(int sNo) {
+		this.sNo = sNo;
+	}
+	@Override
+	public String toString() {
+		return "WithdrawRequest [id=" + id + ", refId=" + refId + ", userProfileId=" + userProfileId + ", fromAccType="
+				+ fromAccType + ", reqStatus=" + reqStatus + ", requestType=" + requestType + ", accountDetailsId="
+				+ accountDetailsId + ", amount=" + amount + ", openedTime=" + openedTime + ", closedTime=" + closedTime
+				+ ", receiptId=" + receiptId + ", closedComents=" + closedComents + ", sNo=" + sNo + ", byPhone="
+				+ byPhone + ", receiptContents=" + "]";
 	}
 }
