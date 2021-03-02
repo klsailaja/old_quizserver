@@ -39,7 +39,7 @@ public class HistoryGameSaveTask implements Runnable {
 			gameResult.setTktRate(ticketRate);
 			gameResult.setCelebrityName("NA");
 			if (gameHandler.getGameDetails().getGameType() == 2) {
-				gameResult.setCelebrityName(gameHandler.getGameDetails().getCelabrityName());
+				gameResult.setCelebrityName(gameHandler.getGameDetails().getCelebrityName());
 			}
 			
 			List<PlayerSummary> winnersList = gameHandler.getLeaderBoardPositions(10);

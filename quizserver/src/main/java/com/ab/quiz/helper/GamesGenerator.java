@@ -181,7 +181,7 @@ public class GamesGenerator implements Runnable {
 				int publicView = -1;
 				if (mode == 2) {
 					publicView = 104;
-					gameDetails.setCelabrityName("Samantha");
+					gameDetails.setCelebrityName("Samantha");
 				}
 				
 				List<Question> quizQuestions = QuestionDBHandler.getInstance().getRandomQues(publicView);

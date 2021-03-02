@@ -11,17 +11,17 @@ public class GameDetails {
 	private int maxCapacity = 10;
 	private long startTime;
 	private int gameType;
-	private String celabrityName;
+	private String celebrityName;
 	private int status;
 	private int tempGameId;
 	private List<Question> gameQuestions;
 	private Question flipQuestion;
 	
-	public String getCelabrityName() {
-		return celabrityName;
+	public String getCelebrityName() {
+		return celebrityName;
 	}
-	public void setCelabrityName(String celabrityName) {
-		this.celabrityName = celabrityName;
+	public void setCelebrityName(String celabrityName) {
+		this.celebrityName = celabrityName;
 	}
 	
 	public int getTempGameId() {

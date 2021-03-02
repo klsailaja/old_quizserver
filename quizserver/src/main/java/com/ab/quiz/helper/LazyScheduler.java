@@ -1,12 +1,13 @@
 package com.ab.quiz.helper;
 
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class LazyScheduler {
 	
-	private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
+	private ScheduledThreadPoolExecutor scheduler = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(4);
 	private static LazyScheduler instance = null;
 	
 	private LazyScheduler() {
@@ -15,6 +16,7 @@ public class LazyScheduler {
 	public static LazyScheduler getInstance() {
 		if (instance == null) {
 			instance = new LazyScheduler();
+			((ScheduledThreadPoolExecutor)instance.scheduler).setRemoveOnCancelPolicy(true);
 		}
 		return instance;
 	}
@@ -27,8 +29,8 @@ public class LazyScheduler {
 		scheduler.schedule(run, delay, timeUnit);
 	}
 	
-	public void submitRepeatedTask(Runnable run, long initialDelay, long delay, TimeUnit unit) {
-		scheduler.scheduleWithFixedDelay(run, initialDelay, delay, unit);
+	public ScheduledFuture<?> submitRepeatedTask(Runnable run, long initialDelay, long delay, TimeUnit unit) {
+		return scheduler.scheduleWithFixedDelay(run, initialDelay, delay, unit);
 	}
 	
 	public void shutDown() {
