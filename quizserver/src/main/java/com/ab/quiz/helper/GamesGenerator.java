@@ -32,7 +32,7 @@ public class GamesGenerator implements Runnable {
 	private long lastProcessedTime;
 	private long firstGameTime;
 	
-	private int mode = 1; // 1 - public, 2 - celebraties
+	private int mode = 1; // 1 - public, 2 - celebrities
 	
 	public GamesGenerator(int mode) {
 		this.mode = mode;

@@ -1,6 +1,5 @@
 package com.ab.quiz.pojo;
 
-import java.util.Date;
 import java.util.List;
 
 public class GameDetails {
@@ -17,13 +16,13 @@ public class GameDetails {
 	private List<Question> gameQuestions;
 	private Question flipQuestion;
 	
+	
 	public String getCelebrityName() {
 		return celebrityName;
 	}
-	public void setCelebrityName(String celabrityName) {
-		this.celebrityName = celabrityName;
+	public void setCelebrityName(String celebrityName) {
+		this.celebrityName = celebrityName;
 	}
-	
 	public int getTempGameId() {
 		return tempGameId;
 	}
@@ -84,9 +83,5 @@ public class GameDetails {
 	}
 	public void setFlipQuestion(Question question) {
 		this.flipQuestion = question;
-	}
-	
-	public String toString() {
-		return getGameId() + ":" + new Date(startTime);
 	}
 }

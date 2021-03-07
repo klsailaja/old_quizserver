@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.GameManager;
 import com.ab.quiz.pojo.ChatGameDetails;
+import com.ab.quiz.pojo.CurrentCategory;
 import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.GameOperation;
 import com.ab.quiz.pojo.GameStatus;
@@ -35,7 +36,7 @@ public class GamesController extends BaseController {
 	
 	@RequestMapping(value = "/{gametype}/future", method = RequestMethod.GET, produces = "application/json")
 	public @ResponseBody List<GameDetails> getFutureGames(@PathVariable("gametype") int gametype) {
-		logger.info("Call to getFutureGames()");
+		logger.info("Call to getFutureGames() with {}", gametype);
 		List<GameDetails> futureGames = GameManager.getInstance().getFutureGames(gametype);
 		logger.info("Call to getFutureGames() returned with {}", futureGames.size());
 		return futureGames;
@@ -44,7 +45,7 @@ public class GamesController extends BaseController {
 	@RequestMapping(value = "/{gametype}/enrolled/{userProfileId}", method = RequestMethod.GET)
 	public @ResponseBody List<GameDetails> getEnrolledGames(@PathVariable("gametype") int gametype, 
 			@PathVariable("userProfileId") long userProfileId) {
-		
+		logger.info("Call to getEnrolledGames() with {}", gametype);
 		return GameManager.getInstance().getEnrolledGames(gametype, userProfileId);
 	}
 	
