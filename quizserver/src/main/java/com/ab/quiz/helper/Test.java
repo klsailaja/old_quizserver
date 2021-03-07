@@ -55,13 +55,20 @@ public class Test {
 	
 	public static void main(String[] args) {
 		//new Test().method1();
-		System.out.println(19 / 20);
+		/*System.out.println(19 / 20);
 		System.out.println(20 / 20);
 		Test test = new Test();
 		for (int index = 1; index <= 10; index ++) {
 			int val = test.getRandomNumber(1, 10);
 			System.out.println(val);
+		}*/
+		
+		System.out.println("Hasini gadu");
+		int result = 0;
+		for (int index = 1; index <= 119; index = index + 2) {
+			result = result + index;
 		}
+		System.out.println("result : " + result);
 	}
 	
 	private int getRandomNumber(int min, int max) {

@@ -46,12 +46,15 @@ public class ChatService implements Runnable {
 	}
 	
 	public List<Chat> getMessages(long start, long end) {
-		List<Chat> list = new ArrayList<>();
+		List<Chat> chatList = new ArrayList<>();
 		lock.readLock().lock();
-		Predicate<Chat> betweenStartEnd = msg -> (msg.getTimeStamp() >= start && msg.getTimeStamp() <= end);
-		list = list.stream().filter(betweenStartEnd).collect(Collectors.toList());
+		long currentTime = System.currentTimeMillis();
+		Predicate<Chat> betweenStartEnd = msg -> ((msg.getSentTimeStamp() >= start && msg.getSentTimeStamp() <= end) && 
+				(msg.getGameStartTime() != -1 && currentTime < msg.getGameStartTime()));
+		chatList = list.stream().filter(betweenStartEnd).collect(Collectors.toList());
 		lock.readLock().unlock();
-		return list;
+		logger.info("Hasini .....In get messages :{} and {} ", chatList.size(), list.size());
+		return chatList;
 	}
 	
 	public void run() {
@@ -59,7 +62,7 @@ public class ChatService implements Runnable {
 			long currentTime = System.currentTimeMillis();
 			logger.info("Repeated Task in Chat service at {}", new Date(currentTime));
 			lock.writeLock().lock();
-			Predicate<Chat> byMsgAge = msg -> (currentTime - msg.getTimeStamp()) >= QuizConstants.DELETE_OLD_MSGS_TIME_PERIOD_IN_MILLIS; 
+			Predicate<Chat> byMsgAge = msg -> (currentTime - msg.getSentTimeStamp()) >= QuizConstants.DELETE_OLD_MSGS_TIME_PERIOD_IN_MILLIS; 
 			boolean anyMsgsRemoved = list.removeIf(byMsgAge);
 			lock.writeLock().unlock();
 			logger.info("Chat messages removed if any {}", anyMsgsRemoved);

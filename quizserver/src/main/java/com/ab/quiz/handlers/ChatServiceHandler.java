@@ -21,7 +21,7 @@ public class ChatServiceHandler {
 	}
 	
 	public boolean postMessage(Chat chatMsg) {
-		chatMsg.setTimeStamp(System.currentTimeMillis());
+		chatMsg.setSentTimeStamp(System.currentTimeMillis());
 		return chatService.post(chatMsg);
 	}
 	

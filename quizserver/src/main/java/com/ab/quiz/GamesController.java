@@ -1,6 +1,9 @@
 package com.ab.quiz;
 
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.GameManager;
+import com.ab.quiz.pojo.ChatGameDetails;
 import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.GameOperation;
 import com.ab.quiz.pojo.GameStatus;
@@ -107,18 +111,37 @@ public class GamesController extends BaseController {
 		return GameManager.getInstance().getLeaderBoard(gameId, qNo);
 	}
 	
-	/*public UserMoneyDAO getUserMoney(long userProfileId) {
-	}*/
-	
-	
-	/*public List<WithdrawHistoryDAO> getWithdrawHistory(long userProfileId) {
-	 / Create a req
-	  // get list
-	}*/
-	
-	/*
-	public boolean transferMoney(long userProfileId) {
+	@RequestMapping(value = "/chat/{gametype}", method = RequestMethod.GET, produces = "application/json")
+	public @ResponseBody List<ChatGameDetails> getBasicGameDetails(@PathVariable("gametype") int gametype) {
+		logger.info("Call to chat getBasicGameDetails()");
+		
+		List<GameDetails> futureGames = GameManager.getInstance().getFutureGames(gametype);
+		List<ChatGameDetails> basicDetails = new ArrayList<>();
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat();
+		String timePattern = "hh:mm";
+        
+		
+		for (GameDetails gd : futureGames) {
+			
+			if (gd.getTicketRate() == 0) {
+				continue;
+			}
+			
+			ChatGameDetails gameBasicDetails = new ChatGameDetails();
+			gameBasicDetails.setTicketRate(gd.getTicketRate());
+			gameBasicDetails.setGameType(gd.getGameType());
+			gameBasicDetails.setTempGameId(gd.getTempGameId());
+			gameBasicDetails.setCurrentCount(gd.getCurrentCount());
+			
+			simpleDateFormat.applyPattern(timePattern);
+	        String timeStr = simpleDateFormat.format(new Date(gd.getStartTime()));
+	        gameBasicDetails.setGameTime(timeStr);
+	        
+	        basicDetails.add(gameBasicDetails);
+			
+		}
+		logger.info("Call to chat getBasicGameDetails() returned with {}", basicDetails.size());
+		return basicDetails;
 	}
-	*/
 }
 
