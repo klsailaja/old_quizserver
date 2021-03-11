@@ -25,8 +25,8 @@ public class GamesGenerator implements Runnable {
 	
 	private static final Logger logger = LogManager.getLogger(GamesGenerator.class);
 	
-	private List<GameHandler> initialGameSet = new ArrayList<>(QuizConstants.MAX_TOTAL_GAMES);
-	private List<GameHandler> nextGameSet = new ArrayList<>(QuizConstants.MAX_TOTAL_GAMES);
+	private List<GameHandler> initialGameSet = new ArrayList<>(QuizConstants.MAX_TOTAL_GAMES_MIXED);
+	private List<GameHandler> nextGameSet = new ArrayList<>(QuizConstants.MAX_TOTAL_GAMES_MIXED);
 	
 	private long lastGameId;
 	private long lastProcessedTime;
@@ -102,7 +102,7 @@ public class GamesGenerator implements Runnable {
 		
 		long repeatedTaskInterval = QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS 
 				+ 1 * 1000;
-		long initailDelay = firstGameTime - System.currentTimeMillis() + repeatedTaskInterval; 
+		long initailDelay = firstGameTime - System.currentTimeMillis() + QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS - (23 * 1000); 
 		
 		LazyScheduler.getInstance().submitRepeatedTask(this, initailDelay, 
 					repeatedTaskInterval, TimeUnit.MILLISECONDS);
@@ -117,7 +117,7 @@ public class GamesGenerator implements Runnable {
 			}
 			
 			List<GameHandler> newGames = new ArrayList<>();
-			for (int index = 1; index <= QuizConstants.GAMES_RATES_IN_ONE_SLOT.length; index ++) {
+			for (int index = 1; index <= QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED.length; index ++) {
 				newGames.add(nextGameSet.remove(0));
 			}
 			
@@ -167,16 +167,23 @@ public class GamesGenerator implements Runnable {
 	private List<GameHandler> generateGameData(int slotCount) throws SQLException {
 		List<GameHandler> gameHandlerList = new ArrayList<>();
 		
+		int[] numberOfGamesInOneSlot = QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED;
+		int[] gameRates = QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED;
+		if (mode == 2) {
+			numberOfGamesInOneSlot = QuizConstants.GAMES_RATES_IN_ONE_SLOT_SPECIAL;
+			gameRates = QuizConstants.GAMES_RATES_IN_ONE_SLOT_SPECIAL;
+		}
+		
 		for (int i = 1; i <= slotCount; i ++) {
-			for (int j = 0; j < QuizConstants.GAMES_RATES_IN_ONE_SLOT.length; j ++) {
+			for (int j = 0; j < numberOfGamesInOneSlot.length; j ++) {
 				GameDetails gameDetails = new GameDetails();
 				
+				gameDetails.setGameType(mode);
 				lastGameId = GameIdGenerator.getInstance().getNextGameId();
 				gameDetails.setGameId(lastGameId);
 				gameDetails.setTempGameId(GameIdGenerator.getInstance().getTempGameId());
-				gameDetails.setTicketRate(QuizConstants.GAMES_RATES_IN_ONE_SLOT[j]);
+				gameDetails.setTicketRate(gameRates[j]);
 				gameDetails.setStartTime(lastProcessedTime);
-				gameDetails.setGameType(mode);
 				
 				int publicView = -1;
 				if (mode == 2) {
@@ -244,12 +251,12 @@ public class GamesGenerator implements Runnable {
 				}
 				case 50: {
 					userIdOffset = 41;
-					randomPlayerCount = 10;
+					randomPlayerCount = 0;
 					break;
 				}
 				case 75: {
 					userIdOffset = 51;
-					randomPlayerCount = 10;
+					randomPlayerCount = 0;
 					break;
 				}
 				case 100: {
@@ -288,7 +295,7 @@ public class GamesGenerator implements Runnable {
 		int userAnswerFinal = userAnswerMin + (int) (Math.random() * (userAnswerMax - userAnswerMin));
 		
 		int timeMin = 2;
-		int timeMax = 31;
+		int timeMax = 30;
 		int timeFinal = timeMin + (int) (Math.random() * (timeMax - timeMin));
 		int timeFinalMillis = timeFinal * 1000; 
 		

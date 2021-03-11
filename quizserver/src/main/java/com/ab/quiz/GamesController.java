@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.GameManager;
 import com.ab.quiz.pojo.ChatGameDetails;
-import com.ab.quiz.pojo.CurrentCategory;
 import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.GameOperation;
 import com.ab.quiz.pojo.GameStatus;
@@ -61,6 +60,13 @@ public class GamesController extends BaseController {
 	@RequestMapping(value = "/{gameId}", method = RequestMethod.GET, produces = "application/json")
 	public @ResponseBody GameDetails getGameById(@PathVariable("gameId") long gameId) throws NotAllowedException {
 		return GameManager.getInstance().getGameDetailsById(gameId);
+	}
+	
+	@RequestMapping(value = "/{gameId}/{userProfileId}/enrolledstatus", method = RequestMethod.GET, produces = "application/json")
+	public @ResponseBody String getEnrolledStatus(@PathVariable("gameId") long gameId, 
+			@PathVariable("userProfileId") long userProfileId) throws NotAllowedException{
+		Boolean result = GameManager.getInstance().getEnrolledStatus(gameId, userProfileId);
+		return Boolean.toString(result);
 	}
 	
 	@RequestMapping(value = "/{gameId}/status", method = RequestMethod.GET, produces = "application/json")

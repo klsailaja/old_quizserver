@@ -60,6 +60,14 @@ public class GameHandler {
 		return gameDetails;
 	}
 	
+	public int getAccountTypeUsed(long userProfileId) {
+		PlayerSummary playerSummary = userProfileIdVsSummary.get(userProfileId);
+		if (playerSummary == null) {
+			return -1;
+		}
+		return playerSummary.getAccountUsed();
+	}
+	
 	public boolean join(long userProfileId, int accountUsed) throws SQLException {
 		// Create a Player object and assign the id. Add to Map userProfileIdVsSummary
 		// Get the UserProfile object and assign the name.
@@ -150,6 +158,8 @@ public class GameHandler {
 			
 			userCreditedStatus.put(userProfileId, res);
 		}
+		
+		userProfileIdVsSummary.clear();
 		return userCreditedStatus;
 	}
 	

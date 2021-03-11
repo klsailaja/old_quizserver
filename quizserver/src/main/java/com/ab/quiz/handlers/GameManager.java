@@ -259,22 +259,39 @@ public class GameManager {
 		if (gameHandler == null) {
 			throw new NotAllowedException("Game does not exist " + gameId);
 		}
+
+		// Already enrolled.
+		boolean isAlreadyEnrolled = gameHandler.isUserEnrolled(gameOper.getUserProfileId());
+		if (isAlreadyEnrolled) {
+			return true;
+		}
+		
 		int gameType = gameHandler.getGameDetails().getGameType();
 		
 		// Step 2
 		long currentGameStartTime = gameHandler.getGameDetails().getStartTime();
 		List<GameDetails> enrolledGames = getEnrolledGames(gameType, gameOper.getUserProfileId());
 		if (enrolledGames.size() > 0) {
-			HashMap<Long, Long> startTimeToGameId = new HashMap<>();
+			HashMap<Long, Integer> startTimeToGameId = new HashMap<>();
 			for (GameDetails gameDetails : enrolledGames) {
-				startTimeToGameId.put(gameDetails.getStartTime(), gameDetails.getGameId());
+				startTimeToGameId.put(gameDetails.getStartTime(), gameDetails.getTempGameId());
 			}
-			Long enrolledGameId = startTimeToGameId.get(currentGameStartTime);
+			Integer enrolledGameId = startTimeToGameId.get(currentGameStartTime);
 			if (enrolledGameId != null) {
-				if (enrolledGameId == gameId) {
-					return true;
-				}
 				throw new NotAllowedException("Not Allowed as Already enrolled for game starting at same time with GameId#: " + enrolledGameId);
+			}
+			
+			// Check -5 and +5 minutes games too.
+			long fiveMinsBackTime = currentGameStartTime - (5 * 60 * 1000);
+			enrolledGameId = startTimeToGameId.get(fiveMinsBackTime);
+			if (enrolledGameId != null) {
+				throw new NotAllowedException("Not Allowed as Already enrolled for game with GameId#: " + enrolledGameId);
+			}
+			
+			long fiveMinsAfterTime = currentGameStartTime + (5 * 60 * 1000);
+			enrolledGameId = startTimeToGameId.get(fiveMinsAfterTime);
+			if (enrolledGameId != null) {
+				throw new NotAllowedException("Not Allowed as Already enrolled for game with GameId#: " + enrolledGameId);
 			}
 		}
 		
@@ -293,6 +310,16 @@ public class GameManager {
 		int currentCount = gameHandler.getEnrolledUserCount();
 		if ((currentCount + 1) > gameHandler.getGameDetails().getMaxCapacity()) {
 			throw new NotAllowedException("Max count reached. Please try next game");
+		}
+		
+		if (gameHandler.getGameDetails().getTicketRate() == 0) {
+			try {
+				boolean res = gameHandler.join(gameOper.getUserProfileId(), gameOper.getUserAccountType());
+				return res;
+			} catch (SQLException e) {
+				logger.error("Error while fetching User Profile Name Entry", e);
+			}
+			return true;
 		}
 		
 		try {
@@ -380,15 +407,17 @@ public class GameManager {
 			throw new NotAllowedException("Game already started. Cannot withdraw now");
 		}
 		if (currentTime < currentGameStartTime) {
-			if ((currentGameStartTime - currentTime) > QuizConstants.GAME_BEFORE_LOCK_PERIOD_IN_MILLIS) {
+			if ((currentGameStartTime - currentTime) <= QuizConstants.GAME_BEFORE_LOCK_PERIOD_IN_MILLIS) {
 				throw new NotAllowedException("Game about to start. Cannot withdraw now");
 			}
 		}
 		
-		UserMoneyAccountType accType = UserMoneyAccountType.findById(gameOper.getUserAccountType());
-		if (accType == null) {
-			throw new NotAllowedException("User Account not found " + gameOper.getUserAccountType());
+		int accountTypeUsedEarlier = gameHandler.getAccountTypeUsed(gameOper.getUserProfileId());
+		if (accountTypeUsedEarlier == -1) {
+			throw new NotAllowedException("User Account not found " + accountTypeUsedEarlier);
 		}
+		
+		UserMoneyAccountType accType = UserMoneyAccountType.findById(accountTypeUsedEarlier);
 		
 		try {
 			
@@ -438,7 +467,7 @@ public class GameManager {
 			}
 			long startTime = gameHandler.getGameDetails().getStartTime();
 			long diff = currentTime - startTime;
-			if (diff >= (QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS - 10 * 1000)) {
+			if (diff >= (QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS - (25 * 1000))) {
 				// Completed
 				list.add(gameHandler);
 			}
@@ -470,5 +499,13 @@ public class GameManager {
 			throw new NotAllowedException("Game not found with id " + gameId);
 		}
 		return gameHandler.getLeaderBoardPositions(qNo);
+	}
+	
+	public boolean getEnrolledStatus(long gameId, long userProfileId) throws NotAllowedException {
+		GameHandler gameHandler = gameIdToGameHandler.get(gameId);
+		if (gameHandler == null) {
+			throw new NotAllowedException("Game not found with id " + gameId);
+		}
+		return gameHandler.isUserEnrolled(userProfileId);
 	}
 }
