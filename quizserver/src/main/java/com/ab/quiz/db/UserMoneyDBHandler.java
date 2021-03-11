@@ -49,7 +49,7 @@ public class UserMoneyDBHandler {
 	private static final String CREATE_MONEY_ENTRY = "INSERT INTO UserMoney " 
 			+ "(" + USER_ID + "," + LOADED_AMOUNT + "," + WINNING_AMOUNT + ","
 			+ REFERAL_AMOUNT + "," + LOADED_AMOUNT_LOCKED + "," 
-			+ WINNING_AMOUNT_LOCKED + "," + REFERAL_AMOUNT_LOCKED + ","
+			+ WINNING_AMOUNT_LOCKED + "," + REFERAL_AMOUNT_LOCKED
 			+ ") VALUES" + "(?,?,?,?,?,?,?)";
 	
 	private static final String GET_MONEY_ENTRY_BY_USER_ID = "SELECT * FROM UserMoney WHERE " 
@@ -114,6 +114,8 @@ public class UserMoneyDBHandler {
 			dbConn = cp.getDBConnection();
 			ps = dbConn.prepareStatement(CREATE_MONEY_ENTRY);
 			
+			System.out.println(ps);
+			
 			ps.setLong(1, userMoney.getUserProfileId());
 			ps.setLong(2, userMoney.getLoadedAmount());
 			ps.setLong(3, userMoney.getWinningAmount());
@@ -121,7 +123,7 @@ public class UserMoneyDBHandler {
 			ps.setLong(5, userMoney.getLoadedAmtLocked());
 			ps.setLong(6, userMoney.getWinningAmtLocked());
 			ps.setLong(7, userMoney.getReferalAmtLocked());
-		
+			System.out.println(ps);
 			int createResult = ps.executeUpdate();
 			logger.debug(" createResult {}", createResult);
 		} catch(SQLException ex) {

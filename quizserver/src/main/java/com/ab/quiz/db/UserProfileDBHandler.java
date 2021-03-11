@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.pojo.ReferalDetails;
+import com.ab.quiz.pojo.UserMoney;
 import com.ab.quiz.pojo.UserProfile;
 import com.ab.quiz.pojo.UserReferal;
 
@@ -375,8 +376,10 @@ public class UserProfileDBHandler {
 		
 		UserProfileDBHandler dbHandler = UserProfileDBHandler.getInstance();
 		
+		UserMoneyDBHandler userMoneyDBHandler = UserMoneyDBHandler.getInstance(); 
+		
 		// System Users from 1 - 10
-		for (int index = 1; index <= 10; index ++) {
+		for (int index = 1; index <= 20; index ++) {
 			UserProfile userProfile = new UserProfile();
 			userProfile.setEmailAddress("systemuser" + index + "@gmail.com");
 			userProfile.setName("Systemuser" + index);
@@ -386,6 +389,7 @@ public class UserProfileDBHandler {
 			userProfile.setLastLoggedTime(1609861020944L);
 			
 			dbHandler.createUserProfile(userProfile);
+			
 		}
 		
 		UserProfile userProfile = new UserProfile();
@@ -397,7 +401,7 @@ public class UserProfileDBHandler {
 		userProfile.setLastLoggedTime(1609861020944L);
 		dbHandler.createUserProfile(userProfile);
 		
-		for (int index = 1; index <= 50; index ++) {
+		for (int index = 22; index <= 230; index ++) {
 			userProfile = new UserProfile();
 			userProfile.setEmailAddress("testuser" + index + "@gmail.com");
 			userProfile.setName("Testuser" + index);
@@ -407,6 +411,19 @@ public class UserProfileDBHandler {
 			userProfile.setLastLoggedTime(1609861020944L);
 			
 			dbHandler.createUserProfile(userProfile);
+		}
+		
+		for (int index = 1; index <= 230; index ++) {
+			UserMoney userMoney = new UserMoney();
+			userMoney.setUserId(index);
+			userMoney.setLoadedAmount(10000);
+			userMoney.setLoadedAmtLocked(0);
+			userMoney.setWinningAmount(0);
+			userMoney.setWinningAmtLocked(0);
+			userMoney.setReferalAmount(0);
+			userMoney.setReferalAmtLocked(0);
+			
+			userMoneyDBHandler.createUserMoney(userMoney);
 		}
 	}
 }

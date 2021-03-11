@@ -467,7 +467,7 @@ public class GameManager {
 			}
 			long startTime = gameHandler.getGameDetails().getStartTime();
 			long diff = currentTime - startTime;
-			if (diff >= (QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS - (25 * 1000))) {
+			if (diff >= (QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS - QuizConstants.START_PAYMENTS_BEFORE_COMPLETION_TIME_OFFSET)) {
 				// Completed
 				list.add(gameHandler);
 			}

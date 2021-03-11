@@ -28,11 +28,12 @@ public class GamesGenerator implements Runnable {
 	private List<GameHandler> initialGameSet = new ArrayList<>(QuizConstants.MAX_TOTAL_GAMES_MIXED);
 	private List<GameHandler> nextGameSet = new ArrayList<>(QuizConstants.MAX_TOTAL_GAMES_MIXED);
 	
-	private long lastGameId;
 	private long lastProcessedTime;
 	private long firstGameTime;
 	
 	private int mode = 1; // 1 - public, 2 - celebrities
+	
+	private static int simulationUserId = 21;
 	
 	public GamesGenerator(int mode) {
 		this.mode = mode;
@@ -67,6 +68,9 @@ public class GamesGenerator implements Runnable {
 	}
 	
 	public void buildInitialGameSet() {
+		if (QuizConstants.TESTMODE == 1) {
+			simulationUserId = 21;
+		}
 		logger.info("Creating the initial set for mode {}", mode);
 		try {
 			List<GameHandler> set = generateGameData(1);
@@ -80,6 +84,9 @@ public class GamesGenerator implements Runnable {
 	}
 	
 	public void buildNextGameSet() {
+		if (QuizConstants.TESTMODE == 1) {
+			simulationUserId = 21;
+		}
 		logger.info("Creating the next game set for mode {}", mode);
 		try {
 			List<GameHandler> set = generateGameData(1);
@@ -100,9 +107,10 @@ public class GamesGenerator implements Runnable {
 		
 		GameManager.getInstance().addNewGames(initialGameSet);
 		
-		long repeatedTaskInterval = QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS 
-				+ 1 * 1000;
-		long initailDelay = firstGameTime - System.currentTimeMillis() + QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS - (23 * 1000); 
+		long repeatedTaskInterval = QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS; 
+				
+		long initailDelay = firstGameTime - System.currentTimeMillis() + QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS
+				- QuizConstants.START_PAYMENTS_BEFORE_COMPLETION_TIME_OFFSET;
 		
 		LazyScheduler.getInstance().submitRepeatedTask(this, initailDelay, 
 					repeatedTaskInterval, TimeUnit.MILLISECONDS);
@@ -147,7 +155,11 @@ public class GamesGenerator implements Runnable {
 			
 			LazyScheduler.getInstance().submit(new UpdateMaxGameIdTask(maxId));
 			LazyScheduler.getInstance().submit(new HistoryGameSaveTask(completedGames));
-			LazyScheduler.getInstance().submit(new DeleteCompletedGamesTask(completedGameIds), 1, TimeUnit.MINUTES);
+			LazyScheduler.getInstance().submit(new DeleteCompletedGamesTask(completedGameIds), 2, TimeUnit.MINUTES);
+			
+			if (QuizConstants.TESTMODE == 1) {
+				simulationUserId = 21;
+			}
 			
 			List<GameHandler> inMemGames = null;
 			try {
@@ -158,6 +170,8 @@ public class GamesGenerator implements Runnable {
 				logger.error("SQL Exception in GamesGenerator Task ", ex);
 			}
 			logger.debug("In Memory game set size {}", nextGameSet.size());
+			
+			
 		}
 		catch (Exception ex) {
 			logger.error("Exception in the periodic task execution", ex);
@@ -168,10 +182,8 @@ public class GamesGenerator implements Runnable {
 		List<GameHandler> gameHandlerList = new ArrayList<>();
 		
 		int[] numberOfGamesInOneSlot = QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED;
-		int[] gameRates = QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED;
 		if (mode == 2) {
 			numberOfGamesInOneSlot = QuizConstants.GAMES_RATES_IN_ONE_SLOT_SPECIAL;
-			gameRates = QuizConstants.GAMES_RATES_IN_ONE_SLOT_SPECIAL;
 		}
 		
 		for (int i = 1; i <= slotCount; i ++) {
@@ -179,10 +191,11 @@ public class GamesGenerator implements Runnable {
 				GameDetails gameDetails = new GameDetails();
 				
 				gameDetails.setGameType(mode);
-				lastGameId = GameIdGenerator.getInstance().getNextGameId();
+				long lastGameId = GameIdGenerator.getInstance().getNextGameId();
+				logger.info("Last Game id is {}", lastGameId);
 				gameDetails.setGameId(lastGameId);
 				gameDetails.setTempGameId(GameIdGenerator.getInstance().getTempGameId());
-				gameDetails.setTicketRate(gameRates[j]);
+				gameDetails.setTicketRate(numberOfGamesInOneSlot[j]);
 				gameDetails.setStartTime(lastProcessedTime);
 				
 				int publicView = -1;
@@ -213,8 +226,9 @@ public class GamesGenerator implements Runnable {
 		return gameHandlerList;
 	}
 	
+	
 	private void handleFreeGame(GameHandler gameHandlerInstance) {
-		
+		logger.info("Game Ticket Rate {}", gameHandlerInstance.getGameDetails().getTicketRate());
 		if (QuizConstants.TESTMODE == 0) {
 			if (gameHandlerInstance.getGameDetails().getTicketRate() != 0) {
 				return;
@@ -235,47 +249,26 @@ public class GamesGenerator implements Runnable {
 		}
 		
 		if (QuizConstants.TESTMODE == 1) {
-			
-			int tktRate = gameHandlerInstance.getGameDetails().getTicketRate();
-			
-			switch (tktRate) {
-				case 10: {
-					userIdOffset = 21;
-					randomPlayerCount = 0;
-					break;
-				}
-				case 20: {
-					userIdOffset = 31;
-					randomPlayerCount = 0;
-					break;
-				}
-				case 50: {
-					userIdOffset = 41;
-					randomPlayerCount = 0;
-					break;
-				}
-				case 75: {
-					userIdOffset = 51;
-					randomPlayerCount = 0;
-					break;
-				}
-				case 100: {
-					userIdOffset = 61;
-					randomPlayerCount = 9;
-					break;
-				}
-			}
+			randomPlayerCount = 10;
 		}
-		
 		
 		for (int index = 1; index <= randomPlayerCount; index ++) {
 			
 			try {
-				long predefinedUserProfileId = index + userIdOffset;
+				long predefinedUserProfileId = ++simulationUserId;
+				logger.info("*****Game Id :" + gameHandlerInstance.getGameDetails().getGameId() + " :: " + predefinedUserProfileId);
 				
-				boolean res = gameHandlerInstance.join(predefinedUserProfileId, UserMoneyAccountType.LOADED_MONEY.getId());
+				if (QuizConstants.TESTMODE == 0) {
+					predefinedUserProfileId = index + userIdOffset;
+				}
 				
-				logger.info("System User with profileid {} added status {}", predefinedUserProfileId, res);
+				if (QuizConstants.TESTMODE == 0) {
+					boolean res = gameHandlerInstance.join(predefinedUserProfileId, UserMoneyAccountType.LOADED_MONEY.getId());
+					logger.info("System User with profileid {} added status {}", predefinedUserProfileId, res);
+				} else {
+					boolean res = gameHandlerInstance.join(predefinedUserProfileId, UserMoneyAccountType.LOADED_MONEY.getId());
+					logger.info("Testing User with profileid {} added status {}", predefinedUserProfileId, res);
+				}
 				
 				for (int qIndex = 1; qIndex <= 10; qIndex ++) {
 					PlayerAnswer playerAns = getRandomPlayerAnswer();
