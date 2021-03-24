@@ -1,0 +1,40 @@
+package com.ab.quiz.helper;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+public class WinMsgHandler implements Runnable {
+	
+	private static final Logger logger = LogManager.getLogger(WinMsgHandler.class);
+	private static WinMsgHandler instance = null;
+	
+	private List<String> winMsgs = new ArrayList<>();
+	
+	private WinMsgHandler() {
+	}
+	
+	public static WinMsgHandler getInstance() {
+		if (instance == null) {
+			logger.debug("In WinMsgHandler getInstance() method instance created");
+			instance = new WinMsgHandler();
+			instance.initialize();
+		}
+		return instance;
+	}
+	
+	private void initialize() {
+	}
+
+	@Override
+	public void run() {
+		try {
+			
+		} catch(Exception ex) {
+			
+		}
+	}
+}
