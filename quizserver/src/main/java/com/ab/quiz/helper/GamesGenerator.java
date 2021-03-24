@@ -12,8 +12,10 @@ import org.apache.logging.log4j.Logger;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.db.QuestionDBHandler;
+import com.ab.quiz.exceptions.NotSupportedException;
 import com.ab.quiz.handlers.GameHandler;
 import com.ab.quiz.handlers.GameManager;
+import com.ab.quiz.pojo.CelebrityDetails;
 import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.PlayerAnswer;
 import com.ab.quiz.pojo.Question;
@@ -179,32 +181,50 @@ public class GamesGenerator implements Runnable {
 	}
 	
 	private List<GameHandler> generateGameData(int slotCount) throws SQLException {
+		
 		List<GameHandler> gameHandlerList = new ArrayList<>();
 		
+		int celebId = -1;
+		List<CelebrityDetails> celebrityDetails = null;
+		
 		int[] numberOfGamesInOneSlot = QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED;
+		int noOfGamesInOneSlot = numberOfGamesInOneSlot.length;
 		if (mode == 2) {
 			numberOfGamesInOneSlot = QuizConstants.GAMES_RATES_IN_ONE_SLOT_SPECIAL;
+			noOfGamesInOneSlot = numberOfGamesInOneSlot.length;
 		}
 		
 		for (int i = 1; i <= slotCount; i ++) {
-			for (int j = 0; j < numberOfGamesInOneSlot.length; j ++) {
+			
+			// For every start time...
+			if (mode == 2) {
+				CelebritySpecialHandler handler = CelebritySpecialHandler.getInstance();
+				try {
+					celebrityDetails = handler.getCelebrityDetails(lastProcessedTime, noOfGamesInOneSlot);
+				} catch(NotSupportedException ex) {
+					logger.error("Exception in getting the celebrity details", ex);
+				}
+			}
+			for (int j = 0; j < noOfGamesInOneSlot; j ++) {
 				GameDetails gameDetails = new GameDetails();
 				
 				gameDetails.setGameType(mode);
 				long lastGameId = GameIdGenerator.getInstance().getNextGameId();
-				logger.info("Last Game id is {}", lastGameId);
 				gameDetails.setGameId(lastGameId);
 				gameDetails.setTempGameId(GameIdGenerator.getInstance().getTempGameId());
 				gameDetails.setTicketRate(numberOfGamesInOneSlot[j]);
 				gameDetails.setStartTime(lastProcessedTime);
 				
-				int publicView = -1;
+				
 				if (mode == 2) {
-					publicView = 104;
-					gameDetails.setCelebrityName("Samantha");
+					if (celebrityDetails != null) {
+						CelebrityDetails celebrityInfo = celebrityDetails.get(j);
+						gameDetails.setCelebrityName(celebrityInfo.getName());
+						celebId = celebrityInfo.getCode();
+					}
 				}
 				
-				List<Question> quizQuestions = QuestionDBHandler.getInstance().getRandomQues(publicView);
+				List<Question> quizQuestions = QuestionDBHandler.getInstance().getRandomQues(celebId);
 				Question flipQuestion = quizQuestions.remove(10);
 				gameDetails.setFlipQuestion(flipQuestion);
 				
@@ -228,7 +248,6 @@ public class GamesGenerator implements Runnable {
 	
 	
 	private void handleFreeGame(GameHandler gameHandlerInstance) {
-		logger.info("Game Ticket Rate {}", gameHandlerInstance.getGameDetails().getTicketRate());
 		if (QuizConstants.TESTMODE == 0) {
 			if (gameHandlerInstance.getGameDetails().getTicketRate() != 0) {
 				return;
@@ -256,7 +275,6 @@ public class GamesGenerator implements Runnable {
 			
 			try {
 				long predefinedUserProfileId = ++simulationUserId;
-				logger.info("*****Game Id :" + gameHandlerInstance.getGameDetails().getGameId() + " :: " + predefinedUserProfileId);
 				
 				if (QuizConstants.TESTMODE == 0) {
 					predefinedUserProfileId = index + userIdOffset;
@@ -264,10 +282,8 @@ public class GamesGenerator implements Runnable {
 				
 				if (QuizConstants.TESTMODE == 0) {
 					boolean res = gameHandlerInstance.join(predefinedUserProfileId, UserMoneyAccountType.LOADED_MONEY.getId());
-					logger.info("System User with profileid {} added status {}", predefinedUserProfileId, res);
 				} else {
 					boolean res = gameHandlerInstance.join(predefinedUserProfileId, UserMoneyAccountType.LOADED_MONEY.getId());
-					logger.info("Testing User with profileid {} added status {}", predefinedUserProfileId, res);
 				}
 				
 				for (int qIndex = 1; qIndex <= 10; qIndex ++) {

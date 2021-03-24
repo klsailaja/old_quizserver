@@ -62,20 +62,18 @@ public class Test {
 			int val = test.getRandomNumber(1, 10);
 			System.out.println(val);
 		}*/
+		String str1   = "మహేష్ బాబు మరియు రష్మిక మందాన కలిసి ";
+		String str2 = "నటించిన చిత్రం ఏది ";
 		
-		System.out.println("Hasini gadu");
-		int result = 0;
-		for (int index = 1; index <= 119; index = index + 2) {
-			result = result + index;
-		}
-		System.out.println("result : " + result);
+		String[] arry = new String[2];
+		arry[0] = str1 + str2;
+		System.out.println(arry[0]);
+		
 	}
 	
 	private int getRandomNumber(int min, int max) {
         return min + (int)(Math.random() * (max - min));
     }
-	
-	// +7 means 7, 70, 77
 	
 }
 

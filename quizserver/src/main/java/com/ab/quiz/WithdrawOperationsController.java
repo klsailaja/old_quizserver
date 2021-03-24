@@ -1,6 +1,7 @@
 package com.ab.quiz;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,9 +12,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ab.quiz.db.MyTransactionDBHandler;
+import com.ab.quiz.db.WithdrawDBHandler;
 import com.ab.quiz.exceptions.InternalException;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.UserMoneyHandler;
+import com.ab.quiz.helper.WinMsgHandler;
 import com.ab.quiz.pojo.WithdrawRequestInput;
 import com.ab.quiz.pojo.WithdrawRequestsHolder;
 
@@ -80,6 +84,30 @@ public class WithdrawOperationsController extends BaseController {
 		} catch (SQLException ex) {
 			logger.error("Exception in getReceiptContents", ex);
 			throw new InternalException("Server Error in getReceiptContents");
+		}
+	}
+	
+	@RequestMapping(value = "/wd/messages/{userId}", method = RequestMethod.GET, produces = "application/json")
+	public @ResponseBody List<String> getRecentWinWDMessages(@PathVariable long userId) 
+			throws NotAllowedException, InternalException {
+		logger.info("In getRecentWinWDMessages with userId {}", userId);
+		try {
+			List<String> combinedMsgs = WinMsgHandler.getInstance().getCombinedMessages();
+			if (userId != -1) {
+				List<String> gameWinMsgs = MyTransactionDBHandler.getInstance().getRecentWinRecords(userId);
+				List<String> withDrawMsgs = WithdrawDBHandler.getInstance().getRecentWinRecords(userId);
+				for (int index = withDrawMsgs.size() - 1; index >= 0; index--) {
+					combinedMsgs.add(0, withDrawMsgs.get(index));
+				}
+				for (int index = gameWinMsgs.size() - 1; index >= 0; index--) {
+					combinedMsgs.add(0, gameWinMsgs.get(index));
+				}
+			}
+			logger.info("combinedMsgs {}", combinedMsgs.size());
+			return combinedMsgs;
+		} catch (SQLException ex) {
+			logger.error("Exception in getRecentWinWDMessages", ex);
+			throw new InternalException("Server Error in getRecentWinWDMessages");
 		}
 	}
 }

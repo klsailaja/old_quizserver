@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.helper.GamesGenerator;
+import com.ab.quiz.helper.WinMsgHandler;
 
 @SpringBootApplication
 public class TeluguMovieQuizApplication implements ApplicationRunner {
@@ -61,6 +62,8 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 			
 			gameGenerator1.setupGames();
 			gameGenerator2.setupGames();
+			
+			WinMsgHandler.getInstance();
 			
 		} catch(SQLException ex) {
 			logger.error("SQLException in TeluguMovieQuizApplication", ex);

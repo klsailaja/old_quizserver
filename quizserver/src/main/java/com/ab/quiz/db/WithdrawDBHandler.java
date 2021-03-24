@@ -100,6 +100,12 @@ public class WithdrawDBHandler {
 			+ TRANSACTION_RECEIPT_ID + " = ? ," + CLOSED_CMTS + " = ? "
 			+ " WHERE (" + REFID + " = ? AND ID <> 0)";
 	
+	private static final String LATEST_WD_RECORDS = "SELECT " + USER_PROFILE_ID + "," + AMOUNT + "," 
+			+ REQUEST_CLOSED_TIME + " FROM " + TABLE_NAME 
+			+ " WHERE " + STATUS + " =? ORDER BY " + ID + " DESC LIMIT 0,120";
+	private static final String LATEST_BOSS_WD_RECORDS = "SELECT " + USER_PROFILE_ID + "," + AMOUNT + "," 
+			+ REQUEST_CLOSED_TIME + " FROM " + TABLE_NAME 
+			+ " WHERE " + USER_PROFILE_ID + " = ? AND " + STATUS + " =? ORDER BY " + ID + " DESC LIMIT 0,10"; 
 	
 	private WithdrawDBHandler() {
 	}
@@ -565,5 +571,72 @@ public class WithdrawDBHandler {
 		
 		sb.append(maxId);
 		return sb.toString();
+	}
+	
+	public List<String> getRecentWinRecords(long userProfileId) throws SQLException {
+		
+		ConnectionPool cp = ConnectionPool.getInstance();
+		Connection dbConn = cp.getDBConnection();
+		ResultSet rs = null;
+		
+		String sql = LATEST_WD_RECORDS;
+		if (userProfileId != -1) {
+			sql = LATEST_BOSS_WD_RECORDS;
+		}
+		
+		PreparedStatement ps = dbConn.prepareStatement(sql);
+		
+		if (userProfileId != -1) {
+			ps.setLong(1, userProfileId);
+			ps.setInt(2, WithdrawReqState.CLOSED.getId());
+		} else {
+			ps.setInt(1, WithdrawReqState.CLOSED.getId());
+		}
+		
+		List<String> winMessages = new ArrayList<>();
+		String msg1 = "$NAME WITHDREW Rs.$AMT RECENTLY";
+		String msg2 = "Your Referrer $NAME WITHDREW Rs.$AMT RECENTLY";
+		try {
+			rs = ps.executeQuery();
+			if (rs != null) {
+				while (rs.next()) {
+					long userId = rs.getLong(USER_PROFILE_ID);
+					int amt = rs.getInt(AMOUNT);
+					//long dateTime = rs.getLong(DATE);
+					
+					UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userId);
+					String str = msg1;
+					if (userProfileId != -1) {
+						str = msg2;
+					}
+					
+					str = str.replace("$NAME", userProfile.getName());
+					str = str.replace("$AMT", String.valueOf(amt));
+					
+					winMessages.add(str);
+				}
+			}
+		} catch(SQLException ex) {
+			throw ex;
+		} finally {
+			if (rs != null) {
+				rs.close();
+			}
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
+		return winMessages;
+	}
+	
+	public static void main(String[] args) throws SQLException {
+		WithdrawDBHandler instance = WithdrawDBHandler.getInstance();
+		List<String> msgs = instance.getRecentWinRecords(70);
+		for (String str : msgs) {
+			System.out.println(str);
+		}
 	}
 }

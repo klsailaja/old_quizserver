@@ -62,6 +62,11 @@ public class MyTransactionDBHandler {
 	private static final String GET_TOTAL_COUNT_BY_ACCTYPE = "SELECT COUNT(*) FROM " + TABLE_NAME + " WHERE "
 			+ USERID + " = ? AND " + ACCOUNT_TYPE + " = ?";
 	
+	private static final String LATEST_WIN_RECORDS = "SELECT " + USERID + "," + AMOUNT + "," + DATE + " FROM " + TABLE_NAME 
+			+ " WHERE " + COMMENTS + " LIKE 'Winning%' ORDER BY " + ID + " DESC LIMIT 0,120";
+	private static final String LATEST_BOSS_WIN_RECORDS = "SELECT " + USERID + "," + AMOUNT + "," + DATE + " FROM " + TABLE_NAME 
+			+ " WHERE " + USERID + " = ? AND " + COMMENTS + " LIKE 'Winning%' ORDER BY " + ID + " DESC LIMIT 0,10";
+	
 	private static final Logger logger = LogManager.getLogger(MyTransactionDBHandler.class);
 	private static MyTransactionDBHandler instance = null;
 	
@@ -112,6 +117,63 @@ public class MyTransactionDBHandler {
 				dbConn.close();
 			}
 		}
+	}
+	
+	public List<String> getRecentWinRecords(long userProfileId) throws SQLException {
+		
+		ConnectionPool cp = ConnectionPool.getInstance();
+		Connection dbConn = cp.getDBConnection();
+		ResultSet rs = null;
+		
+		String sql = LATEST_WIN_RECORDS;
+		if (userProfileId != -1) {
+			sql = LATEST_BOSS_WIN_RECORDS;
+		}
+		
+		System.out.println(sql);
+		PreparedStatement ps = dbConn.prepareStatement(sql);
+		
+		if (userProfileId != -1) {
+			ps.setLong(1, userProfileId);
+		}
+		
+		List<String> winMessages = new ArrayList<>();
+		String msg1 = "$NAME WON Rs.$AMT RECENTLY";
+		String msg2 = "Your Referrer $NAME WON Rs.$AMT RECENTLY";
+		try {
+			rs = ps.executeQuery();
+			if (rs != null) {
+				while (rs.next()) {
+					long userId = rs.getLong(USERID);
+					int amt = rs.getInt(AMOUNT);
+					//long dateTime = rs.getLong(DATE);
+					
+					UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userId);
+					String str = msg1;
+					if (userProfileId != -1) {
+						str = msg2;
+					}
+					
+					str = str.replace("$NAME", userProfile.getName());
+					str = str.replace("$AMT", String.valueOf(amt));
+					
+					winMessages.add(str);
+				}
+			}
+		} catch(SQLException ex) {
+			throw ex;
+		} finally {
+			if (rs != null) {
+				rs.close();
+			}
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
+		return winMessages;
 	}
 	
 	public TransactionsHolder getTransactions(long userProfileId, int startRowNumber, int accType) 
@@ -217,5 +279,13 @@ public class MyTransactionDBHandler {
 		}
 		transactionsDetails.setTransactionsList(myTransactions);
 		return transactionsDetails;
+	}
+	
+	public static void main(String[] args) throws SQLException {
+		MyTransactionDBHandler instance = MyTransactionDBHandler.getInstance();
+		List<String> msgs = instance.getRecentWinRecords(220);
+		for (String str : msgs) {
+			System.out.println(str);
+		}
 	}
 }
