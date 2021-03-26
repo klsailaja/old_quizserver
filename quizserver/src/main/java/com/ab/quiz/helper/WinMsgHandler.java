@@ -56,7 +56,7 @@ public class WinMsgHandler implements Runnable {
 				combinedMessages.add(gameWinMsgs.get(index));
 				combinedMessages.add(withDrawMsgs.get(index));
 			}
-			combinedMessages.addAll(remainingMsgs.subList(smallSize + 1, remainingMsgs.size()));
+			combinedMessages.addAll(remainingMsgs.subList(smallSize, remainingMsgs.size() - 1));
 		} catch(Exception ex) {
 			logger.error("Exception seen ", ex);
 		}
