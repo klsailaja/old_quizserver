@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARNING">
+    <Appenders>
+        
+    </Appenders>
+    <Loggers>
+        <Logger name="com.ab" level="debug" additivity="false">
+            <AppenderRef ref="rollingFile"/>
+            <AppenderRef ref="rollingFile"/>
+        </Logger>
+        <Logger name="org.springframework.boot" level="error" additivity="false">
+            <AppenderRef ref="rollingFile"/>
+        </Logger>
+        <Root level="error">
+            <AppenderRef ref="rollingFile"/>
+            <AppenderRef ref="rollingFile"/>
+        </Root>
+    </Loggers>
+</Configuration>
+

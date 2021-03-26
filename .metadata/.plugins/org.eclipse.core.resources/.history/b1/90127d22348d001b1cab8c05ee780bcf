@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARNING">
+    <Appenders>
+        <Console name="LogToConsole" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+        <File name="LogToFile" fileName="D:\\logs\\app.log">
+            <PatternLayout>
+                <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+            </PatternLayout>
+        </File>
+    </Appenders>
+    <RollingFile
+    	name="rollingFile"
+    	fileName="${LOG_DIR}/application.log"
+    	filePattern="${LOG_DIR}/application.%i.log.gz"
+    	ignoreExceptions="false">
+    	<PatternLayout>
+        	<Pattern>%d{yyyy-MM-dd HH:mm:ss} %-5p %m%n</Pattern>
+    	</PatternLayout>
+    	<Policies>
+        	<SizeBasedTriggeringPolicy size="10MB" />
+    	</Policies>
+    	<DefaultRolloverStrategy max="5" />
+	</RollingFile>
+    <Loggers>
+        <Logger name="com.ab" level="debug" additivity="false">
+            <AppenderRef ref="LogToFile"/>
+            <AppenderRef ref="LogToConsole"/>
+        </Logger>
+        <Logger name="org.springframework.boot" level="error" additivity="false">
+            <AppenderRef ref="LogToConsole"/>
+        </Logger>
+        <Root level="error">
+            <AppenderRef ref="LogToFile"/>
+            <AppenderRef ref="LogToConsole"/>
+        </Root>
+    </Loggers>
+</Configuration>
+
