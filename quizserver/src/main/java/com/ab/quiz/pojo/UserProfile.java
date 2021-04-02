@@ -10,6 +10,7 @@ public class UserProfile {
 	private String bossReferredId;
 	private long createdDate;
 	private long lastLoggedDate;
+	private String bossName;
 	
 	public long getId() {
 		return id;
@@ -60,6 +61,12 @@ public class UserProfile {
 		this.lastLoggedDate = lastLoggedDate;
 	}
 	
+	public String getBossName() {
+		return bossName;
+	}
+	public void setBossName(String bossName) {
+		this.bossName = bossName;
+	}
 	@Override
 	public String toString() {
 		return "UserProfile [id=" + id + ", phoneNumber=" + emailAddress + ", name=" + name + ", referalId=" + myReferalId

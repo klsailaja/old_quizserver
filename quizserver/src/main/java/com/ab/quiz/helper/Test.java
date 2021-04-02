@@ -56,19 +56,12 @@ public class Test {
 	public static void main(String[] args) {
 		//new Test().method1();
 		/*System.out.println(19 / 20);
-		System.out.println(20 / 20);
+		System.out.println(20 / 20);*/
 		Test test = new Test();
 		for (int index = 1; index <= 10; index ++) {
 			int val = test.getRandomNumber(1, 10);
 			System.out.println(val);
-		}*/
-		String str1   = "మహేష్ బాబు మరియు రష్మిక మందాన కలిసి ";
-		String str2 = "నటించిన చిత్రం ఏది ";
-		
-		String[] arry = new String[2];
-		arry[0] = str1 + str2;
-		System.out.println(arry[0]);
-		
+		}
 	}
 	
 	private int getRandomNumber(int min, int max) {

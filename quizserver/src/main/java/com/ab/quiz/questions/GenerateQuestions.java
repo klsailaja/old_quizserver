@@ -254,7 +254,7 @@ public class GenerateQuestions {
 	    				String artistName = strTokenizer2.nextToken();
 	    				String songList = strTokenizer2.nextToken();
 	    				map.put("%SS_ARTIST%", artistName);
-	    				List<String> categoryQuestions = getFormedQuestions(true, songList, "SS", categoryStr);
+	    				List<String> categoryQuestions = getFormedQuestions(false, songList, "SS", categoryStr);
 	    				finalQuestions.addAll(categoryQuestions);
 	    				break;
 	    			}

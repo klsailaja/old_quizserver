@@ -55,6 +55,10 @@ public class UserProfileController extends BaseController {
 		logger.info("createUserProfile is called with {}", userProfile.getEmailAddress());
 		
 		try {
+			UserProfile alreadyExistsOne = UserProfileHandler.getInstance().getUserProfileByMailId(userProfile.getEmailAddress());
+			if (alreadyExistsOne.getId() > 0) {
+				throw new NotAllowedException("Mail Id alredy registered. Please use forgot passwd option");
+			}
 			UserProfile dbUserProfile = UserProfileHandler.getInstance().createUserProfile(userProfile); 
 			logger.info("createUserProfile returning with {} and {}", dbUserProfile.getEmailAddress(), dbUserProfile.getId());
 			return dbUserProfile;
@@ -62,6 +66,54 @@ public class UserProfileController extends BaseController {
 		} catch (SQLException ex) {
 			logger.error("Exception in createUserProfile", ex);
 			throw new InternalException("Server Error in createUserProfile");
+		}
+	}
+	
+	@RequestMapping(value = "/forgot", method = RequestMethod.POST, produces = "application/json") 
+	public @ResponseBody UserProfile forgotPassword(@RequestBody UserProfile userProfile) 
+			throws NotAllowedException, InternalException {
+		
+		logger.info("forgotPassword is called with {}", userProfile.getEmailAddress());
+		try {
+			UserProfile alreadyExistsOne = UserProfileHandler.getInstance().getUserProfileByMailId(userProfile.getEmailAddress());
+			if (alreadyExistsOne.getId() == 0) {
+				throw new NotAllowedException("This Mail Id is not registered. Please check");
+			}
+			boolean updateResult = UserProfileHandler.getInstance().updateUserProfileDetails(userProfile, true);
+			if (!updateResult) {
+				throw new SQLException("Could not update profile contents for in forgot passwd case {}", userProfile.getEmailAddress());
+			}
+			
+			UserProfile dbProfile = UserProfileHandler.getInstance().getUserProfileByMailId(userProfile.getEmailAddress());
+			logger.info("updateUserProfile returning with {} and {}", dbProfile.getEmailAddress(), dbProfile.getId());
+			return dbProfile;
+		} catch (SQLException ex) {
+			logger.error("Exception in forgotPassword", ex);
+			throw new InternalException("Server Error in forgotPassword");
+		}
+	}
+	
+	@RequestMapping(value = "/update", method = RequestMethod.POST, produces = "application/json")
+	public @ResponseBody UserProfile updateUserProfile(@RequestBody UserProfile userProfile)
+			throws NotAllowedException, InternalException {
+		
+		logger.info("updateUserProfile is called with {}", userProfile.getEmailAddress());
+		try {
+			UserProfile alreadyExistsOne = UserProfileHandler.getInstance().getUserProfileByMailId(userProfile.getEmailAddress());
+			if (alreadyExistsOne.getId() == 0) {
+				throw new NotAllowedException("This Mail Id is not registered. Please check");
+			}
+			boolean updateResult = UserProfileHandler.getInstance().updateUserProfileDetails(userProfile, false);
+			if (!updateResult) {
+				throw new SQLException("Could not update profile contents for {}", userProfile.getEmailAddress());
+			}
+			
+			UserProfile dbProfile = UserProfileHandler.getInstance().getUserProfileByMailId(userProfile.getEmailAddress());
+			logger.info("updateUserProfile returning with {} and {}", dbProfile.getEmailAddress(), dbProfile.getId());
+			return dbProfile;
+		} catch (SQLException ex) {
+			logger.error("Exception in updateUserProfile", ex);
+			throw new InternalException("Server Error in updateUserProfile");
 		}
 	}
 	

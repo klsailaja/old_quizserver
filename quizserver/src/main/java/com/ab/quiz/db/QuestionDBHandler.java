@@ -140,6 +140,34 @@ public class QuestionDBHandler {
 					question.setnOptionD(rs.getString(NOPTION_D));
 					question.setCorrectOption(rs.getInt(CORRECTOPTION));
 					
+					int randomVal = getRandomNumber(1,5);
+					switch (randomVal) {
+						case 1: {
+							break;
+						}
+						case 2: {
+							String temp = question.getnOptionB();
+							question.setnOptionB(question.getnOptionA());
+							question.setnOptionA(temp);
+							question.setCorrectOption(2);
+							break;
+						}
+						case 3: {
+							String temp = question.getnOptionC();
+							question.setnOptionC(question.getnOptionA());
+							question.setnOptionA(temp);
+							question.setCorrectOption(3);
+							break;
+						}
+						case 4: {
+							String temp = question.getnOptionD();
+							question.setnOptionD(question.getnOptionA());
+							question.setnOptionA(temp);
+							question.setCorrectOption(4);
+							break;
+						}
+					}
+					
 					questionSet.add(question);
 				}
 				rs.close();
@@ -157,6 +185,10 @@ public class QuestionDBHandler {
 		}
 		return questionSet;
 	}
+	
+	private int getRandomNumber(int min, int max) {
+        return min + (int)(Math.random() * (max - min));
+    }
 	
 	public List<Question> getQuestionSet(Long[] ids) throws SQLException {
 		
@@ -259,7 +291,7 @@ public class QuestionDBHandler {
     	    	long finalCategoryInt = 1;
     	    	while (catTokenizer.hasMoreTokens()) {
     	    		String token = catTokenizer.nextToken().trim();
-    	    		int tokenInt = Integer.parseInt(token);
+    	    		long tokenInt = Long.parseLong(token);
     	    		finalCategoryInt = finalCategoryInt * tokenInt; 
     	    	}
     	    	question.setCategory(finalCategoryInt);

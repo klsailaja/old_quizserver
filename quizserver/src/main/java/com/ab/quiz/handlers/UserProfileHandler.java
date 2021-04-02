@@ -36,6 +36,11 @@ public class UserProfileHandler {
 		return UserProfileDBHandler.getInstance().getProfileByMailid(mailId);
 	}
 	
+	public boolean updateUserProfileDetails(UserProfile userProfile, boolean fromForgotPasswd) 
+			throws SQLException, NotAllowedException {
+		return UserProfileDBHandler.getInstance().updateUserProfileDetails(userProfile, fromForgotPasswd);
+	}
+	
 	public UserProfile login(LoginData loginData) throws SQLException,NotAllowedException {
 		String mailId = loginData.getMailAddress().trim();
 		String passwdHash = loginData.getPassword().trim();
@@ -52,7 +57,7 @@ public class UserProfileHandler {
 			return userProfile;
 		}
 		logger.info("Authentication is failure for {}", mailId);
-		throw new NotAllowedException("Incrrect Password. Use Forgot Password Option");
+		throw new NotAllowedException("Incorrect Password. Use Forgot Password Option");
 	}
 	
 	public UserProfile createUserProfile(UserProfile userProfile) throws NotAllowedException, SQLException {
@@ -123,4 +128,14 @@ public class UserProfileHandler {
         }
         return null;
     }
+	
+	public static void main(String[] args) throws NotAllowedException, SQLException {
+		
+		UserProfileHandler userProfileHandler = UserProfileHandler.getInstance();
+		
+		UserProfile userProfile = new UserProfile();
+		userProfile.setEmailAddress("ggraj.pec@gmail.com");
+		
+		userProfileHandler.updateUserProfileDetails(userProfile, true);
+	}
 }

@@ -1,5 +1,8 @@
 package com.ab.quiz.db;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,10 +15,14 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.exceptions.NotAllowedException;
+import com.ab.quiz.pojo.Mail;
 import com.ab.quiz.pojo.ReferalDetails;
 import com.ab.quiz.pojo.UserMoney;
 import com.ab.quiz.pojo.UserProfile;
 import com.ab.quiz.pojo.UserReferal;
+import com.ab.quiz.services.MailService;
+import com.ab.quiz.services.MailServiceImpl;
 
 /*
 CREATE TABLE UserProfile(id bigint NOT NULL AUTO_INCREMENT, 
@@ -60,8 +67,13 @@ public class UserProfileDBHandler {
 			+ CREATEDDATE + "," + LASTLOGGEDDATE + ") VALUES"   
 			+ "(?,?,?,?,?,?,?)";
 	private static final String MAX_USER_PROFILE_ID = "SELECT MAX(ID) FROM UserProfile";
-	private static final String UPDATE_NAME_BY_ID = "UPDATE UserProfile SET " + NAME + "= ? WHERE " + ID + " = ?";
+	
 	private static final String UPDATE_TIME_BY_ID = "UPDATE UserProfile SET " + LASTLOGGEDDATE + "= ? WHERE " + ID + " = ?";
+	private static final String UPDATE_PROFILE_BY_ID = "UPDATE UserProfile SET " + NAME + "= ? , " + PASSWD + "= ? WHERE " + ID + " = ?";
+	
+	private static final String SOURCE = "0123456789"; //ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz 
+			
+	private static final SecureRandom secureRnd = new SecureRandom();
 			
 		
 	private UserProfileDBHandler() {
@@ -191,6 +203,8 @@ public class UserProfileDBHandler {
 					userProfile.setBossReferredId(rs.getString(REFERED_ID));
 					userProfile.setCreatedDate(rs.getLong(CREATEDDATE));
 					userProfile.setLastLoggedTime(rs.getLong(LASTLOGGEDDATE));
+					UserProfile bossUserProfile = getProfileByBossRefaralCode(userProfile.getBossReferredId());
+					userProfile.setBossName(bossUserProfile.getName());
 				}
 				rs.close();
 			}
@@ -320,6 +334,72 @@ public class UserProfileDBHandler {
 		}
 	}
 	
+	public boolean updateUserProfileDetails(UserProfile userProfile, boolean fromForgotPasswd) 
+			throws SQLException, NotAllowedException {
+		
+		logger.debug("This is in updateUserProfileDetails {}" + userProfile.getEmailAddress());
+		UserProfile dbObject = getProfileByMailid(userProfile.getEmailAddress().trim());
+		if (dbObject.getId() == 0) {
+			throw new NotAllowedException(userProfile.getEmailAddress().trim() + " does not exist");
+		}
+		
+		String userName;
+		String passwd = getRandomPasswd(4);;
+		String passwdHash;
+		
+		if (fromForgotPasswd) {
+			userName = dbObject.getName().trim();
+			passwdHash = getPasswordHash(passwd);
+			
+		} else {
+			userName = userProfile.getName();
+			passwdHash = userProfile.getPasswordHash();
+		}
+		
+		ConnectionPool cp = ConnectionPool.getInstance();
+		Connection dbConn = cp.getDBConnection();
+		PreparedStatement ps = dbConn.prepareStatement(UPDATE_PROFILE_BY_ID);
+		ps.setString(1, userName);
+		ps.setString(2, passwdHash);
+		ps.setLong(3, dbObject.getId());
+		
+		try {
+			int resultCount = ps.executeUpdate();
+			logger.debug("The updated row count {}", resultCount);
+		}
+		catch(SQLException ex) {
+			logger.error("Error updating in updateUserProfileDetails", ex);
+			throw ex;
+		} finally {
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
+		
+        Mail mail = new Mail();
+        
+        mail.setMailFrom("ggraj.pec@gmail.com");
+        mail.setMailTo("sailaja.amc@gmail.com");
+        mail.setMailSubject("From Satya Hasini");
+        
+        mail.setMailContent("Your password has been reset. Please login with " + passwd + " If not reset by you, please change the password using ChangePassword\n\nThanks\nTeluguQuiz");
+        
+        MailService mailService = new MailServiceImpl();
+        mailService.sendEmail(mail);
+		return true;
+	}
+	
+	private String getRandomPasswd(int maxLen) {
+		StringBuilder sb = new StringBuilder(maxLen); 
+		for (int i = 0; i < maxLen; i++) 
+			sb.append(SOURCE.charAt(secureRnd.nextInt(SOURCE.length())));
+		return sb.toString();
+	}
+	
+	/*
 	public boolean updateUserProfileName(String name, long id) throws SQLException {
 		logger.debug("This is in updateUserProfileName {} {}", name, id);
 		ConnectionPool cp = ConnectionPool.getInstance();
@@ -345,7 +425,7 @@ public class UserProfileDBHandler {
 			}
 		}
 		return true;
-	}
+	}*/
 	
 	public boolean updateUserProfileLoggedTime(long id) throws SQLException {
 		logger.debug("This is in updateUserProfileLoggedTime {}", id);
@@ -371,6 +451,25 @@ public class UserProfileDBHandler {
 		}
 		return true;
 	}
+	
+	public static String getPasswordHash(String password) {
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e1) {
+            e1.printStackTrace();
+        }
+        if (md == null) {
+            return null;
+        }
+        md.update(password.getBytes());
+        byte [] byteData = md.digest();
+        StringBuilder sb = new StringBuilder();
+        for (byte byteDatum : byteData) {
+            sb.append(Integer.toString((byteDatum & 0xff) + 0x100, 16).substring(1));
+        }
+        return sb.toString();
+    }
 	
 	public static void main(String[] args) throws SQLException {
 		
@@ -426,4 +525,6 @@ public class UserProfileDBHandler {
 			userMoneyDBHandler.createUserMoney(userMoney);
 		}
 	}
+	
+	
 }
