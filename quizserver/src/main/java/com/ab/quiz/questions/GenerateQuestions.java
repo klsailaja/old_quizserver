@@ -16,6 +16,8 @@ public class GenerateQuestions {
 	
 	private static List<String> celebrityNames = new ArrayList<>();
 	private static List<String> questionsList = new ArrayList<>();
+	private static List<String> extraOptionsList = new ArrayList<>();
+	private static Map<String,List<String>> extraOptionsMap = new HashMap<>();
 	
 	private static HashMap<String,String> map = new HashMap<>();
 	
@@ -64,8 +66,38 @@ public class GenerateQuestions {
 	private static List<String> getFormedQuestions(boolean isCelebrity, String tokensList, String prefixStr, String categoryStr) {
 		
 		tokensList = tokensList.trim();
+		//System.out.println("tokensList :" + tokensList);
 		List<String> questions = new ArrayList<>();
 		List<String> tokens = getStrTokens(tokensList);
+		/*for (String pstr : tokens) {
+			System.out.println("pstr :" + pstr);
+		}
+		System.out.println(tokens.toString());*/
+		
+		
+		int totalTokensCt = 4;
+		if (categoryStr.equals("a")) {
+			totalTokensCt = 7;
+		}
+		
+		int fillCt = totalTokensCt - tokens.size();
+		List<String> extraOptionsList = extraOptionsMap.get(categoryStr);
+		
+		if (extraOptionsList != null) {
+			int size = extraOptionsList.size();
+			//System.out.println("categoryStr :" + categoryStr);
+			//System.out.println("size :" + size);
+			//System.out.println("tokens :" + tokens.size());
+			if ((size > 0) && (tokens.size() > 0)) {
+				for (int index = 1; index <= fillCt; index ++) {
+					int randomIndex = getRandomNumber(0, size);
+					while (tokens.contains(extraOptionsList.get(randomIndex))) {
+						randomIndex = getRandomNumber(0, size);
+					}
+					tokens.add(extraOptionsList.get(randomIndex));
+				}
+			}
+		}
 		
 		if (isCelebrity) {
 			formCelebrity(tokens.get(0));
@@ -100,6 +132,21 @@ public class GenerateQuestions {
 		Path questionListFileNamePath = Paths.get(questionListFileName);
 		
 		List<String> questionsTempList = Files.readAllLines(questionListFileNamePath, StandardCharsets.UTF_8);
+		
+		String extraOptionsFileName = "D:\\Projects\\Games\\MovieExtraOptions.txt";
+		Path extraOptionsFileNamePath = Paths.get(extraOptionsFileName);
+		extraOptionsList = Files.readAllLines(extraOptionsFileNamePath, StandardCharsets.UTF_8);
+		
+		for (String extraOption : extraOptionsList) {
+			extraOption = extraOption.trim();
+			StringTokenizer strTokenizer = new StringTokenizer(extraOption, "=");
+			String key = strTokenizer.nextToken();
+			String value = strTokenizer.nextToken();
+			
+			List<String> valuesList = getStrTokens(value); 
+			extraOptionsMap.put(key, valuesList);
+		}
+		
 		
 		for (String line : questionsTempList) {
         	line = line.trim();
@@ -316,67 +363,8 @@ public class GenerateQuestions {
 	    return findGCD(b, a%b);
 	  }
 	
-	/*private static String getFinalQues(String a, String b, String c, String d, String question) {
-		
-		int correctAnsIndex = getRandomNumber(1, 5);
-		
-		StringBuffer strBuffer = new StringBuffer(question);
-		strBuffer.append(":");
-		
-		switch (correctAnsIndex) {
-			case 1: {
-				strBuffer.append(a);
-				strBuffer.append(":");
-				strBuffer.append(b);
-				strBuffer.append(":");
-				strBuffer.append(c);
-				strBuffer.append(":");
-				strBuffer.append(d);
-				strBuffer.append(":");
-				strBuffer.append("1");
-				break;
-			} 
-			case 2: {
-				strBuffer.append(b);
-				strBuffer.append(":");
-				strBuffer.append(a);
-				strBuffer.append(":");
-				strBuffer.append(c);
-				strBuffer.append(":");
-				strBuffer.append(d);
-				strBuffer.append(":");
-				strBuffer.append("2");
-				break;
-			}
-			case 3: {
-				strBuffer.append(b);
-				strBuffer.append(":");
-				strBuffer.append(c);
-				strBuffer.append(":");
-				strBuffer.append(a);
-				strBuffer.append(":");
-				strBuffer.append(d);
-				strBuffer.append(":");
-				strBuffer.append("3");
-				break;
-			}
-			case 4: {
-				strBuffer.append(b);
-				strBuffer.append(":");
-				strBuffer.append(c);
-				strBuffer.append(":");
-				strBuffer.append(d);
-				strBuffer.append(":");
-				strBuffer.append(a);
-				strBuffer.append(":");
-				strBuffer.append("4");
-				break;
-			}
-		}
-		return strBuffer.toString();
-	}
 	
 	private static int getRandomNumber(int min, int max) {
         return min + (int)(Math.random() * (max - min));
-    }*/
+    }
 }
