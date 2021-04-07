@@ -69,7 +69,7 @@ public class UserProfile {
 	}
 	@Override
 	public String toString() {
-		return "UserProfile [id=" + id + ", phoneNumber=" + emailAddress + ", name=" + name + ", referalId=" + myReferalId
+		return "UserProfile [id=" + id + ", emailAddress=" + emailAddress + ", name=" + name + ", referalId=" + myReferalId
 				+ ", referredId=" + bossReferredId + ", createdDate=" + createdDate + ", lastLoggedDate="
 				+ lastLoggedDate + "]";
 	}

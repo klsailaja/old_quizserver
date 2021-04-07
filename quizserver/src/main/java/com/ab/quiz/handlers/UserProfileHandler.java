@@ -33,7 +33,7 @@ public class UserProfileHandler {
 	}
 	
 	public UserProfile getUserProfileByMailId(String mailId) throws SQLException {
-		return UserProfileDBHandler.getInstance().getProfileByMailid(mailId);
+		return UserProfileDBHandler.getInstance().getProfileByMailid(mailId.trim());
 	}
 	
 	public boolean updateUserProfileDetails(UserProfile userProfile, boolean fromForgotPasswd) 
@@ -48,7 +48,7 @@ public class UserProfileHandler {
 		UserProfile userProfile = getUserProfileByMailId(mailId);
 		logger.info("userProfile is {}", userProfile);
 		if (userProfile.getId() == 0) {
-			throw new NotAllowedException("User does not exist. Register first");
+			throw new NotAllowedException("User does not exist. Please Register first");
 		}
 		if (passwdHash.equals(userProfile.getPasswordHash())) {
 			logger.info("Authentication is success for {}", mailId);
@@ -57,7 +57,7 @@ public class UserProfileHandler {
 			return userProfile;
 		}
 		logger.info("Authentication is failure for {}", mailId);
-		throw new NotAllowedException("Incorrect Password. Use Forgot Password Option");
+		throw new NotAllowedException("Password is Wrong. Use Forgot Password Option if required");
 	}
 	
 	public UserProfile createUserProfile(UserProfile userProfile) throws NotAllowedException, SQLException {

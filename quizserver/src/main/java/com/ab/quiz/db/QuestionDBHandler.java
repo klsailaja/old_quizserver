@@ -262,7 +262,7 @@ public class QuestionDBHandler {
             		continue;
             	}
             	
-            	System.out.println("line2 : " + line);
+            	//System.out.println("line2 : " + line);
     	    	StringTokenizer strTokenizer = new StringTokenizer(line, ":");
     	    	
     	    	String qNo = strTokenizer.nextToken().trim();
@@ -286,7 +286,7 @@ public class QuestionDBHandler {
     	    	question.setCorrectOption(correctOption);
     	    	question.setTimeLine(timeLineInt);
     	    	
-    	    	System.out.println("categoryStr :" + categoryStr);
+    	    	//System.out.println("categoryStr :" + categoryStr);
     	    	StringTokenizer catTokenizer = new StringTokenizer(categoryStr, ",");
     	    	long finalCategoryInt = 1;
     	    	while (catTokenizer.hasMoreTokens()) {
@@ -295,7 +295,7 @@ public class QuestionDBHandler {
     	    		finalCategoryInt = finalCategoryInt * tokenInt; 
     	    	}
     	    	question.setCategory(finalCategoryInt);
-    	    	System.out.println("Ques " + question);
+    	    	//System.out.println("Ques " + question);
     	    	QuestionDBHandler.getInstance().createQuestion(question);
             }
         } catch (Exception e) {

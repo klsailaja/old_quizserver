@@ -1,30 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
-		<item key="selection" value="LATEST_WD_RECORDS"/>
+		<item key="selection" value="getFormedQuestions"/>
 		<item key="wrap" value="true"/>
 		<item key="casesensitive" value="false"/>
 		<item key="wholeword" value="false"/>
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
-			<item value="LATEST_WD_RECORDS"/>
-			<item value="main"/>
-			<item value="LATEST_WIN_RECORDS"/>
-			<item value="GET_USER_PROFILE_BY_ID"/>
-			<item value="MAX_ROWS"/>
-			<item value="List&lt;String&gt; categoryQuestions = getFormedQuestions(false, artistList, &quot;SS&quot;, categoryStr);"/>
-			<item value="celebrityNames"/>
 			<item value="getFormedQuestions"/>
-			<item value="movie1"/>
-			<item value="System.out"/>
-			<item value="Map.Entry"/>
-			<item value="logger.info"/>
-			<item value="lastProcessedTime"/>
-			<item value="calendar"/>
-			<item value="samanth"/>
+			<item value="extraOptionsMap"/>
+			<item value="getStrTokens"/>
+			<item value="extraOptionsList"/>
+			<item value="fillVarsValsMap"/>
+			<item value="alreadyExistsOne"/>
+			<item value="updateUserProfile"/>
+			<item value="104"/>
+			<item value="GET_QUESTIONS_RANDOM_CELEBRITY"/>
+			<item value="getRandomNumber"/>
+			<item value="userProfile.setId"/>
+			<item value="getProfileByBossRefaralCode"/>
+			<item value="GET_USER_PROFILE_BY_REFERAL_CODE"/>
+			<item value="MYREFERAL_"/>
+			<item value="getRandomPasswd"/>
 		</list>
 		<list key="replacehistory">
+			<item value="2"/>
 		</list>
 	</section>
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog_dialogBounds">

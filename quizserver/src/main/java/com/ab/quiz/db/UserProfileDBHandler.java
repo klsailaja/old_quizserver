@@ -16,6 +16,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.exceptions.NotAllowedException;
+import com.ab.quiz.helper.LazyScheduler;
+import com.ab.quiz.helper.SendMailTask;
 import com.ab.quiz.pojo.Mail;
 import com.ab.quiz.pojo.ReferalDetails;
 import com.ab.quiz.pojo.UserMoney;
@@ -336,11 +338,12 @@ public class UserProfileDBHandler {
 	
 	public boolean updateUserProfileDetails(UserProfile userProfile, boolean fromForgotPasswd) 
 			throws SQLException, NotAllowedException {
-		
-		logger.debug("This is in updateUserProfileDetails {}" + userProfile.getEmailAddress());
-		UserProfile dbObject = getProfileByMailid(userProfile.getEmailAddress().trim());
+
+		String userMailId = userProfile.getEmailAddress().trim();
+		logger.debug("This is in updateUserProfileDetails {}", userMailId);
+		UserProfile dbObject = getProfileByMailid(userMailId);
 		if (dbObject.getId() == 0) {
-			throw new NotAllowedException(userProfile.getEmailAddress().trim() + " does not exist");
+			throw new NotAllowedException(userMailId + " not registered. Please Check");
 		}
 		
 		String userName;
@@ -379,16 +382,20 @@ public class UserProfileDBHandler {
 			}
 		}
 		
-        Mail mail = new Mail();
+		if (fromForgotPasswd) {
+			
+			Mail mail = new Mail();
         
-        mail.setMailFrom("ggraj.pec@gmail.com");
-        mail.setMailTo("sailaja.amc@gmail.com");
-        mail.setMailSubject("From Satya Hasini");
+			mail.setMailFrom("ggram.pec@gmail.com");
+			mail.setMailTo(userProfile.getEmailAddress().trim());
+			mail.setMailSubject("Password Reset");
         
-        mail.setMailContent("Your password has been reset. Please login with " + passwd + " If not reset by you, please change the password using ChangePassword\n\nThanks\nTeluguQuiz");
-        
-        MailService mailService = new MailServiceImpl();
-        mailService.sendEmail(mail);
+			mail.setMailContent("Your password has been reset. Please login with " + passwd 
+        		+ " If not reset by you, please change the password using ChangePassword Option in My Profile\n\nThanks\nTeluguQuiz");
+			
+			LazyScheduler.getInstance().submit(new SendMailTask(mail));
+		}
+		
 		return true;
 	}
 	
@@ -478,7 +485,7 @@ public class UserProfileDBHandler {
 		UserMoneyDBHandler userMoneyDBHandler = UserMoneyDBHandler.getInstance(); 
 		
 		// System Users from 1 - 10
-		for (int index = 1; index <= 20; index ++) {
+		/*for (int index = 1; index <= 20; index ++) {
 			UserProfile userProfile = new UserProfile();
 			userProfile.setEmailAddress("systemuser" + index + "@gmail.com");
 			userProfile.setName("Systemuser" + index);
@@ -500,7 +507,7 @@ public class UserProfileDBHandler {
 		userProfile.setLastLoggedTime(1609861020944L);
 		dbHandler.createUserProfile(userProfile);
 		
-		for (int index = 22; index <= 230; index ++) {
+		for (int index = 22; index <= 100000; index ++) {
 			userProfile = new UserProfile();
 			userProfile.setEmailAddress("testuser" + index + "@gmail.com");
 			userProfile.setName("Testuser" + index);
@@ -510,9 +517,9 @@ public class UserProfileDBHandler {
 			userProfile.setLastLoggedTime(1609861020944L);
 			
 			dbHandler.createUserProfile(userProfile);
-		}
+		}*/
 		
-		for (int index = 1; index <= 230; index ++) {
+		for (int index = 1; index <= 10000; index ++) {
 			UserMoney userMoney = new UserMoney();
 			userMoney.setUserId(index);
 			userMoney.setLoadedAmount(10000);

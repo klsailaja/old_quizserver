@@ -35,9 +35,11 @@ public class UserProfileController extends BaseController {
 		}
 	}
 	
+	// Tested.
 	@RequestMapping(value="/user/login", method = RequestMethod.POST, produces = "application/json")
-	public @ResponseBody UserProfile login(@RequestBody LoginData loginData) throws InternalException {
-		logger.info("login called with {} : {}", loginData.getMailAddress(), loginData.getPassword());
+	public @ResponseBody UserProfile login(@RequestBody LoginData loginData) 
+			throws NotAllowedException,InternalException {
+		logger.info("login called with {} ", loginData.getMailAddress());
 		try {
 			UserProfile loginResult = UserProfileHandler.getInstance().login(loginData); 
 			logger.info("login returned with {} : {} : {}", loginData.getMailAddress(), loginData.getPassword(), loginResult);
@@ -68,20 +70,22 @@ public class UserProfileController extends BaseController {
 			throw new InternalException("Server Error in createUserProfile");
 		}
 	}
-	
+
+	// Tested.
 	@RequestMapping(value = "/forgot", method = RequestMethod.POST, produces = "application/json") 
-	public @ResponseBody UserProfile forgotPassword(@RequestBody UserProfile userProfile) 
+	public @ResponseBody UserProfile forgotPassword(@RequestBody LoginData loginData) 
 			throws NotAllowedException, InternalException {
 		
-		logger.info("forgotPassword is called with {}", userProfile.getEmailAddress());
+		logger.info("forgotPassword is called with {}", loginData.getMailAddress());
 		try {
-			UserProfile alreadyExistsOne = UserProfileHandler.getInstance().getUserProfileByMailId(userProfile.getEmailAddress());
-			if (alreadyExistsOne.getId() == 0) {
-				throw new NotAllowedException("This Mail Id is not registered. Please check");
-			}
+			UserProfile userProfile = new UserProfile();
+			userProfile.setEmailAddress(loginData.getMailAddress());
+			
 			boolean updateResult = UserProfileHandler.getInstance().updateUserProfileDetails(userProfile, true);
+			
 			if (!updateResult) {
-				throw new SQLException("Could not update profile contents for in forgot passwd case {}", userProfile.getEmailAddress());
+				String errMsg = "Could not update profile contents for : " + userProfile.getEmailAddress().trim() + " in forgot passwd";
+				throw new InternalException(errMsg);
 			}
 			
 			UserProfile dbProfile = UserProfileHandler.getInstance().getUserProfileByMailId(userProfile.getEmailAddress());
@@ -97,15 +101,11 @@ public class UserProfileController extends BaseController {
 	public @ResponseBody UserProfile updateUserProfile(@RequestBody UserProfile userProfile)
 			throws NotAllowedException, InternalException {
 		
-		logger.info("updateUserProfile is called with {}", userProfile.getEmailAddress());
+		logger.info("updateUserProfile is called with {}", userProfile.getEmailAddress().trim());
 		try {
-			UserProfile alreadyExistsOne = UserProfileHandler.getInstance().getUserProfileByMailId(userProfile.getEmailAddress());
-			if (alreadyExistsOne.getId() == 0) {
-				throw new NotAllowedException("This Mail Id is not registered. Please check");
-			}
 			boolean updateResult = UserProfileHandler.getInstance().updateUserProfileDetails(userProfile, false);
 			if (!updateResult) {
-				throw new SQLException("Could not update profile contents for {}", userProfile.getEmailAddress());
+				throw new InternalException("Could not update profile contents for " + userProfile.getEmailAddress() + " during update");
 			}
 			
 			UserProfile dbProfile = UserProfileHandler.getInstance().getUserProfileByMailId(userProfile.getEmailAddress());

@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <qualifiedTypeNameHistroy>
-<fullyQualifiedTypeName name="java.util.concurrent.atomic.AtomicLong"/>
-<fullyQualifiedTypeName name="com.ab.quiz.constants.QuizConstants"/>
-<fullyQualifiedTypeName name="com.ab.quiz.db.GameHistoryDBHandler"/>
-<fullyQualifiedTypeName name="com.ab.quiz.pojo.HistoryGameDetails"/>
-<fullyQualifiedTypeName name="com.ab.quiz.pojo.UserHistoryGameDetails"/>
-<fullyQualifiedTypeName name="java.security.SecureRandom"/>
-<fullyQualifiedTypeName name="java.sql.Types"/>
 <fullyQualifiedTypeName name="com.ab.quiz.pojo.WDUserInput"/>
 <fullyQualifiedTypeName name="com.ab.quiz.pojo.WithdrawReqByPhone"/>
 <fullyQualifiedTypeName name="com.ab.quiz.constants.TransactionType"/>
@@ -15,7 +8,6 @@
 <fullyQualifiedTypeName name="java.sql.SQLException"/>
 <fullyQualifiedTypeName name="java.sql.ResultSet"/>
 <fullyQualifiedTypeName name="java.sql.Blob"/>
-<fullyQualifiedTypeName name="com.ab.quiz.exceptions.NotAllowedException"/>
 <fullyQualifiedTypeName name="com.ab.quiz.constants.WithdrawReqType"/>
 <fullyQualifiedTypeName name="com.ab.quiz.pojo.WithdrawRequestsHolder"/>
 <fullyQualifiedTypeName name="com.ab.quiz.pojo.WithdrawRequestInput"/>
@@ -31,7 +23,6 @@
 <fullyQualifiedTypeName name="com.ab.quiz.pojo.GameOperation"/>
 <fullyQualifiedTypeName name="com.ab.quiz.pojo.UserMoney"/>
 <fullyQualifiedTypeName name="com.ab.quiz.db.UserMoneyDBHandler"/>
-<fullyQualifiedTypeName name="java.util.Properties"/>
 <fullyQualifiedTypeName name="java.io.FileNotFoundException"/>
 <fullyQualifiedTypeName name="java.io.IOException"/>
 <fullyQualifiedTypeName name="com.ab.quiz.pojo.CelebrityDetails"/>
@@ -53,4 +44,20 @@
 <fullyQualifiedTypeName name="com.ab.quiz.db.WithdrawDBHandler"/>
 <fullyQualifiedTypeName name="java.util.List"/>
 <fullyQualifiedTypeName name="com.ab.quiz.helper.WinMsgHandler"/>
+<fullyQualifiedTypeName name="com.ab.quiz.exceptions.NotAllowedException"/>
+<fullyQualifiedTypeName name="java.security.MessageDigest"/>
+<fullyQualifiedTypeName name="java.security.NoSuchAlgorithmException"/>
+<fullyQualifiedTypeName name="org.springframework.stereotype.Service"/>
+<fullyQualifiedTypeName name="org.springframework.beans.factory.annotation.Autowired"/>
+<fullyQualifiedTypeName name="javax.mail.internet.MimeMessage"/>
+<fullyQualifiedTypeName name="org.springframework.mail.javamail.MimeMessageHelper"/>
+<fullyQualifiedTypeName name="javax.mail.internet.InternetAddress"/>
+<fullyQualifiedTypeName name="javax.mail.MessagingException"/>
+<fullyQualifiedTypeName name="java.io.UnsupportedEncodingException"/>
+<fullyQualifiedTypeName name="org.springframework.core.env.Environment"/>
+<fullyQualifiedTypeName name="org.springframework.mail.javamail.JavaMailSenderImpl"/>
+<fullyQualifiedTypeName name="java.util.Properties"/>
+<fullyQualifiedTypeName name="com.ab.quiz.pojo.Mail"/>
+<fullyQualifiedTypeName name="com.ab.quiz.services.MailService"/>
+<fullyQualifiedTypeName name="com.ab.quiz.services.MailServiceImpl"/>
 </qualifiedTypeNameHistroy>

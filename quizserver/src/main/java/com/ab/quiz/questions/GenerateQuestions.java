@@ -1,5 +1,6 @@
 package com.ab.quiz.questions;
 
+import java.io.BufferedWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -156,6 +157,10 @@ public class GenerateQuestions {
         	questionsList.add(line);
 		}
 		
+		// Get the file reference
+    	Path path = Paths.get("D://Projects//Games/T1.txt");
+    	int qCount = 0;
+    	BufferedWriter writer = Files.newBufferedWriter(path);
 		
 		for (String line : list) {
         	line = line.trim();
@@ -321,7 +326,7 @@ public class GenerateQuestions {
     			int id = 2 + celebrityNames.indexOf(celebrityName);
     			celebrityIds.add(id);
     		}
-	    	System.out.println(celebrityIds);
+	    	//System.out.println(celebrityIds);
 	    	
 	    	//initialize LCM and GCD with the first element
 		    long lcm = celebrityIds.get(0);
@@ -335,7 +340,7 @@ public class GenerateQuestions {
 		    }
 		    
 		    //output the LCM
-		    System.out.println("LCM: "+lcm);
+		    //System.out.println("LCM: "+lcm);
 	    	
 	    	for (String lineQuestion : finalQuestions) {
 	    		StringBuffer strBuffer = new StringBuffer(lineQuestion);
@@ -346,9 +351,16 @@ public class GenerateQuestions {
 	    		strBuffer.append(":");
 	    		strBuffer.append("-1");
 	    		
-	    		System.out.println(strBuffer.toString());
+	    		//System.out.println(strBuffer.toString());
+	    		
+	    		//Use try-with-resource to get auto-closeable writer instance
+	    	    writer.append(strBuffer.toString());
+	    	    writer.append("\n");
+	    	    qCount++;
+		    	System.out.println("qCount :" + qCount);
 	    	}
 		}
+		
 		for (int i = 0; i < celebrityNames.size(); i++) {
 			String str = String.valueOf(i + 2);
 			System.out.println(str);
