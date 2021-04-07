@@ -23,8 +23,6 @@ import com.ab.quiz.pojo.ReferalDetails;
 import com.ab.quiz.pojo.UserMoney;
 import com.ab.quiz.pojo.UserProfile;
 import com.ab.quiz.pojo.UserReferal;
-import com.ab.quiz.services.MailService;
-import com.ab.quiz.services.MailServiceImpl;
 
 /*
 CREATE TABLE UserProfile(id bigint NOT NULL AUTO_INCREMENT, 
@@ -130,7 +128,7 @@ public class UserProfileDBHandler {
 		long maxUseId = getMaxUserId() + 1;
 		int idStrLen = String.valueOf(maxUseId).length();
 		int remainingLen = 8 - idStrLen;
-		String userName = userProfile.getName();
+		String userName = userProfile.getName().toUpperCase();
 		if (userName.length() >= remainingLen) {
 			userName = userName.substring(0, remainingLen);
 		}
@@ -205,8 +203,13 @@ public class UserProfileDBHandler {
 					userProfile.setBossReferredId(rs.getString(REFERED_ID));
 					userProfile.setCreatedDate(rs.getLong(CREATEDDATE));
 					userProfile.setLastLoggedTime(rs.getLong(LASTLOGGEDDATE));
-					UserProfile bossUserProfile = getProfileByBossRefaralCode(userProfile.getBossReferredId());
-					userProfile.setBossName(bossUserProfile.getName());
+					String bossName = "";
+					String userBossCode = userProfile.getBossReferredId();
+					if ((userBossCode != null) && (userBossCode.length() > 0)) {
+						UserProfile bossUserProfile = getProfileByBossRefaralCode(userBossCode);
+						bossName = bossUserProfile.getName();
+					}
+					userProfile.setBossName(bossName);
 				}
 				rs.close();
 			}
@@ -227,7 +230,9 @@ public class UserProfileDBHandler {
 	public UserProfile getProfileByBossRefaralCode(String bossReferalCode) throws SQLException {
 		
 		logger.debug("In bossReferalCode {}", bossReferalCode);
-		bossReferalCode = bossReferalCode.trim();
+		if (bossReferalCode != null) {
+			bossReferalCode = bossReferalCode.trim();
+		}
 		String sql = GET_USER_PROFILE_BY_REFERAL_CODE;
 		
 		try {
@@ -485,12 +490,12 @@ public class UserProfileDBHandler {
 		UserMoneyDBHandler userMoneyDBHandler = UserMoneyDBHandler.getInstance(); 
 		
 		// System Users from 1 - 10
-		/*for (int index = 1; index <= 20; index ++) {
+		for (int index = 1; index <= 20; index ++) {
 			UserProfile userProfile = new UserProfile();
 			userProfile.setEmailAddress("systemuser" + index + "@gmail.com");
 			userProfile.setName("Systemuser" + index);
 			userProfile.setPasswordHash("5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5");
-			userProfile.setBossReferredId("Rajasekh11");
+			userProfile.setBossReferredId("Rajasekh21");
 			userProfile.setCreatedDate(1609861020944L);
 			userProfile.setLastLoggedTime(1609861020944L);
 			
@@ -507,7 +512,7 @@ public class UserProfileDBHandler {
 		userProfile.setLastLoggedTime(1609861020944L);
 		dbHandler.createUserProfile(userProfile);
 		
-		for (int index = 22; index <= 100000; index ++) {
+		for (int index = 22; index <= 300; index ++) {
 			userProfile = new UserProfile();
 			userProfile.setEmailAddress("testuser" + index + "@gmail.com");
 			userProfile.setName("Testuser" + index);
@@ -517,9 +522,9 @@ public class UserProfileDBHandler {
 			userProfile.setLastLoggedTime(1609861020944L);
 			
 			dbHandler.createUserProfile(userProfile);
-		}*/
+		}
 		
-		for (int index = 1; index <= 10000; index ++) {
+		for (int index = 1; index <= 300; index ++) {
 			UserMoney userMoney = new UserMoney();
 			userMoney.setUserId(index);
 			userMoney.setLoadedAmount(10000);

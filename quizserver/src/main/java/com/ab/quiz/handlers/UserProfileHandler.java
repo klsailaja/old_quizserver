@@ -86,14 +86,14 @@ public class UserProfileHandler {
 		if (checkByMailId.getId() > 0) {
 			// Already entry exists
 			logger.info("Entry with {} found in db with the id {}", eMail, checkByMailId.getId());
-			throw new NotAllowedException("Already mail id is registered. Use forgot password");
+			throw new NotAllowedException("Already mail id is registered. Use forgot password if required");
 		}
 		
 		String bossReferalId = userProfile.getBossReferredId();
 		if ((bossReferalId != null) && (bossReferalId.length() > 0)) {
 			checkByMailId = dbInstance.getProfileByBossRefaralCode(bossReferalId);
 			if (checkByMailId.getId() == 0) {
-				throw new NotAllowedException("Referral code is invalid");
+				throw new NotAllowedException("Invalid Referral code. No User exists with this code");
 			}
 		}
 		long currentTime = System.currentTimeMillis();

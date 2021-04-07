@@ -23,6 +23,7 @@ public class UserProfileController extends BaseController {
 	
 	private static final Logger logger = LogManager.getLogger(UserProfileController.class);
 	
+	// Tested.
 	@RequestMapping(value = "/user/{email}", method = RequestMethod.GET, produces = "application/json")
 	public @ResponseBody UserProfile getUserProfile(@PathVariable("email") String email) 
 			throws InternalException {
@@ -49,18 +50,16 @@ public class UserProfileController extends BaseController {
 			throw new InternalException("Server Error in login");
 		}
 	}
-	
+
+	// Tested.
 	@RequestMapping(value = "/user", method = RequestMethod.POST, produces = "application/json")
 	public @ResponseBody UserProfile createUserProfile(@RequestBody UserProfile userProfile) 
 			throws NotAllowedException, InternalException {
 		
-		logger.info("createUserProfile is called with {}", userProfile.getEmailAddress());
+		String userMailId = userProfile.getEmailAddress().trim();
+		logger.info("createUserProfile is called with {}", userMailId);
 		
 		try {
-			UserProfile alreadyExistsOne = UserProfileHandler.getInstance().getUserProfileByMailId(userProfile.getEmailAddress());
-			if (alreadyExistsOne.getId() > 0) {
-				throw new NotAllowedException("Mail Id alredy registered. Please use forgot passwd option");
-			}
 			UserProfile dbUserProfile = UserProfileHandler.getInstance().createUserProfile(userProfile); 
 			logger.info("createUserProfile returning with {} and {}", dbUserProfile.getEmailAddress(), dbUserProfile.getId());
 			return dbUserProfile;
@@ -97,6 +96,7 @@ public class UserProfileController extends BaseController {
 		}
 	}
 	
+	// Tested.
 	@RequestMapping(value = "/update", method = RequestMethod.POST, produces = "application/json")
 	public @ResponseBody UserProfile updateUserProfile(@RequestBody UserProfile userProfile)
 			throws NotAllowedException, InternalException {
