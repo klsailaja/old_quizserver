@@ -19,8 +19,6 @@ public class LeaderBoard {
 	private List<PlayerSummary> playerSummaryList;
 	private List<PrizeDetail> prizeDetails;
 	
-	private static final Logger logger = LogManager.getLogger(LeaderBoard.class);
-	
 	public LeaderBoard(List<PlayerSummary> playerSummaryList, List<PrizeDetail> prizeDetails) {
 		this.playerSummaryList = playerSummaryList;
 		this.prizeDetails = prizeDetails;

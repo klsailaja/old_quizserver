@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ab.quiz.exceptions.InternalException;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.GameManager;
 import com.ab.quiz.pojo.ChatGameDetails;
@@ -70,34 +71,62 @@ public class GamesController extends BaseController {
 	}
 	
 	@RequestMapping(value = "/{gameId}/status", method = RequestMethod.GET, produces = "application/json")
-	public @ResponseBody GameStatus getGameStatus(@PathVariable("gameId") long gameId) throws NotAllowedException, SQLException {
-		return GameManager.getInstance().getGameStatus(gameId);
+	public @ResponseBody GameStatus getGameStatus(@PathVariable("gameId") long gameId) throws NotAllowedException, InternalException {
+		try {
+			return GameManager.getInstance().getGameStatus(gameId);
+		}
+		catch(SQLException ex) {
+			logger.error("Exception in getGameStatus", ex);
+			throw new InternalException(ex.getMessage());
+		}
 	}
 	
 	@RequestMapping(value = "/{gametype}/allstatus", method = RequestMethod.GET, produces = "application/json") 
-	public @ResponseBody GameStatusHolder getAllGamesStatus(@PathVariable("gametype") int gametype) throws NotAllowedException, SQLException {
-		return GameManager.getInstance().getAllGamesStatus(gametype);
+	public @ResponseBody GameStatusHolder getAllGamesStatus(@PathVariable("gametype") int gametype) 
+			throws NotAllowedException, InternalException {
+		try {
+			return GameManager.getInstance().getAllGamesStatus(gametype);
+		}
+		catch(SQLException ex) {
+			logger.error("Exception in getAllGamesStatus", ex);
+			throw new InternalException(ex.getMessage());
+		}	
 	}
 	
 	@RequestMapping(value = "/{gametype}/enrolled/{userProfileId}/status", method = RequestMethod.GET, produces = "application/json") 
 	public @ResponseBody GameStatusHolder getUserEnrolledGamesStatus(@PathVariable("gametype") int gametype,
-			@PathVariable("userProfileId") long userProfileId) throws NotAllowedException, SQLException {
-		return GameManager.getInstance().getUserEnrolledGamesStatus(gametype,userProfileId);
+			@PathVariable("userProfileId") long userProfileId) throws NotAllowedException, InternalException {
+		try {
+			return GameManager.getInstance().getUserEnrolledGamesStatus(gametype,userProfileId);
+		} catch (SQLException ex) {
+			logger.error("Exception in getUserEnrolledGamesStatus", ex);
+			throw new InternalException(ex.getMessage());
+		}
 	}
 	
 	@RequestMapping(value = "/{gameId}/join", method = RequestMethod.POST, produces = "application/json")
 	public @ResponseBody String join(@PathVariable("gameId") long gameId, 
-		@RequestBody GameOperation gameOper) throws NotAllowedException, SQLException {
+		@RequestBody GameOperation gameOper) throws NotAllowedException, InternalException {
 		
-		Boolean result = GameManager.getInstance().joinGame(gameId, gameOper);
-		return Boolean.toString(result);
+		try {
+			Boolean result = GameManager.getInstance().joinGame(gameId, gameOper);
+			return Boolean.toString(result);
+		} catch (SQLException ex) {
+			logger.error("Exception in join method", ex);
+			throw new InternalException(ex.getMessage());
+		}
 	}
 	
 	@RequestMapping(value = "/{gameId}/unjoin", method = RequestMethod.POST, produces = "application/json")
 	public @ResponseBody String unjoin(@PathVariable("gameId") long gameId, 
-			@RequestBody GameOperation gameOper) throws NotAllowedException, SQLException {
-		Boolean result = GameManager.getInstance().unjoin(gameId, gameOper);
-		return Boolean.toString(result);
+			@RequestBody GameOperation gameOper) throws NotAllowedException, InternalException {
+		try {
+			Boolean result = GameManager.getInstance().unjoin(gameId, gameOper);
+			return Boolean.toString(result);
+		} catch (SQLException ex) {
+			logger.error("Exception in unjoin method", ex);
+			throw new InternalException(ex.getMessage());
+		}
 	}
 	
 	@RequestMapping(value = "/{gameId}/submit", method = RequestMethod.POST, produces = "application/json")

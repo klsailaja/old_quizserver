@@ -148,7 +148,7 @@ public class GameHandler {
 				continue;
 			}
 			long userCB = userOB + amt;
-			String comments = "Reverted for Canceled game#:" + gameDetails.getGameId();
+			String comments = "Reverted for Cancelled game#:" + gameDetails.getGameId();
 			
 			MyTransaction transaction = Utils.getTransactionPojo(userProfileId, gameDetails.getStartTime(), 
 					gameDetails.getTicketRate(), TransactionType.CREDITED.getId(), accountUsed, userOB, userCB, comments); 

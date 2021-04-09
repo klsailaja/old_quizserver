@@ -281,9 +281,9 @@ public class GamesGenerator implements Runnable {
 				}
 				
 				if (QuizConstants.TESTMODE == 0) {
-					boolean res = gameHandlerInstance.join(predefinedUserProfileId, UserMoneyAccountType.LOADED_MONEY.getId());
+					gameHandlerInstance.join(predefinedUserProfileId, UserMoneyAccountType.LOADED_MONEY.getId());
 				} else {
-					boolean res = gameHandlerInstance.join(predefinedUserProfileId, UserMoneyAccountType.LOADED_MONEY.getId());
+					gameHandlerInstance.join(predefinedUserProfileId, UserMoneyAccountType.LOADED_MONEY.getId());
 				}
 				
 				for (int qIndex = 1; qIndex <= 10; qIndex ++) {
