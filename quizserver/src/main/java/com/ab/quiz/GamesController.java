@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ab.quiz.exceptions.InternalException;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.GameManager;
+import com.ab.quiz.pojo.CelebrityFullDetails;
 import com.ab.quiz.pojo.ChatGameDetails;
 import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.GameOperation;
@@ -145,6 +146,11 @@ public class GamesController extends BaseController {
 	public @ResponseBody List<PlayerSummary> getLeaderBoard(@PathVariable("gameId") long gameId, @PathVariable("qNo") int qNo) 
 			throws NotAllowedException {
 		return GameManager.getInstance().getLeaderBoard(gameId, qNo);
+	}
+	
+	@RequestMapping(value = "/celebrityschedule", method = RequestMethod.GET, produces = "application/json")
+	public @ResponseBody CelebrityFullDetails getCelebrityFullDetails() {
+		return GameManager.getInstance().getCelebrityFullDetails();
 	}
 	
 	@RequestMapping(value = "/chat/{gametype}", method = RequestMethod.GET, produces = "application/json")

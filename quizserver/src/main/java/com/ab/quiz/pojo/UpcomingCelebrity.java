@@ -4,6 +4,7 @@ import java.util.List;
 
 public class UpcomingCelebrity {
 	private String hourVal;
+	private String gameStartTime;
 	private List<String> celebrityNames;
 	
 	public String getHourVal() {
@@ -11,6 +12,12 @@ public class UpcomingCelebrity {
 	}
 	public void setHourVal(String hourVal) {
 		this.hourVal = hourVal;
+	}
+	public String getGameStartTime() {
+		return gameStartTime;
+	}
+	public void setGameStartTime(String gameStartTime) {
+		this.gameStartTime = gameStartTime;
 	}
 	public List<String> getCelebrityNames() {
 		return celebrityNames;
@@ -21,6 +28,8 @@ public class UpcomingCelebrity {
 	
 	@Override
 	public String toString() {
-		return "UpcomingCelebrity [hourVal=" + hourVal + ", celebrityNames=" + celebrityNames + "]";
+		return "UpcomingCelebrity [hourVal=" + hourVal + ", gameStartTime=" + gameStartTime + ", celebrityNames="
+				+ celebrityNames + "]";
 	}
+	
 }

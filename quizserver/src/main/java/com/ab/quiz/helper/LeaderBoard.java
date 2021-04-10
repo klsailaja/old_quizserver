@@ -8,9 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.ab.quiz.pojo.PlayerSummary;
 import com.ab.quiz.pojo.PrizeDetail;
 

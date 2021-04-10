@@ -5,15 +5,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.exceptions.NotSupportedException;
+import com.ab.quiz.handlers.GameManager;
 import com.ab.quiz.pojo.CelebrityDetails;
+import com.ab.quiz.pojo.CelebrityFullDetails;
 import com.ab.quiz.pojo.UpcomingCelebrity;
 
 public class CelebritySpecialHandler {
@@ -77,13 +83,21 @@ public class CelebritySpecialHandler {
 	public List<UpcomingCelebrity> getUpcomingCelebrityDetails(int maxSize) {
 		
 		long currentTime = System.currentTimeMillis();
-		List<UpcomingCelebrity> details = new ArrayList<>();
-		
 		String hour = getHourIn24HrsFormat(currentTime);
 		int hourInt = Integer.valueOf(hour);
 		
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTimeInMillis(currentTime);
+		calendar.set(Calendar.HOUR_OF_DAY, (hourInt % 24));
+		calendar.set(Calendar.MINUTE, 5);
+		calendar.set(Calendar.SECOND, 0);
+		long nextStartTime = calendar.getTimeInMillis();
+		
+		List<UpcomingCelebrity> details = new ArrayList<>();
+		
 		for (int index = hourInt + 1; index <= 23; index ++) {
 			
+			nextStartTime = nextStartTime + (60 * 60 * 1000);
 			UpcomingCelebrity scheduledCeleb = new UpcomingCelebrity();
 			List<String> celebNames = new ArrayList<>();
 			
@@ -104,13 +118,17 @@ public class CelebritySpecialHandler {
 			for (int i = 0; i < maxSize; i ++) {
 				finalCelebNames.add(celebNames.get(i));
 			}
-			scheduledCeleb.setCelebrityNames(finalCelebNames);
+			List<String> sortedNames = finalCelebNames.stream().sorted().collect(Collectors.toList());
+			scheduledCeleb.setCelebrityNames(sortedNames);
 			scheduledCeleb.setHourVal(String.valueOf(index));
+			scheduledCeleb.setGameStartTime(new Date(nextStartTime).toString());
 			
 			details.add(scheduledCeleb);
 		}
 		
 		for (int index = 0; index < hourInt; index ++) {
+			nextStartTime = nextStartTime + (60 * 60 * 1000);
+			
 			UpcomingCelebrity scheduledCeleb = new UpcomingCelebrity();
 			List<String> celebNames = new ArrayList<>();
 			
@@ -131,8 +149,10 @@ public class CelebritySpecialHandler {
 			for (int i = 0; i < maxSize; i ++) {
 				finalCelebNames.add(celebNames.get(i));
 			}
-			scheduledCeleb.setCelebrityNames(finalCelebNames);
+			List<String> sortedNames = finalCelebNames.stream().sorted().collect(Collectors.toList());
+			scheduledCeleb.setCelebrityNames(sortedNames);
 			scheduledCeleb.setHourVal(String.valueOf(index));
+			scheduledCeleb.setGameStartTime(new Date(nextStartTime).toString());
 			details.add(scheduledCeleb);
 		}
 		return details;
@@ -163,10 +183,16 @@ public class CelebritySpecialHandler {
 			
 			details.add(celebDetail);
 		}
+		Collections.sort(details, new Comparator<CelebrityDetails>() {
+			public int compare(final CelebrityDetails summary1, final CelebrityDetails summary2) {
+				return summary1.getName().compareTo(summary2.getName());
+			}
+		});
 		return details;
 	}
 	
 	public static void main(String[] args) throws NotSupportedException {
+		
 		CelebritySpecialHandler handler = CelebritySpecialHandler.getInstance();
 		
 		List<CelebrityDetails> details = handler.getCelebrityDetails(System.currentTimeMillis(), 2);
@@ -178,5 +204,9 @@ public class CelebritySpecialHandler {
 		for (UpcomingCelebrity str : upcomingEntries) {
 			System.out.println(str);
 		}
+		
+		GameManager gameManager = GameManager.getInstance();
+		CelebrityFullDetails list = gameManager.getCelebrityFullDetails();
+		System.out.println(list);
 	}
 }

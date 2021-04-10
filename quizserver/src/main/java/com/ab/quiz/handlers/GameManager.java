@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,7 +21,9 @@ import com.ab.quiz.constants.UserMoneyOperType;
 import com.ab.quiz.db.GameHistoryDBHandler;
 import com.ab.quiz.db.UserMoneyDBHandler;
 import com.ab.quiz.exceptions.NotAllowedException;
+import com.ab.quiz.helper.CelebritySpecialHandler;
 import com.ab.quiz.helper.Utils;
+import com.ab.quiz.pojo.CelebrityFullDetails;
 import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.GameOperation;
 import com.ab.quiz.pojo.GameStatus;
@@ -29,6 +32,7 @@ import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.PlayerAnswer;
 import com.ab.quiz.pojo.PlayerSummary;
 import com.ab.quiz.pojo.PrizeDetail;
+import com.ab.quiz.pojo.UpcomingCelebrity;
 import com.ab.quiz.pojo.UserHistoryGameDetails;
 import com.ab.quiz.pojo.UserMoney;
 
@@ -507,5 +511,31 @@ public class GameManager {
 			throw new NotAllowedException("Game not found with id " + gameId);
 		}
 		return gameHandler.isUserEnrolled(userProfileId);
+	}
+
+	public CelebrityFullDetails getCelebrityFullDetails() {
+		
+		CelebrityFullDetails fullDetails = new CelebrityFullDetails();
+		
+		int maxSize = QuizConstants.GAMES_RATES_IN_ONE_SLOT_SPECIAL.length;
+		List<UpcomingCelebrity> upcomingCelebrities = CelebritySpecialHandler.getInstance().getUpcomingCelebrityDetails(maxSize);
+		
+		List<String> masterList = new ArrayList<>();
+		
+		for (UpcomingCelebrity uc : upcomingCelebrities) {
+			for (String celebName : uc.getCelebrityNames()) {
+				if (!masterList.contains(celebName)) {
+					masterList.add(celebName);
+				}
+			}
+		}
+		
+		List<String> sortedNames = masterList.stream().sorted().collect(Collectors.toList());
+		
+		fullDetails.setMasterNames(sortedNames);
+		fullDetails.setNamesList(upcomingCelebrities);
+		logger.debug("In getCelebrityFullDetails() with master list size {} and celebrities list size {}", 
+				sortedNames.size(), upcomingCelebrities.size());
+		return fullDetails;
 	}
 }
