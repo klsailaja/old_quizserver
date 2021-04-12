@@ -6,6 +6,15 @@ public class ChatGameDetails {
 	private int currentCount;
 	private int gameType;
 	private String gameTime;
+	private String celebrityName;
+	private long gameTimeInMillis;
+	
+	public long getGameTimeInMillis() {
+		return gameTimeInMillis;
+	}
+	public void setGameTimeInMillis(long gameTimeInMillis) {
+		this.gameTimeInMillis = gameTimeInMillis;
+	}
 	
 	public int getTempGameId() {
 		return tempGameId;
@@ -36,5 +45,11 @@ public class ChatGameDetails {
 	}
 	public void setGameTime(String gameTime) {
 		this.gameTime = gameTime;
+	}
+	public String getCelebrityName() {
+		return celebrityName;
+	}
+	public void setCelebrityName(String celebrityName) {
+		this.celebrityName = celebrityName;
 	}
 }

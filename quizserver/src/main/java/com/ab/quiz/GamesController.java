@@ -155,7 +155,7 @@ public class GamesController extends BaseController {
 	
 	@RequestMapping(value = "/chat/{gametype}", method = RequestMethod.GET, produces = "application/json")
 	public @ResponseBody List<ChatGameDetails> getBasicGameDetails(@PathVariable("gametype") int gametype) {
-		logger.info("Call to chat getBasicGameDetails()");
+		logger.info("Call to chat getBasicGameDetails() start");
 		
 		List<GameDetails> futureGames = GameManager.getInstance().getFutureGames(gametype);
 		List<ChatGameDetails> basicDetails = new ArrayList<>();
@@ -174,6 +174,8 @@ public class GamesController extends BaseController {
 			gameBasicDetails.setGameType(gd.getGameType());
 			gameBasicDetails.setTempGameId(gd.getTempGameId());
 			gameBasicDetails.setCurrentCount(gd.getCurrentCount());
+			gameBasicDetails.setCelebrityName(gd.getCelebrityName());
+			gameBasicDetails.setGameTimeInMillis(gd.getStartTime());
 			
 			simpleDateFormat.applyPattern(timePattern);
 	        String timeStr = simpleDateFormat.format(new Date(gd.getStartTime()));
