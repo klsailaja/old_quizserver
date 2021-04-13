@@ -75,7 +75,9 @@ public class QuestionDBHandler {
 		return instance;
 	}
 	
-	public boolean createQuestion(Question question) throws SQLException {
+	public boolean createQuestion(List<Question> questions) throws SQLException {
+		
+		System.out.println("questions.size() :" + questions.size());
 		ConnectionPool cp = null;
 		Connection dbConn = null;
 		PreparedStatement ps = null;
@@ -83,16 +85,34 @@ public class QuestionDBHandler {
 		try {
 			cp = ConnectionPool.getInstance();
 			dbConn = cp.getDBConnection();
+			dbConn.setAutoCommit(false);
+			
 			ps = dbConn.prepareStatement(CREATE_QUESTION_ENTRY);
 			
-			ps.setString(1, question.getnStatement());
-			ps.setString(2, question.getnOptionA());
-			ps.setString(3, question.getnOptionB());
-			ps.setString(4, question.getnOptionC());
-			ps.setString(5, question.getnOptionD());
-			ps.setInt(6, question.getCorrectOption());
-			ps.setLong(7, question.getCategory());
-			ps.setInt(8, question.getTimeLine());
+			for (int index = 0; index < questions.size(); index ++) {
+				
+				Question question = questions.get(index);
+			
+				ps.setString(1, question.getnStatement());
+				ps.setString(2, question.getnOptionA());
+				ps.setString(3, question.getnOptionB());
+				ps.setString(4, question.getnOptionC());
+				ps.setString(5, question.getnOptionD());
+				ps.setInt(6, question.getCorrectOption());
+				ps.setLong(7, question.getCategory());
+				ps.setInt(8, question.getTimeLine());
+			
+				ps.addBatch();
+				
+				if (index % 200 == 0) {
+					int[] result = ps.executeBatch();
+					dbConn.setAutoCommit(true);
+					dbConn.setAutoCommit(false);
+				}
+			}
+			ps.executeBatch();
+			dbConn.setAutoCommit(true);
+			
 			
 			int createResult = ps.executeUpdate();
 			return (createResult > 0);
@@ -255,6 +275,7 @@ public class QuestionDBHandler {
         	
             // Java 8
             List<String> list = Files.readAllLines(path, StandardCharsets.UTF_8);
+            List<Question> questions = new ArrayList<>();
             
             for (String line : list) {
             	line = line.trim();
@@ -296,14 +317,16 @@ public class QuestionDBHandler {
     	    	}
     	    	question.setCategory(finalCategoryInt);
     	    	//System.out.println("Ques " + question);
-    	    	QuestionDBHandler.getInstance().createQuestion(question);
+    	    	questions.add(question);
             }
+            QuestionDBHandler.getInstance().createQuestion(questions);
         } catch (Exception e) {
             e.printStackTrace();
         }
 	}
 	
-	
+
+	/*
 	public static void readAndLoadintoDB() {
 		try  
 	    {  
@@ -362,5 +385,5 @@ public class QuestionDBHandler {
 	    {  
 	    	e.printStackTrace();  
 	    }
-	}
+	}*/
 }

@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,6 +15,7 @@ import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.UserMoney;
+import com.ab.quiz.pojo.UserProfile;
 import com.ab.quiz.pojo.WDUserInput;
 import com.ab.quiz.pojo.WithdrawReqByPhone;
 import com.ab.quiz.tasks.CreateTransactionTask;
@@ -102,6 +104,54 @@ public class UserMoneyDBHandler {
 			instance = new UserMoneyDBHandler();
 		}
 		return instance;
+	}
+	
+	public void testCreateMoney(List<UserMoney> userMoneys) throws SQLException {
+		System.out.println("userMoneys.size() :" + userMoneys.size());
+		ConnectionPool cp = null;
+		Connection dbConn = null;
+		PreparedStatement ps = null;
+		
+		try {
+			cp = ConnectionPool.getInstance();
+			dbConn = cp.getDBConnection();
+			dbConn.setAutoCommit(false);
+			
+			ps = dbConn.prepareStatement(CREATE_MONEY_ENTRY);
+			
+			for (int index = 0; index < userMoneys.size(); index ++) {
+				
+				UserMoney userMoney = userMoneys.get(index);
+			
+				ps.setLong(1, userMoney.getUserProfileId());
+				ps.setLong(2, userMoney.getLoadedAmount());
+				ps.setLong(3, userMoney.getWinningAmount());
+				ps.setLong(4, userMoney.getReferalAmount());
+				ps.setLong(5, userMoney.getLoadedAmtLocked());
+				ps.setLong(6, userMoney.getWinningAmtLocked());
+				ps.setLong(7, userMoney.getReferalAmtLocked());
+			
+				ps.addBatch();
+				
+				if (index % 200 == 0) {
+					int[] result = ps.executeBatch();
+					dbConn.setAutoCommit(true);
+					dbConn.setAutoCommit(false);
+				}
+			}
+			ps.executeBatch();
+			dbConn.setAutoCommit(true);
+		} catch(SQLException ex) {
+			logger.error("Error in test creating user moneys", ex);
+			throw ex;
+		} finally {
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
 	}
 	
 	public UserMoney createUserMoney(UserMoney userMoney) throws SQLException {
