@@ -218,7 +218,7 @@ public class GameManager {
 			GameStatus gameStatus = new GameStatus();
 			gameStatus.setGameId(gameHandler.getGameDetails().getGameId());
 			gameStatus.setCurrentCount(gameHandler.getEnrolledUserCount());
-			gameStatus.setGameStatus(1);
+			gameStatus.setGameStatus(1);  // Still active
 			
 			gameIdToGameStatus.put(gameStatus.getGameId(), gameStatus);
 		}
@@ -228,7 +228,7 @@ public class GameManager {
 			GameStatus gameStatus = new GameStatus();
 			gameStatus.setGameId(cancelGameHandler.getGameDetails().getGameId());
 			gameStatus.setCurrentCount(cancelGameHandler.getEnrolledUserCount());
-			gameStatus.setGameStatus(-1);
+			gameStatus.setGameStatus(-1);	// Cancelled
 			
 			Map<Long, Boolean> revertedStatus = cancelGameHandler.cancelGame();
 			gameStatus.setUserAccountRevertStatus(revertedStatus);

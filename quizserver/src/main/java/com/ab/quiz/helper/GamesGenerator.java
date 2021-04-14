@@ -268,7 +268,9 @@ public class GamesGenerator implements Runnable {
 		}
 		
 		if (QuizConstants.TESTMODE == 1) {
-			randomPlayerCount = 10;
+			if (mode == 2) {
+				randomPlayerCount = 10;
+			}
 		}
 		
 		for (int index = 1; index <= randomPlayerCount; index ++) {

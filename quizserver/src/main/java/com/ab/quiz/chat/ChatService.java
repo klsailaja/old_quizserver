@@ -56,7 +56,6 @@ public class ChatService implements Runnable {
 		
 		chatList = list.stream().filter(betweenStartEnd).collect(Collectors.toList());
 		lock.readLock().unlock();
-		logger.info("Hasini .....In get messages :{} and {} ", chatList.size(), list.size());
 		return chatList;
 	}
 	

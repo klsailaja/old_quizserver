@@ -246,10 +246,6 @@ public class GameHandler {
 		}
 		
 		List<PlayerSummary> payments = getLeaderBoardPositions(10);  
-		logger.info("In processPayments ");
-		for (PlayerSummary ps : payments) {
-			logger.info(ps);
-		}
 		PaymentProcessor pp = new PaymentProcessor(payments, gameDetails);
 		pp.processPayments();
 	}
