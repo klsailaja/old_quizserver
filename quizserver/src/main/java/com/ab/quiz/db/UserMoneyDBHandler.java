@@ -15,7 +15,6 @@ import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.UserMoney;
-import com.ab.quiz.pojo.UserProfile;
 import com.ab.quiz.pojo.WDUserInput;
 import com.ab.quiz.pojo.WithdrawReqByPhone;
 import com.ab.quiz.tasks.CreateTransactionTask;
@@ -36,14 +35,14 @@ public class UserMoneyDBHandler {
 	// create a record
 	// get the record
 	// update 
-	private static String ID = "id";
-	private static String USER_ID = "userProfileId";
-	private static String LOADED_AMOUNT = "loadedAmount";
-	private static String WINNING_AMOUNT = "winningAmount";
-	private static String REFERAL_AMOUNT = "referalAmount";
-	private static String LOADED_AMOUNT_LOCKED = "loadedAmtLocked";
-	private static String WINNING_AMOUNT_LOCKED = "winningAmtLocked";
-	private static String REFERAL_AMOUNT_LOCKED = "referalAmtLocked";
+	public static String ID = "id";
+	public static String USER_ID = "userProfileId";
+	public static String LOADED_AMOUNT = "loadedAmount";
+	public static String WINNING_AMOUNT = "winningAmount";
+	public static String REFERAL_AMOUNT = "referalAmount";
+	public static String LOADED_AMOUNT_LOCKED = "loadedAmtLocked";
+	public static String WINNING_AMOUNT_LOCKED = "winningAmtLocked";
+	public static String REFERAL_AMOUNT_LOCKED = "referalAmtLocked";
 	
 	
 	private static UserMoneyDBHandler instance = null;
@@ -54,16 +53,16 @@ public class UserMoneyDBHandler {
 			+ WINNING_AMOUNT_LOCKED + "," + REFERAL_AMOUNT_LOCKED
 			+ ") VALUES" + "(?,?,?,?,?,?,?)";
 	
-	private static final String GET_MONEY_ENTRY_BY_USER_ID = "SELECT * FROM UserMoney WHERE " 
+	public static final String GET_MONEY_ENTRY_BY_USER_ID = "SELECT * FROM UserMoney WHERE " 
 			+ USER_ID + " = ?";
 	
-	private static final String UPDATE_LOADED_AMOUNT_BY_USER_ID = "UPDATE UserMoney SET " 
+	public static final String UPDATE_LOADED_AMOUNT_BY_USER_ID = "UPDATE UserMoney SET " 
 			+ LOADED_AMOUNT + " = " + LOADED_AMOUNT + " + ? WHERE (" + USER_ID + " = ? AND ID <> 0)";
 	
-	private static final String UPDATE_WINNING_AMOUNT_BY_USER_ID = "UPDATE UserMoney SET " 
+	public static final String UPDATE_WINNING_AMOUNT_BY_USER_ID = "UPDATE UserMoney SET " 
 			+ WINNING_AMOUNT + " = " + WINNING_AMOUNT + " + ? WHERE (" + USER_ID + " = ? AND ID <> 0)";
 	
-	private static final String UPDATE_REFERAL_AMOUNT_BY_USER_ID = "UPDATE UserMoney SET " 
+	public static final String UPDATE_REFERAL_AMOUNT_BY_USER_ID = "UPDATE UserMoney SET " 
 			+ REFERAL_AMOUNT + " = " + REFERAL_AMOUNT + " + ? WHERE (" + USER_ID + " = ? AND ID <> 0)";
 	
 	private static final String TRANSFER_AMOUNT_BY_USER_ID = "UPDATE UserMoney SET " 
@@ -91,7 +90,11 @@ public class UserMoneyDBHandler {
 			+ REFERAL_AMOUNT_LOCKED + " = " + REFERAL_AMOUNT_LOCKED + " + ? "
 			+ "WHERE (" + USER_ID + " = ? AND ID <> 0)";
 	
+	public static final String GET_FIFTY_ENTRY_SET = "SELECT * FROM UserMoney "    
+			+ " WHERE " + ID + " IN (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 	
+	public static final String GET_TWENTY_ENTRY_SET = "SELECT * FROM UserMoney "    
+			+ " WHERE " + ID + " IN (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 	
 	
 	

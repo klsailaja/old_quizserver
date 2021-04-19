@@ -20,7 +20,6 @@ import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.PlayerAnswer;
 import com.ab.quiz.pojo.Question;
 import com.ab.quiz.tasks.DeleteCompletedGamesTask;
-import com.ab.quiz.tasks.HistoryGameSaveTask;
 import com.ab.quiz.tasks.UpdateMaxGameIdTask;
 
 public class GamesGenerator implements Runnable {
@@ -34,8 +33,6 @@ public class GamesGenerator implements Runnable {
 	private long firstGameTime;
 	
 	private int mode = 1; // 1 - public, 2 - celebrities
-	
-	private static int simulationUserId = 21;
 	
 	public GamesGenerator(int mode) {
 		this.mode = mode;
@@ -70,9 +67,6 @@ public class GamesGenerator implements Runnable {
 	}
 	
 	public void buildInitialGameSet() {
-		if (QuizConstants.TESTMODE == 1) {
-			simulationUserId = 21;
-		}
 		logger.info("Creating the initial set for mode {}", mode);
 		try {
 			List<GameHandler> set = generateGameData(1);
@@ -86,9 +80,6 @@ public class GamesGenerator implements Runnable {
 	}
 	
 	public void buildNextGameSet() {
-		if (QuizConstants.TESTMODE == 1) {
-			simulationUserId = 21;
-		}
 		logger.info("Creating the next game set for mode {}", mode);
 		try {
 			List<GameHandler> set = generateGameData(1);
@@ -136,15 +127,25 @@ public class GamesGenerator implements Runnable {
 			List<GameHandler> completedGames = GameManager.getInstance().getCompletedGameHandlers(mode);
 			int completedGameCount = completedGames.size();
 			logger.info("Completed games count is {}", completedGameCount);
+			//logger.info(completedGames);
 			
 			long maxId = -1;
 			List<Long> completedGameIds = new ArrayList<>();
 			
+			BatchPaymentProcessor batchPaymentProcessor = new BatchPaymentProcessor();
+			
 			long paymentTimeTaken = System.currentTimeMillis();
 			for (GameHandler completedGame : completedGames) {
 				logger.info("Making payments for Game# {}", completedGame.getGameDetails().getGameId());
-				
-				completedGame.processPayments();
+			
+				// Bulk processing changes start
+				PaymentProcessor pp = completedGame.getPaymentHandler();
+				if (pp != null) {
+					batchPaymentProcessor.addPaymentProcessor(pp);
+				}
+				batchPaymentProcessor.addUserBossIds(completedGame.getUserIdToBossIdDetails());
+				//batchPaymentProcessor.addUserMoneyEntries(completedGame.getUserIdToUserMoney());
+				// Bulk processing End
 				
 				Long gameId = completedGame.getGameDetails().getGameId(); 
 				if (gameId > maxId) {
@@ -152,15 +153,18 @@ public class GamesGenerator implements Runnable {
 				}
 				completedGameIds.add(gameId);
 			}
+			
 			logger.debug("completed game list {}", completedGameIds);
+			
+			batchPaymentProcessor.run();
+			
 			logger.info("Time taken for processing payments {}" , (System.currentTimeMillis() - paymentTimeTaken)/1000);
 			
 			LazyScheduler.getInstance().submit(new UpdateMaxGameIdTask(maxId));
-			LazyScheduler.getInstance().submit(new HistoryGameSaveTask(completedGames));
+			//LazyScheduler.getInstance().submit(new HistoryGameSaveTask(completedGames));
 			LazyScheduler.getInstance().submit(new DeleteCompletedGamesTask(completedGameIds), 2, TimeUnit.MINUTES);
 			
 			if (QuizConstants.TESTMODE == 1) {
-				simulationUserId = 21;
 			}
 			
 			List<GameHandler> inMemGames = null;
@@ -248,14 +252,8 @@ public class GamesGenerator implements Runnable {
 	
 	
 	private void handleFreeGame(GameHandler gameHandlerInstance) {
-		if (QuizConstants.TESTMODE == 0) {
-			if (gameHandlerInstance.getGameDetails().getTicketRate() != 0) {
-				return;
-			}
-		} else {
-			if (gameHandlerInstance.getGameDetails().getTicketRate() == 0) {
-				return;
-			}
+		if (gameHandlerInstance.getGameDetails().getTicketRate() != 0) {
+			return;
 		}
 		
 		int min = 3;
@@ -267,26 +265,12 @@ public class GamesGenerator implements Runnable {
 			userIdOffset = 10;
 		}
 		
-		if (QuizConstants.TESTMODE == 1) {
-			if (mode == 2) {
-				randomPlayerCount = 10;
-			}
-		}
-		
 		for (int index = 1; index <= randomPlayerCount; index ++) {
 			
 			try {
-				long predefinedUserProfileId = ++simulationUserId;
+				long predefinedUserProfileId = index + userIdOffset;
 				
-				if (QuizConstants.TESTMODE == 0) {
-					predefinedUserProfileId = index + userIdOffset;
-				}
-				
-				if (QuizConstants.TESTMODE == 0) {
-					gameHandlerInstance.join(predefinedUserProfileId, UserMoneyAccountType.LOADED_MONEY.getId());
-				} else {
-					gameHandlerInstance.join(predefinedUserProfileId, UserMoneyAccountType.LOADED_MONEY.getId());
-				}
+				gameHandlerInstance.join(predefinedUserProfileId, UserMoneyAccountType.LOADED_MONEY.getId());
 				
 				for (int qIndex = 1; qIndex <= 10; qIndex ++) {
 					PlayerAnswer playerAns = getRandomPlayerAnswer();
@@ -305,10 +289,10 @@ public class GamesGenerator implements Runnable {
 		int userAnswerMax = 5;
 		int userAnswerFinal = userAnswerMin + (int) (Math.random() * (userAnswerMax - userAnswerMin));
 		
-		int timeMin = 2;
-		int timeMax = 30;
+		int timeMin = 1;
+		int timeMax = 5;
 		int timeFinal = timeMin + (int) (Math.random() * (timeMax - timeMin));
-		int timeFinalMillis = timeFinal * 1000; 
+		int timeFinalMillis = timeFinal * 60 * 1000; 
 		
 		PlayerAnswer answer = new PlayerAnswer();
 		answer.setUserAnswer(userAnswerFinal);

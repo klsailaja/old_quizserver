@@ -22,12 +22,14 @@ import com.ab.quiz.db.GameHistoryDBHandler;
 import com.ab.quiz.db.UserMoneyDBHandler;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.helper.CelebritySpecialHandler;
+import com.ab.quiz.helper.InMemUserMoneyManager;
 import com.ab.quiz.helper.Utils;
 import com.ab.quiz.pojo.CelebrityFullDetails;
 import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.GameOperation;
 import com.ab.quiz.pojo.GameStatus;
 import com.ab.quiz.pojo.GameStatusHolder;
+import com.ab.quiz.pojo.MoneyTransaction;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.PlayerAnswer;
 import com.ab.quiz.pojo.PlayerSummary;
@@ -43,6 +45,8 @@ public class GameManager {
 	private TreeMap<Long, GameHandler> gameIdToGameHandler = new TreeMap<Long, GameHandler>();
 	
 	private ReadWriteLock lock = new ReentrantReadWriteLock();
+	private long testingUserIdMode1 = 30;
+	private long testingUserIdMode2 = 30 + (QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED.length - 1) * 10;
 	
 	private GameManager() {
 	}
@@ -56,6 +60,8 @@ public class GameManager {
 	}
 	
 	public void addNewGames(List<GameHandler> gameHandlers) {
+		testingUserIdMode1 = 30;
+		testingUserIdMode2 = 1001;
 		
 		lock.writeLock().lock();
 		for (GameHandler gameHandler : gameHandlers) {
@@ -65,6 +71,71 @@ public class GameManager {
 		}
 		lock.writeLock().unlock();
 		logger.debug("New games are added. The size is {}", gameIdToGameHandler.size());
+		int countGames = 0;
+		for (GameHandler gameHandler : gameHandlers) {
+			if (QuizConstants.TESTMODE == 1) {
+				addTestUsersToGame(gameHandler);
+				countGames++;
+				if (countGames == QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED.length) {
+					testingUserIdMode1 = 30;
+					testingUserIdMode2 = 1001;
+				}
+			}
+		}
+	}
+	
+	private void addTestUsersToGame(GameHandler gameHandlerInstance) {
+		if (gameHandlerInstance.getGameDetails().getTicketRate() == 0) {
+			return;
+		}
+		
+		int min = 3;
+		int max = QuizConstants.MAX_PLAYERS_PER_GAME;
+		int randomPlayerCount = min + (int) (Math.random() * (max - min));
+		
+		for (int index = 1; index <= randomPlayerCount; index ++) {
+			
+			try {
+				
+				long predefinedUserProfileId = -1;
+				if (gameHandlerInstance.getGameDetails().getGameType() == 1) {
+					predefinedUserProfileId = testingUserIdMode1++; 
+				} else {
+					predefinedUserProfileId = testingUserIdMode2++;
+				}
+					
+				GameOperation gameOperation = new GameOperation();
+				gameOperation.setUserProfileId(predefinedUserProfileId);
+				gameOperation.setUserAccountType(UserMoneyAccountType.LOADED_MONEY.getId());
+				GameManager.getInstance().joinGame(gameHandlerInstance.getGameDetails().getGameId(), gameOperation);
+				
+				for (int qIndex = 1; qIndex <= 10; qIndex ++) {
+					PlayerAnswer playerAns = getRandomPlayerAnswer();
+					playerAns.setQuestionNo(qIndex);
+					playerAns.setUserProfileId(predefinedUserProfileId);
+					gameHandlerInstance.submitAnswer(playerAns);
+				}
+			} catch(Exception ex) {
+				logger.error("Exception in addTestUsersToGame", ex);
+			}
+		}
+	}
+	
+	private PlayerAnswer getRandomPlayerAnswer() {
+		int userAnswerMin = 1;
+		int userAnswerMax = 5;
+		int userAnswerFinal = userAnswerMin + (int) (Math.random() * (userAnswerMax - userAnswerMin));
+		
+		int timeMin = 1;
+		int timeMax = 5;
+		int timeFinal = timeMin + (int) (Math.random() * (timeMax - timeMin));
+		int timeFinalMillis = timeFinal * 60 * 1000; 
+		
+		PlayerAnswer answer = new PlayerAnswer();
+		answer.setUserAnswer(userAnswerFinal);
+		answer.setTimeDiff(timeFinalMillis);
+		
+		return answer;
 	}
 	
 	public void deleteCompletedGames(List<Long> completedGameIds) {
@@ -327,8 +398,9 @@ public class GameManager {
 		}
 		
 		try {
-			UserMoney userMoney = UserMoneyDBHandler.getInstance().getUserMoneyByProfileId(gameOper.getUserProfileId());
-			if (userMoney == null) {
+			//UserMoney userMoney = UserMoneyDBHandler.getInstance().getUserMoneyByProfileId(gameOper.getUserProfileId());
+			UserMoney userMoney = InMemUserMoneyManager.getInstance().getUserMoneyById(gameOper.getUserProfileId());
+			if (userMoney.getId() == 0) {
 				throw new NotAllowedException("User Money details not found");
 			}
 			
@@ -369,12 +441,41 @@ public class GameManager {
 					currentGameStartTime, (int)tktRate, TransactionType.DEBITED.getId(), 
 					accType.getId(), userOB, userCB, "Played game#:" + gameId);
 			
-			boolean finalResult = UserMoneyDBHandler.getInstance().updateUserMoney(accType, 
-					UserMoneyOperType.SUBTRACT, gameOper.getUserProfileId(), tktRate, transaction);
+			/*boolean finalResult = UserMoneyDBHandler.getInstance().updateUserMoney(accType, 
+					UserMoneyOperType.SUBTRACT, gameOper.getUserProfileId(), tktRate, transaction);*/
 			
-			if (!finalResult) {
+			MoneyTransaction joinTransaction = new MoneyTransaction(accType, UserMoneyOperType.SUBTRACT, 
+					gameOper.getUserProfileId(), tktRate, transaction);
+			
+			List<MoneyTransaction> joinTransList = new ArrayList<>();
+			joinTransList.add(joinTransaction);
+			Map<Long, UserMoney> joinUserMap = new HashMap<>();
+			joinUserMap.put(gameOper.getUserProfileId(), userMoney);
+			
+			InMemUserMoneyManager.getInstance().update(joinTransList, joinUserMap);
+			
+			
+			/*if (!finalResult) {
 				throw new NotAllowedException("Could not update user money entry");
-			}
+			}*/
+			
+			/*switch (accType) {
+				case LOADED_MONEY: {
+					userMoney.setLoadedAmount(userCB);
+					break;
+				}
+				case WINNING_MONEY: {
+					userMoney.setWinningAmount(userCB);
+					break;
+				}
+				case REFERAL_MONEY: {
+					userMoney.setReferalAmount(userCB);
+					break;
+				}
+			}*/
+			
+			//gameHandler.userIdVsUserMoney.put(gameOper.getUserProfileId(), userMoney);
+			
 		} catch (SQLException e) {
 			logger.error("Exception while fetching User Money Details" , e);
 			throw e;
@@ -426,8 +527,9 @@ public class GameManager {
 		try {
 			
 			long tktRate = gameHandler.getGameDetails().getTicketRate();
-			UserMoney userMoney = UserMoneyDBHandler.getInstance().
-					getUserMoneyByProfileId(gameOper.getUserProfileId());
+			/*UserMoney userMoney = UserMoneyDBHandler.getInstance().
+					getUserMoneyByProfileId(gameOper.getUserProfileId());*/
+			UserMoney userMoney = InMemUserMoneyManager.getInstance().getUserMoneyById(gameOper.getUserProfileId());
 			long userOB = 0;
 			if (accType == UserMoneyAccountType.LOADED_MONEY) {
 				userOB = userMoney.getLoadedAmount(); 
@@ -442,12 +544,21 @@ public class GameManager {
 					currentGameStartTime, (int)tktRate, TransactionType.CREDITED.getId(), 
 					accType.getId(), userOB, userCB, "Refund for canceled game# " + gameId);
 			
-			boolean finalResult = UserMoneyDBHandler.getInstance().updateUserMoney(accType, 
+			MoneyTransaction joinTransaction = new MoneyTransaction(accType, UserMoneyOperType.ADD, 
+					gameOper.getUserProfileId(), tktRate, transaction);
+			List<MoneyTransaction> unjoinTransList = new ArrayList<>();
+			unjoinTransList.add(joinTransaction);
+			Map<Long, UserMoney> unjoinUserMap = new HashMap<>();
+			unjoinUserMap.put(gameOper.getUserProfileId(), userMoney);
+			
+			InMemUserMoneyManager.getInstance().update(unjoinTransList, unjoinUserMap);
+			
+			/*boolean finalResult = UserMoneyDBHandler.getInstance().updateUserMoney(accType, 
 					UserMoneyOperType.ADD, gameOper.getUserProfileId(), tktRate, transaction);
 			
 			if (!finalResult) {
 				throw new NotAllowedException("Refund not done due some issue. Will be done in a day");
-			}
+			}*/
 		} catch (SQLException e) {
 			logger.error("SQL Exception while updating user money",e);
 			throw e;

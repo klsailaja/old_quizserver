@@ -1,7 +1,7 @@
 package com.ab.quiz.helper;
 
-import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -9,17 +9,16 @@ import org.apache.logging.log4j.Logger;
 import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
-import com.ab.quiz.db.UserMoneyDBHandler;
-import com.ab.quiz.db.UserProfileDBHandler;
 import com.ab.quiz.pojo.GameDetails;
+import com.ab.quiz.pojo.MoneyTransaction;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.PlayerSummary;
 import com.ab.quiz.pojo.UserMoney;
-import com.ab.quiz.pojo.UserProfile;
 
 public class PaymentProcessor {
 	private List<PlayerSummary> summaryList;
 	private GameDetails gameDetails;
+	
 	
 	private final Logger logger = LogManager.getLogger(PaymentProcessor.class);
 	
@@ -28,9 +27,12 @@ public class PaymentProcessor {
 		this.gameDetails = gameDetails;
 	}
 	
-	public void processPayments() {
+	public void processPayments(Map<Long, UserMoney> userIdVsUserMoney,
+			Map<Long, Long> userIdVsBossId,
+			List<MoneyTransaction> userIdVsMoneyTransactions) {
+		
 		logger.info("*******************************************************");
-		logger.info("Processing payments for GameId#:" + gameDetails.getGameId());
+		logger.info("Batching payments for GameId#:" + gameDetails.getGameId());
 		for (PlayerSummary ps : summaryList) {
 			logger.info(ps);
 		}
@@ -39,7 +41,7 @@ public class PaymentProcessor {
 				continue;
 			}
 			
-			UserMoneyDBHandler userMoneyHandler = UserMoneyDBHandler.getInstance();
+			//UserMoneyDBHandler userMoneyHandler = UserMoneyDBHandler.getInstance();
 			
 			String userName = ps.getUserName();
 			int amountWon = ps.getAmountWon();
@@ -49,7 +51,7 @@ public class PaymentProcessor {
 			try {
 				logger.info("Paying amount {} to id {} and userName {}", amountWon, userProfileId, userName);
 				
-				UserMoney userMoney = userMoneyHandler.getUserMoneyByProfileId(userProfileId);
+				UserMoney userMoney = userIdVsUserMoney.get(userProfileId);
 				
 				long userOB = userMoney.getWinningAmount();
 				long gameStartTime = gameDetails.getStartTime();
@@ -60,15 +62,24 @@ public class PaymentProcessor {
 				MyTransaction transaction = Utils.getTransactionPojo(userProfileId, gameStartTime, 
 						amountWon, TransactionType.CREDITED.getId(), 
 						UserMoneyAccountType.WINNING_MONEY.getId(), userOB, userCB, comments);
-						
 				
-				boolean res = userMoneyHandler.updateUserMoney(UserMoneyAccountType.WINNING_MONEY, 
+				MoneyTransaction moneyTransaction = new MoneyTransaction();
+				moneyTransaction.setAccountType(UserMoneyAccountType.WINNING_MONEY);
+				moneyTransaction.setOperType(UserMoneyOperType.ADD);
+				moneyTransaction.setUserProfileId(userProfileId);
+				moneyTransaction.setAmount(amountWon);
+				moneyTransaction.setTransaction(transaction);
+				
+				userIdVsMoneyTransactions.add(moneyTransaction);
+				
+				/*boolean res = userMoneyHandler.updateUserMoney(UserMoneyAccountType.WINNING_MONEY, 
 						UserMoneyOperType.ADD, userProfileId, amountWon, transaction);
 				
-				logger.info("Updating WINNING MONEY status for id {}", res);
+				//logger.info("Updating WINNING MONEY status for id {}", res);
 				
 				UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userProfileId);
 				String bossCode = userProfile.getBossReferredId();
+				
 				if ((bossCode == null) || (bossCode.equalsIgnoreCase("null"))) {
 					logger.info("Boss Referal code is null. Returning for userProfileId : {}", userProfileId);
 					continue;
@@ -78,13 +89,19 @@ public class PaymentProcessor {
 				if ((myBossUserProfile == null) || (myBossUserProfile.getId() == 0)) {
 					logger.info("Boss User Profile not found with code {}", bossCode);
 					continue;
+				}*/
+				Long bossProfileId = userIdVsBossId.get(userProfileId);
+				if (bossProfileId == null) {
+					logger.info("Boss Referal code is null. Returning for userProfileId : {}", userProfileId);
+					continue;
 				}
 				
-				long bossUserProfileId = myBossUserProfile.getId();
+				long bossUserProfileId = bossProfileId;
 				int bossShare = Utils.getBossMoney(profit);
 				
-				userMoney = userMoneyHandler.getUserMoneyByProfileId(userProfileId);
-				UserMoney bossUserMoney = userMoneyHandler.getUserMoneyByProfileId(bossUserProfileId);
+				userMoney = userIdVsUserMoney.get(userProfileId);
+				UserMoney bossUserMoney = userIdVsUserMoney.get(bossUserProfileId);
+				
 				
 				userOB = userMoney.getWinningAmount();
 				long bossOB = bossUserMoney.getReferalAmount();
@@ -93,7 +110,7 @@ public class PaymentProcessor {
 				gameStartTime = gameDetails.getStartTime();
 				
 				comments = "Paying Your Referrer share for GameId# " + gameDetails.getGameId();
-				String bossCmts = "For Referring " + userProfile.getName() 
+				String bossCmts = "For Referring " //+ userProfile.getName() 
 					+ ". Winning money share for GameId#:" + gameDetails.getGameId();
 				userCB = userOB - bossShare;
 				long bossCB = bossOB + bossShare;
@@ -106,13 +123,31 @@ public class PaymentProcessor {
 								bossShare, TransactionType.CREDITED.getId(), 
 								UserMoneyAccountType.REFERAL_MONEY.getId(), bossOB, bossCB, bossCmts);
 				
-				res = userMoneyHandler.payToBoss(userProfileId, bossUserProfileId, bossShare, transaction, transaction1);
+				moneyTransaction = new MoneyTransaction();
+				moneyTransaction.setAccountType(UserMoneyAccountType.WINNING_MONEY);
+				moneyTransaction.setOperType(UserMoneyOperType.SUBTRACT);
+				moneyTransaction.setUserProfileId(userProfileId);
+				moneyTransaction.setAmount(bossShare);
+				moneyTransaction.setTransaction(transaction);
 				
-				logger.info("Boss payment overall result is {}", res);
+				userIdVsMoneyTransactions.add(moneyTransaction);
 				
-			} catch (SQLException ex) {
+				moneyTransaction = new MoneyTransaction();
+				moneyTransaction.setAccountType(UserMoneyAccountType.REFERAL_MONEY);
+				moneyTransaction.setOperType(UserMoneyOperType.ADD);
+				moneyTransaction.setUserProfileId(bossUserProfileId);
+				moneyTransaction.setAmount(bossShare);
+				moneyTransaction.setTransaction(transaction1);
+				
+				userIdVsMoneyTransactions.add(moneyTransaction);
+				
+				/*res = userMoneyHandler.payToBoss(userProfileId, bossUserProfileId, bossShare, transaction, transaction1);
+				
+				logger.info("Boss payment overall result is {}", res);*/
+				
+			} catch (Exception ex) {
 				logger.error("For user profile id " + userProfileId);
-				logger.error("SQL Exception while processing the payment", ex);
+				logger.error("Exception while processing the payment", ex);
 				continue;
 			}
 		}

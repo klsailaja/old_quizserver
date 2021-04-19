@@ -68,7 +68,7 @@ public class QuestionDBHandler {
 		return instance;
 	}
 	
-	public boolean createQuestion(List<Question> questions) throws SQLException {
+	public void createQuestion(List<Question> questions) throws SQLException {
 		
 		System.out.println("questions.size() :" + questions.size());
 		ConnectionPool cp = null;
@@ -105,12 +105,8 @@ public class QuestionDBHandler {
 			}
 			ps.executeBatch();
 			dbConn.setAutoCommit(true);
-			
-			
-			int createResult = ps.executeUpdate();
-			return (createResult > 0);
 		} catch(SQLException ex) {
-			logger.error("Error creating question", ex);
+			logger.error("Error creatings questions in bulk mode", ex);
 			throw ex;
 		} finally {
 			if (ps != null) {

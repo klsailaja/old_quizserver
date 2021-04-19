@@ -95,6 +95,11 @@ public class UserProfileHandler {
 			if (checkByMailId.getId() == 0) {
 				throw new NotAllowedException("Invalid Referral code. No User exists with this code");
 			}
+			userProfile.setBossId(checkByMailId.getId());
+			userProfile.setBossName(checkByMailId.getName());
+		} else {
+			userProfile.setBossId(0);
+			userProfile.setBossName("");
 		}
 		long currentTime = System.currentTimeMillis();
 		userProfile.setCreatedDate(currentTime);

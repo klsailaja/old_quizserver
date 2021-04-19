@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ab.quiz.exceptions.InternalException;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.UserMoneyHandler;
+import com.ab.quiz.helper.InMemUserMoneyManager;
 import com.ab.quiz.pojo.TransferRequest;
 import com.ab.quiz.pojo.UserMoney;
 
@@ -29,7 +30,8 @@ public class UserMoneyController extends BaseController {
 			throws InternalException, NotAllowedException {
 		
 		try {
-			return UserMoneyHandler.getInstance().getUserMoney(userProfileId);
+			//return UserMoneyHandler.getInstance().getUserMoney(userProfileId);
+			return InMemUserMoneyManager.getInstance().getUserMoneyById(userProfileId);
 		} catch (SQLException ex) {
 			logger.error("Exception in getUserMoney", ex);
 			throw new InternalException("Server Error in getUserMoney");

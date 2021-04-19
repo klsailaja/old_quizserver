@@ -14,14 +14,15 @@ import org.apache.logging.log4j.Logger;
 import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
-import com.ab.quiz.db.UserMoneyDBHandler;
 import com.ab.quiz.db.UserProfileDBHandler;
 import com.ab.quiz.exceptions.NotAllowedException;
+import com.ab.quiz.helper.InMemUserMoneyManager;
 import com.ab.quiz.helper.LeaderBoard;
 import com.ab.quiz.helper.PaymentProcessor;
 import com.ab.quiz.helper.Utils;
 import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.GamePlayers;
+import com.ab.quiz.pojo.MoneyTransaction;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.PlayerAnswer;
 import com.ab.quiz.pojo.PlayerSummary;
@@ -42,6 +43,12 @@ public class GameHandler {
 	
 	// This map maintains the question number vs all game players summary as of that question 
 	private Map<Integer, List<PlayerSummary>> questionNoVsSummary = new HashMap<>();
+	
+	// This map maintains the UserId Vs Boss Id
+	private Map<Long, Long> userIdVsBossId = new HashMap<>();
+	private Map<Long, String> userIdVsName = new HashMap<>();
+	//Map<Long, UserMoney> userIdVsUserMoney = new HashMap<>();
+	
 	
 	private static final Logger logger = LogManager.getLogger(GameHandler.class);
 	private Object lock = new Object();
@@ -85,13 +92,17 @@ public class GameHandler {
 		}
 		
 		userProfileIdVsAnswers.put(userProfileId, new ArrayList<PlayerAnswer>());
+		userIdVsBossId.put(userProfileId, userProfile.getBossId());
+		userIdVsName.put(userProfileId, userProfile.getName());
 		
 		return true;
 	}
 	
 	public boolean withdraw(long userProfileId) throws NotAllowedException {
 		
+		userIdVsBossId.remove(userProfileId);
 		userProfileIdVsAnswers.remove(userProfileId);
+		userIdVsName.remove(userProfileId);
 		
 		// Remove the Player object from userProfileIdVsSummary.
 		
@@ -132,6 +143,8 @@ public class GameHandler {
 		Set<Map.Entry<Long, PlayerSummary>> setValues = userProfileIdVsSummary.entrySet();
 		long userProfileId = 0;
 		int accountUsed = 0;
+		List<MoneyTransaction> cancelTransList = new ArrayList<>();
+		Map<Long, UserMoney> cancelUserMap = new HashMap<>();
 		for (Map.Entry<Long, PlayerSummary> eachEntry : setValues) {
 			PlayerSummary playerSummary = eachEntry.getValue();
 			userProfileId = playerSummary.getUserProfileId();
@@ -139,7 +152,8 @@ public class GameHandler {
 			UserMoneyAccountType userAccType = UserMoneyAccountType.findById(accountUsed);
 			long amt = getGameDetails().getTicketRate();
 			
-			UserMoney userMoney = UserMoneyHandler.getInstance().getUserMoney(userProfileId);
+			//UserMoney userMoney = UserMoneyHandler.getInstance().getUserMoney(userProfileId);
+			UserMoney userMoney = InMemUserMoneyManager.getInstance().getUserMoneyById(userProfileId);
 			long userOB = getAccountBalance(userMoney, accountUsed);
 			if (userOB == -1) {
 				logger.info("******************************");
@@ -153,11 +167,17 @@ public class GameHandler {
 			MyTransaction transaction = Utils.getTransactionPojo(userProfileId, gameDetails.getStartTime(), 
 					gameDetails.getTicketRate(), TransactionType.CREDITED.getId(), accountUsed, userOB, userCB, comments); 
 			
-			boolean res = UserMoneyDBHandler.getInstance().updateUserMoney(userAccType, 
-					UserMoneyOperType.ADD, userProfileId, amt, transaction);
+			/*boolean res = UserMoneyDBHandler.getInstance().updateUserMoney(userAccType, 
+					UserMoneyOperType.ADD, userProfileId, amt, transaction);*/
+			MoneyTransaction cancelGameTransaction = new MoneyTransaction(userAccType, UserMoneyOperType.ADD, 
+					userProfileId, amt, transaction);
 			
-			userCreditedStatus.put(userProfileId, res);
+			cancelTransList.add(cancelGameTransaction);
+			cancelUserMap.put(userProfileId, userMoney);
+			
+			userCreditedStatus.put(userProfileId, true);
 		}
+		InMemUserMoneyManager.getInstance().update(cancelTransList, cancelUserMap);
 		
 		userProfileIdVsSummary.clear();
 		return userCreditedStatus;
@@ -238,16 +258,17 @@ public class GameHandler {
 		return false;
 	}
 	
-	public void processPayments() {
+	public PaymentProcessor getPaymentHandler() {
 		
 		if (isGameCancelled()) {
-			logger.info("Returning as Game cancelled. GameId# {}", gameDetails.getGameId());
-			return;
+			logger.info("Skipping as Game cancelled. GameId# {}", gameDetails.getGameId());
+			return null;
 		}
 		
 		List<PlayerSummary> payments = getLeaderBoardPositions(10);  
 		PaymentProcessor pp = new PaymentProcessor(payments, gameDetails);
-		pp.processPayments();
+		//pp.processPayments();
+		return pp;
 	}
 	
 	public List<PrizeDetail> getPrizeDetails() {
@@ -271,4 +292,12 @@ public class GameHandler {
 	public String toString() {
 		return gameDetails.toString();
 	}
+	
+	public Map<Long, Long> getUserIdToBossIdDetails() {
+		return userIdVsBossId;
+	}
+	
+	/*public Map<Long, UserMoney> getUserIdToUserMoney() {
+		return userIdVsUserMoney;
+	}*/
 }

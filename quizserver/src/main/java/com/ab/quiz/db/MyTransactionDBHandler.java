@@ -83,6 +83,69 @@ public class MyTransactionDBHandler {
 		return instance;
 	}
 	
+	public List<Integer> createTransactionsInBatch(List<MyTransaction> transactionsList) throws SQLException {
+		
+		ConnectionPool cp = null;
+		Connection dbConn = null;
+		PreparedStatement ps = null;
+		
+		try {
+			cp = ConnectionPool.getInstance();
+			dbConn = cp.getDBConnection();
+			dbConn.setAutoCommit(false);
+			
+			ps = dbConn.prepareStatement(CREATE_TRANSACTION_ENTRY);
+			
+			int index = 0;
+			List<Integer> transactionOperResults = new ArrayList<>();
+			
+			for (MyTransaction myTransaction : transactionsList) {
+				
+				ps.setLong(1, myTransaction.getUserId());
+				ps.setLong(2, myTransaction.getDate());
+				ps.setInt(3, myTransaction.getAmount());
+				ps.setInt(4, myTransaction.getAccountType());
+				ps.setInt(5, myTransaction.getTransactionType());
+				ps.setInt(6, myTransaction.getOperResult());
+				ps.setLong(7, myTransaction.getOpeningBalance());
+				ps.setLong(8, myTransaction.getClosingBalance());
+				ps.setString(9, myTransaction.getComment());
+				index++;
+				
+				ps.addBatch();
+				
+				if (index == 100) {
+					int[] results = ps.executeBatch();
+					dbConn.setAutoCommit(true);
+					dbConn.setAutoCommit(false);
+					for (int result : results) {
+						transactionOperResults.add(result);
+					}
+					index = 0;
+				}
+			}
+			
+			if (index > 0) {
+				int [] results = ps.executeBatch();
+				dbConn.setAutoCommit(true);
+				for (int result : results) {
+					transactionOperResults.add(result);
+				}
+			}
+			return transactionOperResults;
+		} catch(SQLException ex) {
+			logger.error("Error processing transactions list in bulk mode", ex);
+			throw ex;
+		} finally {
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
+	}
+	
 	public boolean createTransaction(MyTransaction myTransaction) throws SQLException {
 		ConnectionPool cp = null;
 		Connection dbConn = null;

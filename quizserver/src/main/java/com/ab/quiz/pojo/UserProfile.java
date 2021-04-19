@@ -11,6 +11,7 @@ public class UserProfile {
 	private long createdDate;
 	private long lastLoggedDate;
 	private String bossName;
+	private long bossId;
 	
 	public long getId() {
 		return id;
@@ -66,6 +67,13 @@ public class UserProfile {
 	}
 	public void setBossName(String bossName) {
 		this.bossName = bossName;
+	}
+	
+	public long getBossId() {
+		return bossId;
+	}
+	public void setBossId(long bossId) {
+		this.bossId = bossId;
 	}
 	@Override
 	public String toString() {

@@ -19,7 +19,6 @@ import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.helper.SendMailTask;
 import com.ab.quiz.pojo.Mail;
-import com.ab.quiz.pojo.Question;
 import com.ab.quiz.pojo.ReferalDetails;
 import com.ab.quiz.pojo.UserMoney;
 import com.ab.quiz.pojo.UserProfile;
@@ -32,6 +31,8 @@ CREATE TABLE UserProfile(id bigint NOT NULL AUTO_INCREMENT,
 		mailId varchar(70) NOT NULL, 
 		myreferalId varchar(10), 
 		referredId varchar(10), 
+		bossUserId bigint,
+        bossName varchar(20),
 		createdDate bigint, 
 		lastLoggedDate bigint, PRIMARY KEY (id));
 */
@@ -46,6 +47,8 @@ public class UserProfileDBHandler {
 	private static String MAIL_ID = "mailId";
 	private static String MYREFERAL_ID = "myreferalId";
 	private static String REFERED_ID = "referredId";
+	private static String BOSS_USER_ID = "bossUserId";
+	private static String BOSS_NAME = "bossName";
 	private static String CREATEDDATE = "createdDate";
 	private static String LASTLOGGEDDATE = "lastLoggedDate";
 	
@@ -65,8 +68,9 @@ public class UserProfileDBHandler {
 	
 	private static final String CREATE_USER_PROFILE = "INSERT INTO UserProfile " 
 			+ "(" + NAME + "," + MAIL_ID + "," + PASSWD + "," + MYREFERAL_ID + "," + REFERED_ID + ","
+			+ BOSS_USER_ID + "," + BOSS_NAME + ","
 			+ CREATEDDATE + "," + LASTLOGGEDDATE + ") VALUES"   
-			+ "(?,?,?,?,?,?,?)";
+			+ "(?,?,?,?,?,?,?,?,?)";
 	private static final String MAX_USER_PROFILE_ID = "SELECT MAX(ID) FROM UserProfile";
 	
 	private static final String UPDATE_TIME_BY_ID = "UPDATE UserProfile SET " + LASTLOGGEDDATE + "= ? WHERE " + ID + " = ?";
@@ -145,8 +149,10 @@ public class UserProfileDBHandler {
 				ps.setString(3, userProfile.getPasswordHash());
 				ps.setString(4, userProfile.getMyReferalId());
 				ps.setString(5, userProfile.getBossReferredId());
-				ps.setLong(6,  userProfile.getCreatedDate());
-				ps.setLong(7, userProfile.getLastLoggedDate());
+				ps.setLong(6, userProfile.getBossId());
+				ps.setString(7, userProfile.getBossName());
+				ps.setLong(8,  userProfile.getCreatedDate());
+				ps.setLong(9, userProfile.getLastLoggedDate());
 			
 				ps.addBatch();
 				
@@ -200,8 +206,10 @@ public class UserProfileDBHandler {
 			ps.setString(3, userProfile.getPasswordHash());
 			ps.setString(4, userProfile.getMyReferalId());
 			ps.setString(5, userProfile.getBossReferredId());
-			ps.setLong(6,  userProfile.getCreatedDate());
-			ps.setLong(7, userProfile.getLastLoggedDate());
+			ps.setLong(6, userProfile.getBossId());
+			ps.setString(7, userProfile.getBossName());
+			ps.setLong(8,  userProfile.getCreatedDate());
+			ps.setLong(9, userProfile.getLastLoggedDate());
 		
 			int createResult = ps.executeUpdate();
 			logger.debug(" createResult {}", createResult);
@@ -250,15 +258,10 @@ public class UserProfileDBHandler {
 					userProfile.setName(rs.getString(NAME));
 					userProfile.setMyReferalId(rs.getString(MYREFERAL_ID));
 					userProfile.setBossReferredId(rs.getString(REFERED_ID));
+					userProfile.setBossId(rs.getLong(BOSS_USER_ID));
+					userProfile.setBossName(rs.getString(BOSS_NAME));
 					userProfile.setCreatedDate(rs.getLong(CREATEDDATE));
 					userProfile.setLastLoggedTime(rs.getLong(LASTLOGGEDDATE));
-					String bossName = "";
-					/*String userBossCode = userProfile.getBossReferredId();
-					if ((userBossCode != null) && (userBossCode.length() > 0)) {
-						UserProfile bossUserProfile = getProfileByBossRefaralCode(userBossCode);
-						bossName = bossUserProfile.getName();
-					}*/
-					userProfile.setBossName(bossName);
 				}
 				rs.close();
 			}
@@ -537,7 +540,7 @@ public class UserProfileDBHandler {
 		UserProfileDBHandler dbHandler = UserProfileDBHandler.getInstance();
 		
 		UserMoneyDBHandler userMoneyDBHandler = UserMoneyDBHandler.getInstance();
-		int total = 200;
+		int total = 60000;
 		boolean batchMode = true;
 		
 		List<UserProfile> testProfiles = new ArrayList<>();
@@ -547,12 +550,21 @@ public class UserProfileDBHandler {
 			userProfile.setEmailAddress("systemuser" + index + "@gmail.com");
 			userProfile.setName("Systemuser" + index);
 			userProfile.setPasswordHash("5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5");
-			userProfile.setBossReferredId("Rajasekh21");
+			userProfile.setBossId(21);
+			userProfile.setBossName("Rajasekhar");
 			userProfile.setCreatedDate(1609861020944L);
 			userProfile.setLastLoggedTime(1609861020944L);
 			
+			int idStrLen = String.valueOf(index).length();
+			int remainingLen = 8 - idStrLen;
+			String userName = userProfile.getName().toUpperCase();
+			if (userName.length() >= remainingLen) {
+				userName = userName.substring(0, remainingLen);
+			}
+			String userIdStr = userName + String.valueOf(index); 
+			userProfile.setMyReferalId(userIdStr);
+			
 			if (batchMode) {
-				userProfile.setMyReferalId("id" + index);
 				testProfiles.add(userProfile);
 			} else {
 				dbHandler.createUserProfile(userProfile);
@@ -564,10 +576,20 @@ public class UserProfileDBHandler {
 		userProfile.setName("Rajasekhar");
 		userProfile.setPasswordHash("5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5");
 		userProfile.setBossReferredId("NoOne");
+		userProfile.setBossId(0);
+		userProfile.setBossName("");
 		userProfile.setCreatedDate(1609861020944L);
 		userProfile.setLastLoggedTime(1609861020944L);
+		int idStrLen = String.valueOf(21).length();
+		int remainingLen = 8 - idStrLen;
+		String userName = userProfile.getName().toUpperCase();
+		if (userName.length() >= remainingLen) {
+			userName = userName.substring(0, remainingLen);
+		}
+		String userIdStr = userName + String.valueOf(21); 
+		userProfile.setMyReferalId(userIdStr);
+		
 		if (batchMode) {
-			userProfile.setMyReferalId("id" + 21);
 			testProfiles.add(userProfile);
 		} else {
 			dbHandler.createUserProfile(userProfile);
@@ -579,11 +601,21 @@ public class UserProfileDBHandler {
 			userProfile.setName("Testuser" + index);
 			userProfile.setPasswordHash("5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5");
 			userProfile.setBossReferredId("NoOne");
+			userProfile.setBossId(1000 + index);
+			userProfile.setBossName("Raj" + String.valueOf(userProfile.getBossId()));
 			userProfile.setCreatedDate(1609861020944L);
 			userProfile.setLastLoggedTime(1609861020944L);
+			idStrLen = String.valueOf(index).length();
+			remainingLen = 8 - idStrLen;
+			userName = userProfile.getName().toUpperCase();
+			if (userName.length() >= remainingLen) {
+				userName = userName.substring(0, remainingLen);
+			}
+			userIdStr = userName + String.valueOf(index); 
+			userProfile.setMyReferalId(userIdStr);
+
 			
 			if (batchMode) {
-				userProfile.setMyReferalId("id" + index);
 				testProfiles.add(userProfile);
 			} else {
 				dbHandler.createUserProfile(userProfile);
@@ -598,7 +630,7 @@ public class UserProfileDBHandler {
 		for (int index = 1; index <= total; index ++) {
 			UserMoney userMoney = new UserMoney();
 			userMoney.setUserId(index);
-			userMoney.setLoadedAmount(10000);
+			userMoney.setLoadedAmount(1000000);
 			userMoney.setLoadedAmtLocked(0);
 			userMoney.setWinningAmount(0);
 			userMoney.setWinningAmtLocked(0);
