@@ -39,6 +39,7 @@ public class BatchPaymentProcessor implements Runnable {
 	
 	public void fetchBossUserMoneyObjects() throws SQLException {
 		
+		
 		List<Long> loadUserIds = new ArrayList<>();
 		List<Long> loadBossIds = new ArrayList<>();
 		
@@ -57,9 +58,15 @@ public class BatchPaymentProcessor implements Runnable {
 		}
 		
 		logger.info("This is in fetchBossUserMoneyObjects keys size {} : boss size {}", loadUserIds.size(), loadBossIds.size());
+		
 		List<Long> tobeLoadedUserMoneyIds = new ArrayList<>();
 		tobeLoadedUserMoneyIds.addAll(loadUserIds);
-		tobeLoadedUserMoneyIds.addAll(loadBossIds);
+		
+		for (Long bossIdInt : loadBossIds) {
+			if (!tobeLoadedUserMoneyIds.contains(bossIdInt)) {
+				tobeLoadedUserMoneyIds.add(bossIdInt);
+			}
+		}
 		
 		logger.info("Before size {}", userIdVsUserMoney.size());
 		int size = tobeLoadedUserMoneyIds.size();

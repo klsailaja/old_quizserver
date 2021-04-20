@@ -55,7 +55,7 @@ public class HistoryGameSaveTask implements Runnable {
 			
 			
 			
-			List<PlayerSummary> winnersList = gameHandler.getLeaderBoardPositions(10);
+			List<PlayerSummary> winnersList = gameHandler.getLeaderBoardPositions(10, false);
 			StringBuffer strBuffer = new StringBuffer();
 			//userName;rank;correctCount;totalTime;amountWon
 			for (PlayerSummary winner : winnersList) {

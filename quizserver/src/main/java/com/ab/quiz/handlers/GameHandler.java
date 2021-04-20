@@ -182,10 +182,16 @@ public class GameHandler {
 	}
 	
 	public List<PlayerSummary> getLeaderBoardPositions(int qNo) {
-		
-		logger.info("**************************************************************");
-		logger.info("GameId#: " + gameDetails.getGameId());
-		logger.info("In getLeaderBoardPositions " + qNo);
+		return getLeaderBoardPositions(qNo, true);
+	}
+	
+	public List<PlayerSummary> getLeaderBoardPositions(int qNo, boolean print) {
+
+		if (print) {
+			logger.info("**************************************************************");
+			logger.info("GameId#: " + gameDetails.getGameId());
+			logger.info("In getLeaderBoardPositions " + qNo);
+		}
 		
 		List<PlayerSummary> finalPlayerSummary = questionNoVsSummary.get(qNo);
 		
