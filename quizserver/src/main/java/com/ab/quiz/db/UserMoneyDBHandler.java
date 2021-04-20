@@ -137,7 +137,7 @@ public class UserMoneyDBHandler {
 				ps.addBatch();
 				
 				if (index % 200 == 0) {
-					int[] result = ps.executeBatch();
+					ps.executeBatch();
 					dbConn.setAutoCommit(true);
 					dbConn.setAutoCommit(false);
 				}
@@ -174,7 +174,7 @@ public class UserMoneyDBHandler {
 			ps.setLong(5, userMoney.getLoadedAmtLocked());
 			ps.setLong(6, userMoney.getWinningAmtLocked());
 			ps.setLong(7, userMoney.getReferalAmtLocked());
-			int createResult = ps.executeUpdate();
+			ps.executeUpdate();
 		} catch(SQLException ex) {
 			logger.error("Error creating user money", ex);
 			throw ex;

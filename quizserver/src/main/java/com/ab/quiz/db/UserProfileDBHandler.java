@@ -157,7 +157,7 @@ public class UserProfileDBHandler {
 				ps.addBatch();
 				
 				if (index % 200 == 0) {
-					int[] result = ps.executeBatch();
+					ps.executeBatch();
 					dbConn.setAutoCommit(true);
 					dbConn.setAutoCommit(false);
 				}
@@ -540,7 +540,7 @@ public class UserProfileDBHandler {
 		UserProfileDBHandler dbHandler = UserProfileDBHandler.getInstance();
 		
 		UserMoneyDBHandler userMoneyDBHandler = UserMoneyDBHandler.getInstance();
-		int total = 60000;
+		int total = 100000;
 		boolean batchMode = true;
 		
 		List<UserProfile> testProfiles = new ArrayList<>();
@@ -601,7 +601,7 @@ public class UserProfileDBHandler {
 			userProfile.setName("Testuser" + index);
 			userProfile.setPasswordHash("5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5");
 			userProfile.setBossReferredId("NoOne");
-			userProfile.setBossId(1000 + index);
+			userProfile.setBossId(100 + index);
 			userProfile.setBossName("Raj" + String.valueOf(userProfile.getBossId()));
 			userProfile.setCreatedDate(1609861020944L);
 			userProfile.setLastLoggedTime(1609861020944L);
@@ -630,7 +630,7 @@ public class UserProfileDBHandler {
 		for (int index = 1; index <= total; index ++) {
 			UserMoney userMoney = new UserMoney();
 			userMoney.setUserId(index);
-			userMoney.setLoadedAmount(1000000);
+			userMoney.setLoadedAmount(50000);
 			userMoney.setLoadedAmtLocked(0);
 			userMoney.setWinningAmount(0);
 			userMoney.setWinningAmtLocked(0);

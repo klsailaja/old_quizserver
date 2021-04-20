@@ -90,6 +90,6 @@ public class Utils {
 	}
 	
 	public static int getBossMoney(int profit) {
-		return (profit/50) + 1;
+		return (profit/50);
 	}
 }

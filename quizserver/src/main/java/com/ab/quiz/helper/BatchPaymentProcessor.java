@@ -40,18 +40,31 @@ public class BatchPaymentProcessor implements Runnable {
 	}
 	
 	public void fetchBossUserMoneyObjects() throws SQLException {
-		logger.info("This is in fetchBossUserMoneyObjects ");
-		List<Long> tobeLoadedUserMoneyIds = new ArrayList<>();
-		for (Long bossId : userIdVsBossId.values()) {
+		
+		List<Long> loadUserIds = new ArrayList<>();
+		List<Long> loadBossIds = new ArrayList<>();
+		
+		for (Map.Entry<Long, Long> entries : userIdVsBossId.entrySet()) {
+			Long id = entries.getKey();
+			Long bossId = entries.getValue();
+			if (!loadUserIds.contains(id)) {
+				loadUserIds.add(id);
+			}
 			if (bossId == 0) {
-				// No boss..
 				continue;
 			}
-			if (!tobeLoadedUserMoneyIds.contains(bossId)) {
-				tobeLoadedUserMoneyIds.add(bossId);
+			if (!loadBossIds.contains(bossId)) {
+				loadBossIds.add(bossId);
 			}
 		}
+		
+		logger.info("This is in fetchBossUserMoneyObjects keys size {} : boss size {}", loadUserIds.size(), loadBossIds.size());
+		List<Long> tobeLoadedUserMoneyIds = new ArrayList<>();
+		tobeLoadedUserMoneyIds.addAll(loadUserIds);
+		tobeLoadedUserMoneyIds.addAll(loadBossIds);
+		
 		logger.info("UserMoney objects missing for {}", tobeLoadedUserMoneyIds.size());
+		
 		logger.info("Before size {}", userIdVsUserMoney.size());
 		int size = tobeLoadedUserMoneyIds.size();
 		if (size <= 0) {
@@ -73,12 +86,14 @@ public class BatchPaymentProcessor implements Runnable {
 				for (int counter = 1; counter <= 50; counter ++) {
 					ps.setLong(counter, tobeLoadedUserMoneyIds.get(index++));
 				}
+				logger.info("Greater than 50");
 			} else if (remainingSize >= 20) {
 				String sql = UserMoneyDBHandler.GET_TWENTY_ENTRY_SET;
 				ps = dbConn.prepareStatement(sql);
 				for (int counter = 1; counter <= 20; counter ++) {
 					ps.setLong(counter, tobeLoadedUserMoneyIds.get(index++));
 				}
+				logger.info("Greater than 20");
 			} else {
 				String sql = UserMoneyDBHandler.GET_MONEY_ENTRY_BY_USER_ID;
 				ps = dbConn.prepareStatement(sql);
@@ -90,18 +105,18 @@ public class BatchPaymentProcessor implements Runnable {
 				if (rs != null) {
 					while (rs.next()) {
 						
-						UserMoney bossUserMoney = new UserMoney();
+						UserMoney userMoney = new UserMoney();
 						
-						bossUserMoney.setId(rs.getLong(UserMoneyDBHandler.ID));
-						bossUserMoney.setUserId(rs.getLong(UserMoneyDBHandler.USER_ID));
-						bossUserMoney.setLoadedAmount(rs.getLong(UserMoneyDBHandler.LOADED_AMOUNT));
-						bossUserMoney.setWinningAmount(rs.getLong(UserMoneyDBHandler.WINNING_AMOUNT));
-						bossUserMoney.setReferalAmount(rs.getLong(UserMoneyDBHandler.REFERAL_AMOUNT));
-						bossUserMoney.setLoadedAmtLocked(rs.getLong(UserMoneyDBHandler.LOADED_AMOUNT_LOCKED));
-						bossUserMoney.setWinningAmtLocked(rs.getLong(UserMoneyDBHandler.WINNING_AMOUNT_LOCKED));
-						bossUserMoney.setReferalAmtLocked(rs.getLong(UserMoneyDBHandler.REFERAL_AMOUNT_LOCKED));
-						
-						userIdVsUserMoney.put(bossUserMoney.getId(), bossUserMoney);
+						userMoney.setId(rs.getLong(UserMoneyDBHandler.ID));
+						userMoney.setUserId(rs.getLong(UserMoneyDBHandler.USER_ID));
+						userMoney.setLoadedAmount(rs.getLong(UserMoneyDBHandler.LOADED_AMOUNT));
+						userMoney.setWinningAmount(rs.getLong(UserMoneyDBHandler.WINNING_AMOUNT));
+						userMoney.setReferalAmount(rs.getLong(UserMoneyDBHandler.REFERAL_AMOUNT));
+						userMoney.setLoadedAmtLocked(rs.getLong(UserMoneyDBHandler.LOADED_AMOUNT_LOCKED));
+						userMoney.setWinningAmtLocked(rs.getLong(UserMoneyDBHandler.WINNING_AMOUNT_LOCKED));
+						userMoney.setReferalAmtLocked(rs.getLong(UserMoneyDBHandler.REFERAL_AMOUNT_LOCKED));
+				
+						userIdVsUserMoney.put(userMoney.getId(), userMoney);
 					}
 					rs.close();
 				}
@@ -122,165 +137,30 @@ public class BatchPaymentProcessor implements Runnable {
 	
 	public void run() {
 		try {
-			
-			logger.info("Start Time ");
 			long startTime = System.currentTimeMillis();
-			fetchBossUserMoneyObjects();
-			for (PaymentProcessor processor : paymentProcessors) {
-				processor.processPayments(userIdVsUserMoney, userIdVsBossId, userMoneyTransactions);
-			}
-			logger.info("Total Time in Run {}", (System.currentTimeMillis() - startTime));
-			/*
-			updateMoneyRecords(); 
-			List<MyTransaction> transactionsList = new ArrayList<>();
-			for (MoneyTransaction moneyTran : userMoneyTransactions) {
-				transactionsList.add(moneyTran.getTransaction());
-			}
-			List<Integer> transactionsResults = MyTransactionDBHandler.getInstance().createTransactionsInBatch(transactionsList);
-			logger.info("The transactionsResults size is {}", transactionsResults.size());*/
-			
-			InMemUserMoneyManager.getInstance().update(userMoneyTransactions, userIdVsUserMoney);
 			InMemUserMoneyManager.getInstance().commitNow();
+			
+			fetchBossUserMoneyObjects();
+			
+			for (PaymentProcessor processor : paymentProcessors) {
+				
+				processor.processPayments(userIdVsUserMoney, userIdVsBossId);
+				
+				Map<Long, UserMoney> inMemMap = InMemUserMoneyManager.getInstance().getInMemUserMoneyObjects();
+				
+				for (Map.Entry<Long, UserMoney> entry : inMemMap.entrySet()) {
+					Long id = entry.getKey();
+					UserMoney userCashObj = entry.getValue();
+					if (userIdVsUserMoney.get(id) != null) {
+						userIdVsUserMoney.put(id, userCashObj);
+					}
+				}
+			}
+			InMemUserMoneyManager.getInstance().commitNow();
+			logger.info("Total Time in Run {}", (System.currentTimeMillis() - startTime));
+			
 		} catch(Exception ex) {
 			logger.error("Exception in bulk processing", ex);
 		}
 	}
-
-	/*
-	public void updateMoneyRecords() throws SQLException {
-		
-		logger.info("moneyRecords.size() :" + userMoneyTransactions.size());
-		
-		List<MoneyTransaction> winTransactions = new ArrayList<>();
-		List<MoneyTransaction> refTransactions = new ArrayList<>();
-		
-		for (MoneyTransaction moneyTransaction : userMoneyTransactions) {
-			if (moneyTransaction.getAccountType() == UserMoneyAccountType.WINNING_MONEY) {
-				winTransactions.add(moneyTransaction);
-			} else {
-				refTransactions.add(moneyTransaction);
-			}
-		}
-		
-		ConnectionPool cp = null;
-		Connection dbConn = null;
-		
-		PreparedStatement psWin = null;
-		PreparedStatement psRef = null;
-		
-		try {
-			cp = ConnectionPool.getInstance();
-			dbConn = cp.getDBConnection();
-			
-			dbConn.setAutoCommit(false);
-			
-			psWin = dbConn.prepareStatement(UserMoneyDBHandler.UPDATE_WINNING_AMOUNT_BY_USER_ID);
-			int index = 0;
-			
-			List<Integer> winResults = new ArrayList<>();
-			
-			for (MoneyTransaction moneyTransaction : winTransactions) {
-				++index;
-				int amount = moneyTransaction.getAmount();
-				if (moneyTransaction.getOperType() == UserMoneyOperType.SUBTRACT) {
-					amount = -1 * amount;
-				}
-				psWin.setInt(1,  amount);
-				psWin.setLong(2, moneyTransaction.getUserProfileId());
-				psWin.addBatch();
-				
-				if (index == 50) {
-					int[] results = psWin.executeBatch();
-					dbConn.setAutoCommit(true);
-					dbConn.setAutoCommit(false);
-					for (int result : results) {
-						winResults.add(result);
-					}
-					index = 0;
-				}
-			}
-			if (index > 0) {
-				int [] results = psWin.executeBatch();
-				dbConn.setAutoCommit(true);
-				for (int result : results) {
-					winResults.add(result);
-				}
-			}
-			logger.info("Total records size and results size {} : {}", winTransactions.size(), winResults.size());
-			
-			int size = winTransactions.size();
-			int operResult = 0;
-			for (int counter = 0; counter < size; counter ++) {
-				MoneyTransaction winTransaction = winTransactions.get(counter);
-				operResult = 0;
-				if (winResults.get(counter) > 0) {
-					operResult = 1;
-				}
-				winTransaction.getTransaction().setOperResult(operResult);
-			}
-			
-			// Referral account related queries..
-			psRef = dbConn.prepareStatement(UserMoneyDBHandler.UPDATE_REFERAL_AMOUNT_BY_USER_ID);
-			dbConn.setAutoCommit(false);
-			
-			index = 0;
-			
-			List<Integer> referOperResults = new ArrayList<>();
-			
-			for (MoneyTransaction moneyTransaction : refTransactions) {
-				++index;
-				int amount = moneyTransaction.getAmount();
-				if (moneyTransaction.getOperType() == UserMoneyOperType.SUBTRACT) {
-					amount = -1 * amount;
-				}
-				
-				psRef.setInt(1, amount);
-				psRef.setLong(2, moneyTransaction.getUserProfileId());
-				
-				psRef.addBatch();
-				
-				if (index == 50) {
-					int[] results = psRef.executeBatch();
-					dbConn.setAutoCommit(true);
-					dbConn.setAutoCommit(false);
-					for (int result : results) {
-						referOperResults.add(result);
-					}
-					index = 0;
-				}
-			}
-			if (index > 0) {
-				int [] results = psRef.executeBatch();
-				dbConn.setAutoCommit(true);
-				for (int result : results) {
-					referOperResults.add(result);
-				}
-			}
-			logger.info("Total ref records size and results size {} : {}", refTransactions.size(), referOperResults.size());
-			
-			size = refTransactions.size();
-			for (int counter = 0; counter < size; counter ++) {
-				operResult = 0;
-				MoneyTransaction refTransaction = refTransactions.get(counter);
-				if (referOperResults.get(counter) > 0) {
-					operResult = 1;
-				}
-				refTransaction.getTransaction().setOperResult(operResult);
-			}
-		} catch(SQLException ex) {
-			logger.error("Error in UpdateMoneyRecords", ex);
-			throw ex;
-		} finally {
-			if (psWin != null) {
-				psWin.close();
-			}
-			if (psRef != null) {
-				psRef.close();
-			}
-			if (dbConn != null) {
-				dbConn.close();
-			}
-		}
-		
-	}*/
 }

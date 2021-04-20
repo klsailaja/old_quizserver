@@ -63,6 +63,8 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 			gameGenerator1.setupGames();
 			gameGenerator2.setupGames();
 			
+			logger.info("Server started successfully...");
+			
 			WinMsgHandler.getInstance();
 			
 		} catch(SQLException ex) {

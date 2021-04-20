@@ -34,7 +34,7 @@ public class GameHistoryDBHandler {
 	private static String TABLE_NAME = "GameHistory";
 	private static String PLAYER_HISTORY_TABLE_NAME = "PlayerHistory"; 
 	
-	private static String ID = "id";
+	//private static String ID = "id";
 	private static String GAMEID = "gameId";
 	private static String GAME_PLAYED_TIME = "gamePlayedTime";
 	private static String TICKET_RATE = "ticketRate";

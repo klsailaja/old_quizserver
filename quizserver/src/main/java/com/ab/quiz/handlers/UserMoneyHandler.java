@@ -19,6 +19,7 @@ import com.ab.quiz.db.UserMoneyDBHandler;
 import com.ab.quiz.db.WithdrawDBHandler;
 import com.ab.quiz.db.WithdrawReceiptDBHandler;
 import com.ab.quiz.exceptions.NotAllowedException;
+import com.ab.quiz.helper.InMemUserMoneyManager;
 import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.helper.Utils;
 import com.ab.quiz.pojo.MyTransaction;
@@ -47,7 +48,8 @@ public class UserMoneyHandler {
 	}
 	
 	public UserMoney getUserMoney(long userProfileId) throws SQLException, NotAllowedException {
-		UserMoney userMoneyDb = UserMoneyDBHandler.getInstance().getUserMoneyByProfileId(userProfileId);
+		//UserMoney userMoneyDb = UserMoneyDBHandler.getInstance().getUserMoneyByProfileId(userProfileId);
+		UserMoney userMoneyDb = InMemUserMoneyManager.getInstance().getUserMoneyById(userProfileId);
 		if (userMoneyDb.getId() == 0) {
 			// The entry is not found in DB. So create one..
 			UserMoney userMoney = new UserMoney();

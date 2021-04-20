@@ -19,7 +19,6 @@ import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
 import com.ab.quiz.db.GameHistoryDBHandler;
-import com.ab.quiz.db.UserMoneyDBHandler;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.helper.CelebritySpecialHandler;
 import com.ab.quiz.helper.InMemUserMoneyManager;
@@ -60,8 +59,8 @@ public class GameManager {
 	}
 	
 	public void addNewGames(List<GameHandler> gameHandlers) {
-		testingUserIdMode1 = 30;
-		testingUserIdMode2 = 1001;
+		testingUserIdMode1 = 1001;
+		testingUserIdMode2 = 2001;
 		
 		lock.writeLock().lock();
 		for (GameHandler gameHandler : gameHandlers) {
@@ -71,15 +70,10 @@ public class GameManager {
 		}
 		lock.writeLock().unlock();
 		logger.debug("New games are added. The size is {}", gameIdToGameHandler.size());
-		int countGames = 0;
-		for (GameHandler gameHandler : gameHandlers) {
-			if (QuizConstants.TESTMODE == 1) {
+		
+		if (QuizConstants.TESTMODE == 1) {
+			for (GameHandler gameHandler : gameHandlers) {
 				addTestUsersToGame(gameHandler);
-				countGames++;
-				if (countGames == QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED.length) {
-					testingUserIdMode1 = 30;
-					testingUserIdMode2 = 1001;
-				}
 			}
 		}
 	}
@@ -91,7 +85,8 @@ public class GameManager {
 		
 		int min = 3;
 		int max = QuizConstants.MAX_PLAYERS_PER_GAME;
-		int randomPlayerCount = min + (int) (Math.random() * (max - min));
+		//int randomPlayerCount = min + (int) (Math.random() * (max - min));
+		int randomPlayerCount = 10;
 		
 		for (int index = 1; index <= randomPlayerCount; index ++) {
 			
@@ -449,10 +444,8 @@ public class GameManager {
 			
 			List<MoneyTransaction> joinTransList = new ArrayList<>();
 			joinTransList.add(joinTransaction);
-			Map<Long, UserMoney> joinUserMap = new HashMap<>();
-			joinUserMap.put(gameOper.getUserProfileId(), userMoney);
 			
-			InMemUserMoneyManager.getInstance().update(joinTransList, joinUserMap);
+			InMemUserMoneyManager.getInstance().update(joinTransList, null);
 			
 			
 			/*if (!finalResult) {
@@ -548,10 +541,8 @@ public class GameManager {
 					gameOper.getUserProfileId(), tktRate, transaction);
 			List<MoneyTransaction> unjoinTransList = new ArrayList<>();
 			unjoinTransList.add(joinTransaction);
-			Map<Long, UserMoney> unjoinUserMap = new HashMap<>();
-			unjoinUserMap.put(gameOper.getUserProfileId(), userMoney);
 			
-			InMemUserMoneyManager.getInstance().update(unjoinTransList, unjoinUserMap);
+			InMemUserMoneyManager.getInstance().update(unjoinTransList, null);
 			
 			/*boolean finalResult = UserMoneyDBHandler.getInstance().updateUserMoney(accType, 
 					UserMoneyOperType.ADD, gameOper.getUserProfileId(), tktRate, transaction);

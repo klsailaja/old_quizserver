@@ -4,13 +4,13 @@ public class QuizConstants {
 	
 	public static final int MAX_LIVE_SLOTS = 4;
 	
-	//public static final int[] GAMES_RATES_IN_ONE_SLOT_MIXED = {0, 10, 10, 10, 10, 20, 20, 20, 20, 50, 50, 50, 50, 75, 75, 75, 75, 100, 100, 100, 100};
-	public static final int[] GAMES_RATES_IN_ONE_SLOT_MIXED = {0, 10, 10, 20, 20, 50, 50, 75, 75, 100, 100};
+	public static final int[] GAMES_RATES_IN_ONE_SLOT_MIXED = {0, 10, 10, 10, 10, 20, 20, 20, 20, 50, 50, 50, 50, 75, 75, 75, 75, 100, 100, 100, 100};
+	//public static final int[] GAMES_RATES_IN_ONE_SLOT_MIXED = {0, 10, 10, 20, 20, 50, 50, 75, 75, 100, 100};
 	
 	public static final int MAX_TOTAL_GAMES_MIXED = MAX_LIVE_SLOTS * GAMES_RATES_IN_ONE_SLOT_MIXED.length;
 	
-	//public static final int[] GAMES_RATES_IN_ONE_SLOT_SPECIAL = {0, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50};
-	public static final int[] GAMES_RATES_IN_ONE_SLOT_SPECIAL = {0, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50};
+	public static final int[] GAMES_RATES_IN_ONE_SLOT_SPECIAL = {0, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50};
+	//public static final int[] GAMES_RATES_IN_ONE_SLOT_SPECIAL = {0, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50};
 	
 	public static final int MAX_TOTAL_GAMES_SPECIAL = MAX_LIVE_SLOTS * GAMES_RATES_IN_ONE_SLOT_SPECIAL.length;
 	
@@ -27,7 +27,7 @@ public class QuizConstants {
 	
 	public static final int MAX_PLAYERS_PER_GAME = 10;
 	
-	public static int TESTMODE = 1;
+	public static int TESTMODE = 0;
 	
 	// Chat Related settings
 	public static int DELETE_OLD_MSGS_TIME_PERIOD = 30;

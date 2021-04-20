@@ -46,8 +46,7 @@ public class GameHandler {
 	
 	// This map maintains the UserId Vs Boss Id
 	private Map<Long, Long> userIdVsBossId = new HashMap<>();
-	private Map<Long, String> userIdVsName = new HashMap<>();
-	//Map<Long, UserMoney> userIdVsUserMoney = new HashMap<>();
+	//private Map<Long, String> userIdVsName = new HashMap<>();
 	
 	
 	private static final Logger logger = LogManager.getLogger(GameHandler.class);
@@ -93,7 +92,7 @@ public class GameHandler {
 		
 		userProfileIdVsAnswers.put(userProfileId, new ArrayList<PlayerAnswer>());
 		userIdVsBossId.put(userProfileId, userProfile.getBossId());
-		userIdVsName.put(userProfileId, userProfile.getName());
+		//userIdVsName.put(userProfileId, userProfile.getName());
 		
 		return true;
 	}
@@ -102,7 +101,7 @@ public class GameHandler {
 		
 		userIdVsBossId.remove(userProfileId);
 		userProfileIdVsAnswers.remove(userProfileId);
-		userIdVsName.remove(userProfileId);
+		//userIdVsName.remove(userProfileId);
 		
 		// Remove the Player object from userProfileIdVsSummary.
 		
@@ -144,7 +143,6 @@ public class GameHandler {
 		long userProfileId = 0;
 		int accountUsed = 0;
 		List<MoneyTransaction> cancelTransList = new ArrayList<>();
-		Map<Long, UserMoney> cancelUserMap = new HashMap<>();
 		for (Map.Entry<Long, PlayerSummary> eachEntry : setValues) {
 			PlayerSummary playerSummary = eachEntry.getValue();
 			userProfileId = playerSummary.getUserProfileId();
@@ -173,11 +171,11 @@ public class GameHandler {
 					userProfileId, amt, transaction);
 			
 			cancelTransList.add(cancelGameTransaction);
-			cancelUserMap.put(userProfileId, userMoney);
+			
 			
 			userCreditedStatus.put(userProfileId, true);
 		}
-		InMemUserMoneyManager.getInstance().update(cancelTransList, cancelUserMap);
+		InMemUserMoneyManager.getInstance().update(cancelTransList, null);
 		
 		userProfileIdVsSummary.clear();
 		return userCreditedStatus;
@@ -267,7 +265,6 @@ public class GameHandler {
 		
 		List<PlayerSummary> payments = getLeaderBoardPositions(10);  
 		PaymentProcessor pp = new PaymentProcessor(payments, gameDetails);
-		//pp.processPayments();
 		return pp;
 	}
 	
@@ -296,8 +293,4 @@ public class GameHandler {
 	public Map<Long, Long> getUserIdToBossIdDetails() {
 		return userIdVsBossId;
 	}
-	
-	/*public Map<Long, UserMoney> getUserIdToUserMoney() {
-		return userIdVsUserMoney;
-	}*/
 }
