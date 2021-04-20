@@ -15,12 +15,12 @@ import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
 import com.ab.quiz.constants.WithdrawReqType;
 import com.ab.quiz.db.ConnectionPool;
+import com.ab.quiz.db.MyTransactionDBHandler;
 import com.ab.quiz.db.UserMoneyDBHandler;
 import com.ab.quiz.db.WithdrawDBHandler;
 import com.ab.quiz.db.WithdrawReceiptDBHandler;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.helper.InMemUserMoneyManager;
-import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.helper.Utils;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.TransferRequest;
@@ -30,7 +30,6 @@ import com.ab.quiz.pojo.WithdrawReqByBank;
 import com.ab.quiz.pojo.WithdrawReqByPhone;
 import com.ab.quiz.pojo.WithdrawRequestInput;
 import com.ab.quiz.pojo.WithdrawRequestsHolder;
-import com.ab.quiz.tasks.CreateTransactionTask;
 
 public class UserMoneyHandler {
 	private static final Logger logger = LogManager.getLogger(UserMoneyHandler.class);
@@ -295,8 +294,7 @@ public class UserMoneyHandler {
 				dbConn.close();
 			}
 			transaction.setOperResult(operResult);
-			CreateTransactionTask cTask = new CreateTransactionTask(transaction);
-			LazyScheduler.getInstance().submit(cTask);
+			MyTransactionDBHandler.getInstance().createTransaction(transaction);
 		}
 		return true;
 	}

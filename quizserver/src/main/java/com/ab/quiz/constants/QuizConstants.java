@@ -27,7 +27,7 @@ public class QuizConstants {
 	
 	public static final int MAX_PLAYERS_PER_GAME = 10;
 	
-	public static int TESTMODE = 0;
+	public static int TESTMODE = 1;
 	
 	// Chat Related settings
 	public static int DELETE_OLD_MSGS_TIME_PERIOD = 30;

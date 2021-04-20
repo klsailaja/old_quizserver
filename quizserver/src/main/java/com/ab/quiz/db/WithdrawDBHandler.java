@@ -19,7 +19,6 @@ import com.ab.quiz.constants.WithdrawReqState;
 import com.ab.quiz.constants.WithdrawReqType;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.UserMoneyHandler;
-import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.helper.Utils;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.UserMoney;
@@ -29,7 +28,6 @@ import com.ab.quiz.pojo.WithdrawReqByBank;
 import com.ab.quiz.pojo.WithdrawReqByPhone;
 import com.ab.quiz.pojo.WithdrawRequest;
 import com.ab.quiz.pojo.WithdrawRequestsHolder;
-import com.ab.quiz.tasks.CreateTransactionTask;
 
 /*
 CREATE TABLE WithdrawRequests(id bigint NOT NULL AUTO_INCREMENT, 
@@ -281,8 +279,7 @@ public class WithdrawDBHandler {
 				operRes = 1;
 			}
 			transaction.setOperResult(operRes);
-			CreateTransactionTask cTask = new CreateTransactionTask(transaction);
-			LazyScheduler.getInstance().submit(cTask);
+			MyTransactionDBHandler.getInstance().createTransaction(transaction);
 			return true;
 			 
 		} catch (SQLException ex) {
@@ -364,8 +361,7 @@ public class WithdrawDBHandler {
 				operRes = 1;
 			}
 			transaction.setOperResult(operRes);
-			CreateTransactionTask cTask = new CreateTransactionTask(transaction);
-			LazyScheduler.getInstance().submit(cTask);
+			MyTransactionDBHandler.getInstance().createTransaction(transaction);
 			return true;
 			 
 		} catch (SQLException ex) {

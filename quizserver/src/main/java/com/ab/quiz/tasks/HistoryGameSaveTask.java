@@ -1,15 +1,22 @@
 package com.ab.quiz.tasks;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.ab.quiz.db.GameHistoryDBHandler;
+import com.ab.quiz.db.UserProfileDBHandler;
 import com.ab.quiz.handlers.GameHandler;
 import com.ab.quiz.pojo.GamePlayers;
 import com.ab.quiz.pojo.GameResults;
 import com.ab.quiz.pojo.PlayerSummary;
 
 public class HistoryGameSaveTask implements Runnable {
+	
+	private static final Logger logger = LogManager.getLogger(HistoryGameSaveTask.class);
 	private List<GameHandler> completedGames;
 	
 	public HistoryGameSaveTask(List<GameHandler> completedGames) {
@@ -22,6 +29,10 @@ public class HistoryGameSaveTask implements Runnable {
 		long gameId; 
 		int ticketRate; 
 		long startTime;
+
+		List<GameResults> allGameResults = new ArrayList<>();
+		List<GamePlayers> allGamePlayers = new ArrayList<>();
+		List<Long> updateLastLoggedIn = new ArrayList<>();
 		
 		for (GameHandler gameHandler : completedGames) {
 			
@@ -42,6 +53,8 @@ public class HistoryGameSaveTask implements Runnable {
 				gameResult.setCelebrityName(gameHandler.getGameDetails().getCelebrityName());
 			}
 			
+			
+			
 			List<PlayerSummary> winnersList = gameHandler.getLeaderBoardPositions(10);
 			StringBuffer strBuffer = new StringBuffer();
 			//userName;rank;correctCount;totalTime;amountWon
@@ -59,19 +72,21 @@ public class HistoryGameSaveTask implements Runnable {
 				strBuffer.append(winner.getAmountWon());
 				strBuffer.append(":");
 				
-				UpdateUserLastLoggedTime run = new UpdateUserLastLoggedTime(winner.getUserProfileId());
-				//LazyScheduler.getInstance().submit(run);
-				run.run();
+				updateLastLoggedIn.add(winner.getUserProfileId());
 			}
 			gameResult.setWinnersList(strBuffer.toString());
 			
+			allGameResults.add(gameResult);
+			
 			List<GamePlayers> playersList = gameHandler.getPlayerDetails();
-			try {
-				GameHistoryDBHandler.getInstance().createGameHistoryWithPlayers(gameResult, playersList);
-			} catch (SQLException e) {
-				e.printStackTrace();
-				continue;
-			}
+			allGamePlayers.addAll(playersList);
+		}
+		
+		try {
+			GameHistoryDBHandler.getInstance().bulkInsertGameResults(allGameResults, allGamePlayers);
+			UserProfileDBHandler.getInstance().updateLastLoggedTimeInBulkMode(updateLastLoggedIn);
+		} catch (SQLException e) {
+			logger.error("SQLException while doing bulk insert of game results and game players", e);
 		}
 	}
 }

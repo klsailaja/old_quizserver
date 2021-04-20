@@ -212,12 +212,13 @@ public class UserProfileDBHandler {
 			ps.setLong(9, userProfile.getLastLoggedDate());
 		
 			int createResult = ps.executeUpdate();
-			logger.debug(" createResult {}", createResult);
-			idRes = ps.getGeneratedKeys();
-			if (idRes.next()) {
-		        long userProfileId = idRes.getLong(1);
-		        userProfile.setId(userProfileId);
-		    }
+			if (createResult > 0) {
+				idRes = ps.getGeneratedKeys();
+				if (idRes.next()) {
+					long userProfileId = idRes.getLong(1);
+					userProfile.setId(userProfileId);
+				}
+			}
 		} catch(SQLException ex) {
 			logger.error("Error creating user profile", ex);
 			throw ex;
@@ -491,6 +492,52 @@ public class UserProfileDBHandler {
 		return true;
 	}*/
 	
+	public void updateLastLoggedTimeInBulkMode(List<Long> playerIds) throws SQLException {
+		ConnectionPool cp = ConnectionPool.getInstance();
+		Connection dbConn = cp.getDBConnection();
+		PreparedStatement ps = null;
+		
+		try {
+			cp = ConnectionPool.getInstance();
+			dbConn = cp.getDBConnection();
+			dbConn.setAutoCommit(false);
+			
+			ps = dbConn.prepareStatement(UPDATE_TIME_BY_ID);
+			
+			int index = 0;
+			
+			for (Long id : playerIds) {
+			
+				ps.setLong(1, Calendar.getInstance().getTime().getTime());
+				ps.setLong(2, id);
+				ps.addBatch();
+				index++;
+				
+				if (index == 51) {
+					ps.executeBatch();
+					dbConn.setAutoCommit(true);
+					dbConn.setAutoCommit(false);
+					index = 0;
+				}
+			}
+			if (index > 0) {
+				ps.executeBatch();
+				dbConn.setAutoCommit(true);
+			}
+		} catch(SQLException ex) {
+			logger.error("Error processing updateLastoggedTime in bulk mode", ex);
+			throw ex;
+		} finally {
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
+	}
+	
+	/*
 	public boolean updateUserProfileLoggedTime(long id) throws SQLException {
 		logger.debug("This is in updateUserProfileLoggedTime {}", id);
 		ConnectionPool cp = ConnectionPool.getInstance();
@@ -514,7 +561,7 @@ public class UserProfileDBHandler {
 			}
 		}
 		return true;
-	}
+	}*/
 	
 	public static String getPasswordHash(String password) {
         MessageDigest md = null;
@@ -540,7 +587,7 @@ public class UserProfileDBHandler {
 		UserProfileDBHandler dbHandler = UserProfileDBHandler.getInstance();
 		
 		UserMoneyDBHandler userMoneyDBHandler = UserMoneyDBHandler.getInstance();
-		int total = 100000;
+		int total = 3000;
 		boolean batchMode = true;
 		
 		List<UserProfile> testProfiles = new ArrayList<>();
@@ -601,7 +648,7 @@ public class UserProfileDBHandler {
 			userProfile.setName("Testuser" + index);
 			userProfile.setPasswordHash("5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5");
 			userProfile.setBossReferredId("NoOne");
-			userProfile.setBossId(100 + index);
+			userProfile.setBossId(index + 1);
 			userProfile.setBossName("Raj" + String.valueOf(userProfile.getBossId()));
 			userProfile.setCreatedDate(1609861020944L);
 			userProfile.setLastLoggedTime(1609861020944L);
@@ -644,7 +691,7 @@ public class UserProfileDBHandler {
 			}
 		}
 		if (batchMode) {
-			userMoneyDBHandler.testCreateMoney(userMoneys);
+			userMoneyDBHandler.createMoneyInBulk(userMoneys);
 		}
 	}
 }

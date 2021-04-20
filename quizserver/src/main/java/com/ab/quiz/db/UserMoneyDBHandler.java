@@ -12,12 +12,10 @@ import org.apache.logging.log4j.Logger;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
 import com.ab.quiz.exceptions.NotAllowedException;
-import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.UserMoney;
 import com.ab.quiz.pojo.WDUserInput;
 import com.ab.quiz.pojo.WithdrawReqByPhone;
-import com.ab.quiz.tasks.CreateTransactionTask;
 
 /*
 CREATE TABLE UserMoney(id bigint NOT NULL AUTO_INCREMENT, 
@@ -109,7 +107,7 @@ public class UserMoneyDBHandler {
 		return instance;
 	}
 	
-	public void testCreateMoney(List<UserMoney> userMoneys) throws SQLException {
+	public void createMoneyInBulk(List<UserMoney> userMoneys) throws SQLException {
 		System.out.println("userMoneys.size() :" + userMoneys.size());
 		ConnectionPool cp = null;
 		Connection dbConn = null;
@@ -189,6 +187,7 @@ public class UserMoneyDBHandler {
 		return getUserMoneyByProfileId(userMoney.getUserProfileId());
 	}
 	
+	/*
 	public boolean payToBoss(long userProfileId, long bossUserProfileId, int amt, 
 			MyTransaction transaction1, MyTransaction transaction2) throws SQLException {
 		// - amt from winning and to referal category
@@ -253,7 +252,7 @@ public class UserMoneyDBHandler {
 			LazyScheduler.getInstance().submit(cTask);
 		}
 		return false;
-	}
+	} */
 	
 	public UserMoney getUserMoneyByProfileId(long userProfileId) throws SQLException {
 		
@@ -350,10 +349,8 @@ public class UserMoneyDBHandler {
 			if (dbConn != null) {
 				dbConn.close();
 			}
-			
 			transaction.setOperResult(operResult);
-			CreateTransactionTask cTask = new CreateTransactionTask(transaction);
-			LazyScheduler.getInstance().submit(cTask);
+			MyTransactionDBHandler.getInstance().createTransaction(transaction);
 		}
 		return true;
 	}

@@ -3,9 +3,7 @@ package com.ab.quiz.helper;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
@@ -21,9 +19,6 @@ import com.ab.quiz.pojo.CelebrityDetails;
 import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.PlayerAnswer;
 import com.ab.quiz.pojo.Question;
-import com.ab.quiz.tasks.DeleteCompletedGamesTask;
-import com.ab.quiz.tasks.HistoryGameSaveTask;
-import com.ab.quiz.tasks.UpdateMaxGameIdTask;
 
 public class GamesGenerator implements Runnable {
 	
@@ -119,78 +114,19 @@ public class GamesGenerator implements Runnable {
 			for (int index = 1; index <= QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED.length; index ++) {
 				newGames.add(nextGameSet.remove(0));
 			}
-			
 			GameManager.getInstance().addNewGames(newGames);
 			
 			List<GameHandler> completedGames = GameManager.getInstance().getCompletedGameHandlers(mode);
-			int completedGameCount = completedGames.size();
-			logger.info("Completed games count is {}", completedGameCount);
+			SingleThreadScheduler.getInstance().submit(new PaymentTask(completedGames));
 			
-			long maxId = -1;
-			List<Long> completedGameIds = new ArrayList<>();
-			
-			BatchPaymentProcessor batchPaymentProcessor = new BatchPaymentProcessor();
-			
-			long paymentTimeTaken = System.currentTimeMillis();
-			for (GameHandler completedGame : completedGames) {
-				
-				logger.info("Making payments for Game# {}", completedGame.getGameDetails().getGameId());
-			
-				// Bulk processing changes start
-				PaymentProcessor pp = completedGame.getPaymentHandler();
-				if (pp != null) {
-					
-					batchPaymentProcessor.addPaymentProcessor(pp);
-					
-					List<Long> actualWinUserIds = pp.getWinnerUserIdSet();
-					logger.info("actualWinUserIds.size() : {}", actualWinUserIds.size());
-					Map<Long, Long> gamePlayers = completedGame.getUserIdToBossIdDetails();
-					
-					Iterator<Long> it = gamePlayers.keySet().iterator();
-					while (it.hasNext())
-					{
-						Long userId = it.next();
-						if (!actualWinUserIds.contains(userId)) {
-							it.remove();
-						}
-					}
-					
-					batchPaymentProcessor.addUserBossIds(gamePlayers);
-					logger.info("gamePlayers contents {}", gamePlayers);
-					// Bulk processing End
-				}
-				
-				Long gameId = completedGame.getGameDetails().getGameId(); 
-				if (gameId > maxId) {
-					maxId = gameId;
-				}
-				completedGameIds.add(gameId);
-			}
-			
-			logger.debug("completed game list {}", completedGameIds);
-			
-			batchPaymentProcessor.run();
-			
-			logger.info("Time taken for processing payments {}" , (System.currentTimeMillis() - paymentTimeTaken)/1000);
-			
-			LazyScheduler.getInstance().submit(new UpdateMaxGameIdTask(maxId));
-			LazyScheduler.getInstance().submit(new HistoryGameSaveTask(completedGames));
-			LazyScheduler.getInstance().submit(new DeleteCompletedGamesTask(completedGameIds), 2, TimeUnit.MINUTES);
-			
-			if (QuizConstants.TESTMODE == 1) {
-			}
-			
-			List<GameHandler> inMemGames = null;
 			try {
-				inMemGames = generateGameData(1);
+				List<GameHandler> inMemGames = generateGameData(1);
 				nextGameSet.addAll(inMemGames);
 			}
 			catch(SQLException ex) {
 				logger.error("SQL Exception in GamesGenerator Task ", ex);
 			}
 			logger.debug("In Memory game set size {}", nextGameSet.size());
-			
-			
 		}
 		catch (Exception ex) {
 			logger.error("Exception in the periodic task execution", ex);

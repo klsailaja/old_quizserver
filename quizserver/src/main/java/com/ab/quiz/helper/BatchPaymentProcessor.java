@@ -14,7 +14,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.db.ConnectionPool;
 import com.ab.quiz.db.UserMoneyDBHandler;
-import com.ab.quiz.pojo.MoneyTransaction;
 import com.ab.quiz.pojo.UserMoney;
 
 public class BatchPaymentProcessor implements Runnable {
@@ -22,7 +21,6 @@ public class BatchPaymentProcessor implements Runnable {
 	// This map maintains the UserId Vs Boss Id
 	private Map<Long, Long> userIdVsBossId = new HashMap<>();
 	private Map<Long, UserMoney> userIdVsUserMoney = new HashMap<>();
-	private List<MoneyTransaction> userMoneyTransactions = new ArrayList<>();
 	private List<PaymentProcessor> paymentProcessors = new ArrayList<>();
 	
 	private static final Logger logger = LogManager.getLogger(BatchPaymentProcessor.class);
@@ -63,13 +61,13 @@ public class BatchPaymentProcessor implements Runnable {
 		tobeLoadedUserMoneyIds.addAll(loadUserIds);
 		tobeLoadedUserMoneyIds.addAll(loadBossIds);
 		
-		logger.info("UserMoney objects missing for {}", tobeLoadedUserMoneyIds.size());
-		
 		logger.info("Before size {}", userIdVsUserMoney.size());
 		int size = tobeLoadedUserMoneyIds.size();
 		if (size <= 0) {
 			return;
 		}
+		
+		logger.info("UserMoney objects missing for {}", tobeLoadedUserMoneyIds.size());
 		
 		ConnectionPool cp = ConnectionPool.getInstance();
 		Connection dbConn = cp.getDBConnection();
@@ -138,6 +136,7 @@ public class BatchPaymentProcessor implements Runnable {
 	public void run() {
 		try {
 			long startTime = System.currentTimeMillis();
+			// Just Committing the in mem transactions
 			InMemUserMoneyManager.getInstance().commitNow();
 			
 			fetchBossUserMoneyObjects();
@@ -148,6 +147,7 @@ public class BatchPaymentProcessor implements Runnable {
 				
 				Map<Long, UserMoney> inMemMap = InMemUserMoneyManager.getInstance().getInMemUserMoneyObjects();
 				
+				// The In mem uncommitted objects are used for further transactions 
 				for (Map.Entry<Long, UserMoney> entry : inMemMap.entrySet()) {
 					Long id = entry.getKey();
 					UserMoney userCashObj = entry.getValue();

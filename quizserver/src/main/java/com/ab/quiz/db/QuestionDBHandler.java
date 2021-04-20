@@ -199,6 +199,7 @@ public class QuestionDBHandler {
         return min + (int)(Math.random() * (max - min));
     }
 	
+	/*
 	public List<Question> getQuestionSet(Long[] ids) throws SQLException {
 		
 		ConnectionPool cp = ConnectionPool.getInstance();
@@ -250,7 +251,7 @@ public class QuestionDBHandler {
 			}
 		}
 		return questionSet;
-	}
+	}*/
 	
 	public static void main(String[] args) {
 		readTextFile();

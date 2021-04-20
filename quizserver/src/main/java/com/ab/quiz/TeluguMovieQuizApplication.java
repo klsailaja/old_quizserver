@@ -50,7 +50,8 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 				}
 			}
 			
-			for (int index = 1; index <= QuizConstants.MAX_LIVE_SLOTS; index++) {
+			int inMemSlots = 2 * QuizConstants.MAX_LIVE_SLOTS;
+			for (int index = 1; index <= inMemSlots; index++) {
 				if (first) {
 					gameGenerator1.buildNextGameSet();
 					gameGenerator2.buildNextGameSet();
@@ -66,7 +67,6 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 			logger.info("Server started successfully...");
 			
 			WinMsgHandler.getInstance();
-			
 		} catch(SQLException ex) {
 			logger.error("SQLException in TeluguMovieQuizApplication", ex);
 		}
