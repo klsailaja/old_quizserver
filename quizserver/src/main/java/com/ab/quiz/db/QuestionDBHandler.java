@@ -18,37 +18,42 @@ import org.apache.logging.log4j.Logger;
 import com.ab.quiz.pojo.Question;
 
 /*
-CREATE TABLE QuizQuestions(id bigint NOT NULL AUTO_INCREMENT, 
-		nStatement varchar(200) NOT NULL,
-		category bigint NOT NULL,
-		timeline int NOT NULL,
-		nOptionA varchar(100) NOT NULL,
-		nOptionB varchar(100) NOT NULL,
-		nOptionC varchar(100) NOT NULL,
-		nOptionD varchar(100) NOT NULL, 
-		correctOption int, PRIMARY KEY (id)); 
+CREATE TABLE QUIZQUESTIONS(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, 
+		NSTATEMENT VARCHAR(200) NOT NULL,
+		CATEGORY BIGINT NOT NULL,
+		TIMELINE INT NOT NULL,
+		NOPTIONA VARCHAR(100) NOT NULL,
+		NOPTIONB VARCHAR(100) NOT NULL,
+		NOPTIONC VARCHAR(100) NOT NULL,
+		NOPTIONd VARCHAR(100) NOT NULL, 
+		CORRECTOPTION INT, PRIMARY KEY (ID)) ENGINE = INNODB;
+		
+CREATE INDEX QUIZQUESTIONS_Inx ON QUIZQUESTIONS(CATEGORY);        
+DROP INDEX QUIZQUESTIONS_Inx ON QUIZQUESTIONS;        
+CREATE INDEX QUIZQUESTIONS_Inx ON QUIZQUESTIONS(CATEGORY);
+
 */
 
 public class QuestionDBHandler {
-	private static String TABLE_NAME = "QuizQuestions";
+	private static String TABLE_NAME = "QUIZQUESTIONS";
 	
-	private static String ID = "id";
-	private static String NSTATEMENT = "nstatement";
-	private static String CATEGORY = "category";
-	private static String TIMELINE = "timeline";
-	private static String NOPTION_A = "nOptionA";
-	private static String NOPTION_B = "nOptionB";
-	private static String NOPTION_C = "nOptionC";
-	private static String NOPTION_D = "nOptionD";
-	private static String CORRECTOPTION = "correctOption";
+	//private static String ID = "ID";
+	private static String NSTATEMENT = "NSTATEMENT";
+	private static String CATEGORY = "CATEGORY";
+	private static String TIMELINE = "TIMELINE";
+	private static String NOPTION_A = "NOPTIONA";
+	private static String NOPTION_B = "NOPTIONB";
+	private static String NOPTION_C = "NOPTIONC";
+	private static String NOPTION_D = "NOPTIOND";
+	private static String CORRECTOPTION = "CORRECTOPTION";
 	
 	private static final String CREATE_QUESTION_ENTRY = "INSERT INTO " + TABLE_NAME   
 			+ "(" + NSTATEMENT + "," + NOPTION_A + "," + NOPTION_B + "," + NOPTION_C + ","
 			+ NOPTION_D + "," + CORRECTOPTION + "," +
 			CATEGORY + "," + TIMELINE + ") VALUES"
 			+ "(?,?,?,?,?,?,?,?)";
-	private static final String GET_QUESTION_ENTRY_SET = "SELECT * FROM " + TABLE_NAME 
-			+ " WHERE " + ID + " IN (?,?,?,?,?,?,?,?,?,?,?)";
+	/*private static final String GET_QUESTION_ENTRY_SET = "SELECT * FROM " + TABLE_NAME 
+			+ " WHERE " + ID + " IN (?,?,?,?,?,?,?,?,?,?,?)";*/
 	private static final String GET_QUESTIONS_BY_RANDOM = "SELECT * FROM " + TABLE_NAME
 			+ " ORDER BY RAND() LIMIT 11";
 	private static final String GET_QUESTIONS_RANDOM_CELEBRITY = "SELECT * FROM " +
@@ -68,9 +73,9 @@ public class QuestionDBHandler {
 		return instance;
 	}
 	
-	public void createQuestion(List<Question> questions) throws SQLException {
+	public void createQuestionsInBulk(List<Question> questionsList, int batchSize) throws SQLException {
 		
-		System.out.println("questions.size() :" + questions.size());
+		System.out.println("questions.size() :" + questionsList.size());
 		ConnectionPool cp = null;
 		Connection dbConn = null;
 		PreparedStatement ps = null;
@@ -82,10 +87,11 @@ public class QuestionDBHandler {
 			
 			ps = dbConn.prepareStatement(CREATE_QUESTION_ENTRY);
 			
-			for (int index = 0; index < questions.size(); index ++) {
+			int index = 0;
+			int totalFailureCount = 0;
+			int totalSuccessCount = 0;
+			for (Question question : questionsList) {
 				
-				Question question = questions.get(index);
-			
 				ps.setString(1, question.getnStatement());
 				ps.setString(2, question.getnOptionA());
 				ps.setString(3, question.getnOptionB());
@@ -97,16 +103,35 @@ public class QuestionDBHandler {
 			
 				ps.addBatch();
 				
-				if (index % 200 == 0) {
-					ps.executeBatch();
+				if (index % batchSize == 0) {
+					int results[] = ps.executeBatch();
 					dbConn.setAutoCommit(true);
 					dbConn.setAutoCommit(false);
+					index = 0;
+					for (int result : results) {
+						if (result == 1) {
+							++totalSuccessCount;
+						} else {
+							++totalFailureCount;
+						}
+					}
 				}
 			}
-			ps.executeBatch();
-			dbConn.setAutoCommit(true);
+			if (index > 0) {
+				int results[] = ps.executeBatch();
+				dbConn.setAutoCommit(true);
+				for (int result : results) {
+					if (result == 1) {
+						++totalSuccessCount;
+					} else {
+						++totalFailureCount;
+					}
+				}
+			}
+			logger.info("questions creation in bulk with success row count {} : failure row count {}", 
+					totalSuccessCount, totalFailureCount);
 		} catch(SQLException ex) {
-			logger.error("Error creatings questions in bulk mode", ex);
+			logger.error("Error creating questions in bulk mode", ex);
 			throw ex;
 		} finally {
 			if (ps != null) {
@@ -127,6 +152,7 @@ public class QuestionDBHandler {
 		ConnectionPool cp = ConnectionPool.getInstance();
 		Connection dbConn = cp.getDBConnection();
 		PreparedStatement ps = dbConn.prepareStatement(psSql);
+		ResultSet rs = null;
 		
 		if (category != -1) {
 			ps.setLong(1, category);
@@ -136,7 +162,7 @@ public class QuestionDBHandler {
 		int qNo = 1;
 		
 		try {
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 			if (rs != null) {
 				while (rs.next()) {
 					Question question = new Question();
@@ -176,15 +202,16 @@ public class QuestionDBHandler {
 							break;
 						}
 					}
-					
 					questionSet.add(question);
 				}
-				rs.close();
 			}
 		} catch (SQLException ex) {
 			logger.error("SQLException in getRandomQues()", ex);
 			throw ex;
 		} finally {
+			if (rs != null) {
+				rs.close();
+			}
 			if (ps != null) {
 				ps.close();
 			}
@@ -253,8 +280,13 @@ public class QuestionDBHandler {
 		return questionSet;
 	}*/
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
+		System.out.println("Start");
 		readTextFile();
+		UserProfileDBHandler.main(args);
+		MyTransactionDBHandler.main(args);
+		GameHistoryDBHandler.main(args);
+		System.out.println("End");
 	}
 	
 	public static void readTextFile() {
@@ -276,7 +308,7 @@ public class QuestionDBHandler {
             	//System.out.println("line2 : " + line);
     	    	StringTokenizer strTokenizer = new StringTokenizer(line, ":");
     	    	
-    	    	String qNo = strTokenizer.nextToken().trim();
+    	    	strTokenizer.nextToken().trim();
     	    	String statement = strTokenizer.nextToken().trim();
     	    	String optionA = strTokenizer.nextToken().trim();
     	    	String optionB = strTokenizer.nextToken().trim();
@@ -309,7 +341,7 @@ public class QuestionDBHandler {
     	    	//System.out.println("Ques " + question);
     	    	questions.add(question);
             }
-            QuestionDBHandler.getInstance().createQuestion(questions);
+            QuestionDBHandler.getInstance().createQuestionsInBulk(questions, 500);
         } catch (Exception e) {
             e.printStackTrace();
         }

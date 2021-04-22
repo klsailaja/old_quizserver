@@ -15,35 +15,42 @@ import com.ab.quiz.pojo.GameResults;
 import com.ab.quiz.pojo.UserHistoryGameDetails;
 
 /*
-CREATE TABLE GameHistory(id bigint NOT NULL AUTO_INCREMENT, 
-		gameId bigint NOT NULL,
-		gamePlayedTime bigint NOT NULL,
-		ticketRate int NOT NULL,
-		celebrityName varchar(50) NULL,
-		winnerList varchar(500), PRIMARY KEY (id));
+CREATE TABLE GAMEHISTORY(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, 
+		GAMEID BIGINT NOT NULL,
+		GAMEPLAYEDTIME BIGINT NOT NULL,
+		TICKETRATE INT NOT NULL,
+		CELEBRITYNAME VARCHAR(50) NULL,
+		WINNERLIST VARCHAR(500), PRIMARY KEY (ID)) ENGINE = INNODB;
 		
-CREATE TABLE PlayerHistory(id bigint NOT NULL AUTO_INCREMENT,
-   		gameId bigint NOT NULL,
-   		userId bigint NOT NULL, PRIMARY KEY (id)); 
+CREATE INDEX GAMEHISTORY_Inx ON GAMEHISTORY(GAMEID);		
+DROP INDEX GAMEHISTORY_Inx ON GAMEHISTORY;		
+CREATE INDEX GAMEHISTORY_Inx ON GAMEHISTORY(GAMEID);		
+		
+CREATE TABLE PLAYERHISTORY(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+   		GAMEID BIGINT NOT NULL,
+   		USERID BIGINT NOT NULL, PRIMARY KEY (ID)) ENGINE = INNODB;
+CREATE INDEX PLAYERHISTORY_Inx ON PLAYERHISTORY(USERID);		
+DROP INDEX PLAYERHISTORY_Inx ON PLAYERHISTORY_Inx;		
+CREATE INDEX PLAYERHISTORY_Inx ON PLAYERHISTORY(USERID);
 */
 
 // Insert
 // Get by gameId
 
 public class GameHistoryDBHandler {
-	private static String TABLE_NAME = "GameHistory";
-	private static String PLAYER_HISTORY_TABLE_NAME = "PlayerHistory"; 
+	private static String TABLE_NAME = "GAMEHISTORY";
+	private static String PLAYER_HISTORY_TABLE_NAME = "PLAYERHISTORY"; 
 	
-	//private static String ID = "id";
-	private static String GAMEID = "gameId";
-	private static String GAME_PLAYED_TIME = "gamePlayedTime";
-	private static String TICKET_RATE = "ticketRate";
-	private static String CELEBRITY_NAME = "celebrityName";
-	private static String WINNERS_LIST = "winnerList";
+	//private static String ID = "ID";
+	private static String GAMEID = "GAMEID";
+	private static String GAME_PLAYED_TIME = "GAMEPLAYEDTIME";
+	private static String TICKET_RATE = "TICKETRATE";
+	private static String CELEBRITY_NAME = "CELEBRITYNAME";
+	private static String WINNERS_LIST = "WINNERLIST";
 	
-	private static String PLAYER_ID = "id";
-	private static String PLAYER_GAMEID = "gameId";
-	private static String PLAYER_USERID = "userId";
+	private static String PLAYER_ID = "ID";
+	private static String PLAYER_GAMEID = "GAMEID";
+	private static String PLAYER_USERID = "USERID";
 	
 	private static final String CREATE_GAME_HISTORY = "INSERT INTO " + TABLE_NAME   
 			+ "(" + GAMEID + "," + GAME_PLAYED_TIME + "," + TICKET_RATE + "," + CELEBRITY_NAME + ","
@@ -76,11 +83,12 @@ public class GameHistoryDBHandler {
 		return instance;
 	}
 	
-	public void bulkInsertGameResults(List<GameResults> gameResultsList, List<GamePlayers> playersList) 
-			throws SQLException {
+	public void bulkInsertGameResults(List<GameResults> gameResultsList, List<GamePlayers> playersList, int batchSize1, 
+			int batchSize2) throws SQLException {
 		
 		ConnectionPool cp = null;
 		Connection dbConn = null;
+		
 		PreparedStatement ps = null;
 		PreparedStatement psPlayer = null;
 		
@@ -92,6 +100,10 @@ public class GameHistoryDBHandler {
 			
 			ps = dbConn.prepareStatement(CREATE_GAME_HISTORY);
 			
+			int totalFailureCount = 0;
+			int totalSuccessCount = 0;
+			
+			int index = 0;
 			for (GameResults gameResults : gameResultsList) {
 				ps.setLong(1, gameResults.getGameId());
 				ps.setLong(2, gameResults.getGamePlayedTime());
@@ -100,36 +112,79 @@ public class GameHistoryDBHandler {
 				ps.setString(5, gameResults.getWinnersList());
 				
 				ps.addBatch();
+				index++;
+				
+				if (index == batchSize1) {
+					int results[] = ps.executeBatch();
+					for (int result : results) {
+						if (result == 1) {
+							++totalSuccessCount;
+						} else {
+							++totalFailureCount;
+						}
+					}
+					index = 0;
+					dbConn.setAutoCommit(true);
+					dbConn.setAutoCommit(false);
+				}
 			}
 			
-			ps.executeBatch();
-			dbConn.setAutoCommit(true);
+			if (index > 0) {
+				int results[] = ps.executeBatch();
+				for (int result : results) {
+					if (result == 1) {
+						++totalSuccessCount;
+					} else {
+						++totalFailureCount;
+					}
+				}
+				dbConn.setAutoCommit(true);
+			}
 			
 			dbConn.setAutoCommit(false);
+			logger.info("Bulk inserted Game Records with success row count {} : failure row count {}", 
+					totalSuccessCount, totalFailureCount);
+			totalFailureCount = 0;
+			totalSuccessCount = 0;
 			
 			psPlayer = dbConn.prepareStatement(CREATE_PLAYER_HISTORY);
 			
-			int index = 0;
+			index = 0;
 			for (GamePlayers gamePlayer : playersList) {
 				psPlayer.setLong(1, gamePlayer.getGameId());
 				psPlayer.setLong(2, gamePlayer.getUserId());
 				psPlayer.addBatch();
 				index++;
 				
-				if (index == 51) {
-					ps.executeBatch();
-					
+				if (index == batchSize2) {
+					index = 0;
+					int results[] = psPlayer.executeBatch();
+					for (int result : results) {
+						if (result == 1) {
+							++totalSuccessCount;
+						} else {
+							++totalFailureCount;
+						}
+					}
 					dbConn.setAutoCommit(true);
 					dbConn.setAutoCommit(false);
-					index = 0;
 				}
 			}
 			if (index > 0) {
-				ps.executeBatch();
+				int results[] = psPlayer.executeBatch();
+				for (int result : results) {
+					if (result == 1) {
+						++totalSuccessCount;
+					} else {
+						++totalFailureCount;
+					}
+				}
 				dbConn.setAutoCommit(true);
 			}
 		} catch(SQLException ex) {
-			logger.error("Error creating game history and players entry", ex);
+			logger.error("******************************");
+			logger.error("Error creating game history and players entries in bulk mode", ex);
+			logger.error("******************************");
 			throw ex;
 		} finally {
 			if (psPlayer != null) {
@@ -142,6 +197,137 @@ public class GameHistoryDBHandler {
 				dbConn.close();
 			}
 		}
+	}
+	
+	public List<Long> getUserPlayedGameIds(long userId, int startRowNo) throws SQLException {
+		
+		logger.debug("getUserPlayedGameIds is called with userId {} : startRowNo {}",
+				userId, startRowNo);
+		
+		ConnectionPool cp = ConnectionPool.getInstance();
+		Connection dbConn = cp.getDBConnection();
+		
+		PreparedStatement ps = dbConn.prepareStatement(GET_GAMEID_SET_BY_USERID);
+		ps.setLong(1, userId);
+		ps.setInt(2, startRowNo);
+		
+		List<Long> gameIds = new ArrayList<Long>();
+		ResultSet rs = null;
+		
+		try {
+			rs = ps.executeQuery();
+			if (rs != null) {
+				while (rs.next()) {
+					gameIds.add(rs.getLong(PLAYER_GAMEID));
+				}
+			}
+		} catch (SQLException ex) {
+			logger.error("******************************");
+			logger.error("SQLException in getUserPlayedGameIds()", ex);
+			logger.error("******************************");
+			throw ex;
+		}
+		finally {
+			if (rs != null) {
+				rs.close();
+			}
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
+		logger.info("#Games played by the user {} are {}", userId, gameIds.size());
+		return gameIds;
+	}
+	
+	public UserHistoryGameDetails getUserPlayedGameDetails(long userId, int startRowNo)
+			throws SQLException {
+		
+		logger.debug("getUserPlayedGameDetails is called with userId {} : startRowNo {}",
+				userId, startRowNo);
+		
+		UserHistoryGameDetails historyGameDetails = new UserHistoryGameDetails();
+		
+		ConnectionPool cp = ConnectionPool.getInstance();
+		Connection dbConn = cp.getDBConnection();
+		
+		ResultSet rs = null;
+		List<GameResults> gameResultSet = new ArrayList<>();
+		
+		PreparedStatement ps = dbConn.prepareStatement(GET_GAME_HISTORY_ENTRY_BY_GAMEID);
+		PreparedStatement totalPs = dbConn.prepareStatement(GET_TOTAL_COUNT);
+		ResultSet totalRs = null;
+		
+		try {
+			totalPs.setLong(1, userId);
+			
+			totalRs = totalPs.executeQuery();
+			if (totalRs != null) {
+				if (totalRs.next()) {
+					
+					int total = totalRs.getInt("COUNT(*)");
+					historyGameDetails.setTotal(total);
+					
+					int lowerRange = startRowNo + 1;
+					int higherRange = startRowNo + 10;
+					
+					if (higherRange < total) {
+						historyGameDetails.setNextEnabled(true);
+					} else {
+						historyGameDetails.setNextEnabled(false);
+					}
+					if ((lowerRange - 10) > 0) {
+						historyGameDetails.setPrevEnabled(true);
+					} else {
+						historyGameDetails.setPrevEnabled(false);
+					}
+				}
+			}
+			
+			List<Long> gameIds = getUserPlayedGameIds(userId, startRowNo);
+			
+			for (int index = 0; index < gameIds.size(); index++) {
+				ps.setLong(1, gameIds.get(index));
+				rs = ps.executeQuery();
+				if (rs.next()) {
+					
+					GameResults gameResult = new GameResults();
+					
+					gameResult.setsNo(++startRowNo);
+					gameResult.setGameId(rs.getLong(GAMEID));
+					gameResult.setGamePlayedTime(rs.getLong(GAME_PLAYED_TIME));
+					gameResult.setTktRate(rs.getInt(TICKET_RATE));
+					gameResult.setCelebrityName(rs.getString(CELEBRITY_NAME));
+					gameResult.setWinnersList(rs.getString(WINNERS_LIST));
+					
+					gameResultSet.add(gameResult);
+				}
+			}
+		} catch (SQLException ex) {
+			logger.error("SQLException in getting history game details", ex);
+		} finally {
+			if (totalRs != null) {
+				totalRs.close();
+			}
+			if (rs != null) {
+				rs.close();
+			}
+			if (totalPs != null) {
+				totalPs.close();
+			}
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
+		
+		historyGameDetails.setHistoryGames(gameResultSet);
+		logger.info("In Game History results. Returned size is {}", gameResultSet.size());
+		return historyGameDetails;
 	}
 	
 	/*
@@ -201,142 +387,49 @@ public class GameHistoryDBHandler {
 		}
 		return false;
 	} */
-	
-	public List<Long> getUserPlayedGameIds(long userId, int startRowNo) throws SQLException {
-		
-		logger.debug("getUserPlayedGameIds is called with userId {} : startRowNo {}",
-				userId, startRowNo);
-		
-		ConnectionPool cp = ConnectionPool.getInstance();
-		Connection dbConn = cp.getDBConnection();
-		
-		PreparedStatement ps = dbConn.prepareStatement(GET_GAMEID_SET_BY_USERID);
-		ps.setLong(1, userId);
-		ps.setInt(2, startRowNo);
-		
-		List<Long> gameIds = new ArrayList<Long>();
-		ResultSet rs = null;
-		
-		try {
-			rs = ps.executeQuery();
-			if (rs != null) {
-				while (rs.next()) {
-					gameIds.add(rs.getLong(PLAYER_GAMEID));
-				}
-			}
-		} catch (SQLException ex) {
-			logger.error("SQLException in getUserPlayedGameIds()", ex);
-			throw ex;
-		}
-		finally {
-			if (rs != null) {
-				rs.close();
-			}
-			if (ps != null) {
-				ps.close();
-			}
-			if (dbConn != null) {
-				dbConn.close();
-			}
-		}
-		return gameIds;
-	}
-	
-	public UserHistoryGameDetails getUserPlayedGameDetails(long userId, int startRowNo)
-			throws SQLException {
-		
-		logger.debug("getUserPlayedGameDetails is called with userId {} : startRowNo {}",
-				userId, startRowNo);
-		
-		UserHistoryGameDetails historyGameDetails = new UserHistoryGameDetails();
-		
-		ConnectionPool cp = ConnectionPool.getInstance();
-		Connection dbConn = cp.getDBConnection();
-		ResultSet rs = null;
-		List<GameResults> gameResultSet = new ArrayList<>();
-		
-		PreparedStatement ps = dbConn.prepareStatement(GET_GAME_HISTORY_ENTRY_BY_GAMEID);
-		PreparedStatement totalPs = dbConn.prepareStatement(GET_TOTAL_COUNT);
-		
-		try {
-			totalPs.setLong(1, userId);
-			
-			ResultSet totalRs = totalPs.executeQuery();
-			if (totalRs != null) {
-				if (totalRs.next()) {
-					
-					int total = totalRs.getInt("COUNT(*)");
-					historyGameDetails.setTotal(total);
-					
-					int lowerRange = startRowNo + 1;
-					int higherRange = startRowNo + 10;
-					
-					if (higherRange < total) {
-						historyGameDetails.setNextEnabled(true);
-					} else {
-						historyGameDetails.setNextEnabled(false);
-					}
-					if ((lowerRange - 10) > 0) {
-						historyGameDetails.setPrevEnabled(true);
-					} else {
-						historyGameDetails.setPrevEnabled(false);
-					}
-				}
-				totalRs.close();
-			}
-			
-			List<Long> gameIds = getUserPlayedGameIds(userId, startRowNo);
-			
-			for (int index = 0; index < gameIds.size(); index++) {
-				ps.setLong(1, gameIds.get(index));
-				rs = ps.executeQuery();
-				if (rs.next()) {
-					
-			
-					GameResults gameResult = new GameResults();
-					
-					gameResult.setsNo(++startRowNo);
-					gameResult.setGameId(rs.getLong(GAMEID));
-					gameResult.setGamePlayedTime(rs.getLong(GAME_PLAYED_TIME));
-					gameResult.setTktRate(rs.getInt(TICKET_RATE));
-					gameResult.setCelebrityName(rs.getString(CELEBRITY_NAME));
-					gameResult.setWinnersList(rs.getString(WINNERS_LIST));
-					
-					gameResultSet.add(gameResult);
-				}
-				if (rs != null) {
-					rs.close();
-				}
-			}
-		} catch (SQLException ex) {
-			logger.error("SQLException in getting history game details", ex);
-		} finally {
-			if (totalPs != null) {
-				totalPs.close();
-			}
-			if (ps != null) {
-				ps.close();
-			}
-			if (dbConn != null) {
-				dbConn.close();
-			}
-			try {
-				if (rs != null) {
-					rs.close();
-				}
-			} catch (Exception ex) {
-			}
-		}
-		historyGameDetails.setHistoryGames(gameResultSet);
-		return historyGameDetails;
-	}
+
 	
 	public static void main(String[] args) throws SQLException {
 		
 		GameHistoryDBHandler instance = GameHistoryDBHandler.getInstance();
-		UserHistoryGameDetails results = instance.getUserPlayedGameDetails(48, 0);
-		for (GameResults res : results.getHistoryGames()) {
-			System.out.println(res);
+		
+		long total = 300000;
+		List<GameResults> gameResultsList = new ArrayList<>();
+		
+		for (int i = 1; i <= total; i++) {
+			GameResults gr = new GameResults();
+			
+			gr.setGameId(i);
+			gr.setGamePlayedTime(System.currentTimeMillis());
+			gr.setCelebrityName("TestCeleb");
+			gr.setTktRate(100);
+			gr.setWinnersList("PlayersResults");
+			
+			gameResultsList.add(gr);
 		}
+		System.out.println("GameResults size " + gameResultsList.size());
+		
+		List<GamePlayers> gamePlayersList = new ArrayList<>();
+		for (int i = 1; i <= total; i++) {
+			GamePlayers gp1 = new GamePlayers();
+			gp1.setGameId(i);
+			gp1.setUserId(10);
+			
+			gamePlayersList.add(gp1);
+			
+			GamePlayers gp2 = new GamePlayers();
+			gp2.setGameId(i);
+			gp2.setUserId(20);
+			
+			gamePlayersList.add(gp2);
+			
+			GamePlayers gp3 = new GamePlayers();
+			gp3.setGameId(i);
+			gp3.setUserId(30);
+			
+			gamePlayersList.add(gp3);
+		}
+		System.out.println("GamePlayers size " + gamePlayersList.size());
+		instance.bulkInsertGameResults(gameResultsList, gamePlayersList, 400, 500);
 	}
 }

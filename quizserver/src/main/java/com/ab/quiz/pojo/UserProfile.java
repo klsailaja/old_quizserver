@@ -12,7 +12,21 @@ public class UserProfile {
 	private long lastLoggedDate;
 	private String bossName;
 	private long bossId;
+	private int isLoggedIn;
+	private int forgotPasswdUsed;
 	
+	public int getIsLoggedIn() {
+		return isLoggedIn;
+	}
+	public void setIsLoggedIn(int isLoggedIn) {
+		this.isLoggedIn = isLoggedIn;
+	}
+	public int getForgotPasswdUsed() {
+		return forgotPasswdUsed;
+	}
+	public void setForgotPasswdUsed(int forgotPasswdUsed) {
+		this.forgotPasswdUsed = forgotPasswdUsed;
+	}
 	public long getId() {
 		return id;
 	}

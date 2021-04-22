@@ -12,6 +12,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.helper.GamesGenerator;
 import com.ab.quiz.helper.WinMsgHandler;
+import com.ab.quiz.tasks.TestUsersTask;
 
 @SpringBootApplication
 public class TeluguMovieQuizApplication implements ApplicationRunner {
@@ -67,6 +68,10 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 			logger.info("Server started successfully...");
 			
 			WinMsgHandler.getInstance();
+			if (QuizConstants.TESTMODE == 1) {
+				TestUsersTask task = new TestUsersTask();
+				task.setUp();
+			}
 		} catch(SQLException ex) {
 			logger.error("SQLException in TeluguMovieQuizApplication", ex);
 		}

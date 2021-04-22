@@ -30,38 +30,44 @@ import com.ab.quiz.pojo.WithdrawRequest;
 import com.ab.quiz.pojo.WithdrawRequestsHolder;
 
 /*
-CREATE TABLE WithdrawRequests(id bigint NOT NULL AUTO_INCREMENT, 
-		refId varchar(10) NOT NULL,
-		userProfileId bigint NOT NULL,
-		fromAccType int NOT NULL,
-		status int NOT NULL,
-		reqType int NOT NULL,
-		accountDetailsId bigint NOT NULL,
-		amount int NOT NULL,
-		openedTime bigint NOT NULL,
-		closedTime bigint NULL,
-		receiptId bigint NULL,
-		closeCmts varchar(100), PRIMARY KEY (id); 
+ *
+ CREATE TABLE WITHDRAWREQUESTS(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, 
+		REFID VARCHAR(10) NOT NULL,
+		USERID BIGINT NOT NULL,
+		FROMACCTYPE INT NOT NULL,
+		STATUS INT NOT NULL,
+		REQTYPE INT NOT NULL,
+		ACCOUNTDETAILSID BIGINT NOT NULL,
+		AMOUNT INT NOT NULL,
+		OPENEDTIME BIGINT NOT NULL,
+		CLOSEDTIME BIGINT NULL,
+		RECEIPTID BIGINT NULL,
+		CLOSECMTS VARCHAR(100), PRIMARY KEY (ID) ENGINE = INNODB;
+		
+CREATE INDEX WITHDRAWREQUESTS_Inx1 ON WITHDRAWREQUESTS(USERID);		
+DROP INDEX WITHDRAWREQUESTS_Inx1 ON WITHDRAWREQUESTS;		
+CREATE INDEX WITHDRAWREQUESTS_Inx1 ON WITHDRAWREQUESTS(USERID);
+
 */
 
 public class WithdrawDBHandler {
 	
 	private static final Logger logger = LogManager.getLogger(WithdrawDBHandler.class);
 	
-	private static String TABLE_NAME = "WithdrawRequests"; 
+	private static String TABLE_NAME = "WITHDRAWREQUESTS"; 
 	
-	private static String ID = "id";
-	private static String REFID = "refId";
-	private static String USER_PROFILE_ID = "userProfileId";
-	private static String FROM_APP_BANK_ACC_NAME = "fromAccType";
-	private static String STATUS = "status";
-	private static String REQUEST_TYPE = "reqType";
-	private static String ACDETAILS_ID = "accountDetailsId";
-	private static String AMOUNT = "amount";
-	private static String REQUEST_OPENED_TIME = "openedTime";
-	private static String REQUEST_CLOSED_TIME = "closedTime";
-	private static String TRANSACTION_RECEIPT_ID = "receiptId";
-	private static String CLOSED_CMTS = "closeCmts";
+	private static String ID = "ID";
+	private static String REFID = "REFID";
+	private static String USER_PROFILE_ID = "USERPROFILEID";
+	private static String FROM_APP_BANK_ACC_NAME = "FROMACCTYPE";
+	private static String STATUS = "STATUS";
+	private static String REQUEST_TYPE = "REQTYPE";
+	private static String ACDETAILS_ID = "ACCOUNTDETAILSID";
+	private static String AMOUNT = "AMOUNT";
+	private static String REQUEST_OPENED_TIME = "OPENEDTIME";
+	private static String REQUEST_CLOSED_TIME = "CLOSEDTIME";
+	private static String TRANSACTION_RECEIPT_ID = "RECEIPTID";
+	private static String CLOSED_CMTS = "CLOSECMTS";
 	
 	private static WithdrawDBHandler instance = null;
 	
@@ -89,6 +95,7 @@ public class WithdrawDBHandler {
 			+ AMOUNT + "," + REQUEST_OPENED_TIME + "," + REQUEST_CLOSED_TIME + ","
 			+ TRANSACTION_RECEIPT_ID + "," + CLOSED_CMTS + ") VALUES"
 			+ "(?,?,?,?,?,?,?,?,?,?,?)";
+	
 	private static final String MAX_WITHDRAW_REQ_ID = "SELECT MAX(ID) FROM " + TABLE_NAME;
 	private static final String GET_WITHDRAW_ENTRY_BY_REF_ID = "SELECT * FROM " + TABLE_NAME + " WHERE " + REFID + " = ?";
 	private static final String UPDATE_WITHDRAW_ENTRY_BY_REF_ID = "UPDATE " + TABLE_NAME + " SET "
@@ -245,9 +252,11 @@ public class WithdrawDBHandler {
 			
 			result1 = updateWDStatePS.executeUpdate();
 			
+			logger.debug("Changed the withdraw req state result {}", (result1 > 0));
+			
 			UserMoneyDBHandler userMoneyHandler = UserMoneyDBHandler.getInstance();
 			long userProfileId = wdRequest.getUserProfileId(); 
-			UserMoney userMoney = userMoneyHandler.getUserMoneyByProfileId(userProfileId);
+			UserMoney userMoney = userMoneyHandler.getUserMoneyById(userProfileId);
 			
 			long userOB = userMoney.getLoadedAmount();
 			if (wdRequest.getFromAccType() == UserMoneyAccountType.WINNING_MONEY.getId()) {
@@ -329,8 +338,10 @@ public class WithdrawDBHandler {
 			
 			result1 = updateWDStatePS.executeUpdate();
 			
+			logger.debug("Changed the withdraw req state result : {}", (result1 > 0));
+			
 			UserMoneyDBHandler userMoneyHandler = UserMoneyDBHandler.getInstance();
-			UserMoney userMoney = userMoneyHandler.getUserMoneyByProfileId(userProfileId);
+			UserMoney userMoney = userMoneyHandler.getUserMoneyById(userProfileId);
 			long userOB = userMoney.getLoadedAmount();
 			if (wdRequest.getFromAccType() == UserMoneyAccountType.WINNING_MONEY.getId()) {
 				userOB = userMoney.getWinningAmount();
@@ -464,6 +475,8 @@ public class WithdrawDBHandler {
 		
 		PreparedStatement totalPs = dbConn.prepareStatement(totalSql);
 		PreparedStatement ps = dbConn.prepareStatement(sql);
+		ResultSet totalRs = null;
+		ResultSet rs = null;
 		
 		totalPs.setLong(1, userProfileId);
 		ps.setLong(1, userProfileId);
@@ -481,7 +494,7 @@ public class WithdrawDBHandler {
 		List<WithdrawRequest> dataList = new ArrayList<>();
 		
 		try {
-			ResultSet totalRs = totalPs.executeQuery();
+			totalRs = totalPs.executeQuery();
 			if (totalRs != null) {
 				if (totalRs.next()) {
 					
@@ -503,9 +516,9 @@ public class WithdrawDBHandler {
 					}
 					
 				}
-				totalRs.close();
 			}
-			ResultSet rs = ps.executeQuery();
+			
+			rs = ps.executeQuery();
 			if (rs != null) {
 				while (rs.next()) {
 					
@@ -541,11 +554,16 @@ public class WithdrawDBHandler {
 					}
 					dataList.add(dataItem);
 				}
-				rs.close();
 			}
 		} catch (SQLException ex) {
 			throw ex;
 		} finally {
+			if (totalRs != null) {
+				totalRs.close();
+			}
+			if (rs != null) {
+				rs.close();
+			}
 			if (totalPs != null) {
 				totalPs.close();
 			}
@@ -557,6 +575,7 @@ public class WithdrawDBHandler {
 			}
 		}
 		holder.setList(dataList);
+		
 		return holder;
 	}
 	

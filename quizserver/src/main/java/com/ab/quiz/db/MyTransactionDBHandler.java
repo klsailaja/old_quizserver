@@ -16,33 +16,40 @@ import com.ab.quiz.pojo.TransactionsHolder;
 import com.ab.quiz.pojo.UserProfile;
 
 /*
-CREATE TABLE Transactions(id bigint NOT NULL AUTO_INCREMENT,
- 		userId bigint NOT NULL,
-		date bigint NOT NULL,
-		amount int NOT NULL,
-		accountType int NOT NULL,
-		transactionType int NOT NULL,
-		result int NOT NULL,
-		openingBalance bigint NOT NULL,
-		closingBalance bigint NOT NULL,
-		comments varchar(100) NULL, PRIMARY KEY (id)); 
+CREATE TABLE TRANSACTIONS(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+ 		USERID BIGINT NOT NULL,
+		DATE BIGINT NOT NULL,
+		AMOUNT INT NOT NULL,
+		ACCOUNTTYPE INT NOT NULL,
+		TRANSACTIONTYPE INT NOT NULL,
+		RESULT INT NOT NULL,
+		OPENINGBALANCE BIGINT NOT NULL,
+		CLOSINGBALANCE BIGINT NOT NULL,
+		COMMENTS VARCHAR(100) NULL, PRIMARY KEY (ID)) ENGINE = INNODB;
+		
+CREATE INDEX TRANSACTIONS_Inx ON TRANSACTIONS(USERID);		
+DROP INDEX TRANSACTIONS_Inx ON TRANSACTIONS;		
+CREATE INDEX TRANSACTIONS_Inx ON TRANSACTIONS(USERID);
+CREATE FULLTEXT INDEX TRANSACTIONS_Inx1 ON TRANSACTIONS(COMMENTS);		
+DROP INDEX TRANSACTIONS_Inx1 ON TRANSACTIONS;		
+CREATE FULLTEXT INDEX TRANSACTIONS_Inx1 ON TRANSACTIONS(COMMENTS);
 */
 
 public class MyTransactionDBHandler {
 	// Create an entry
 	// get list by userId and account type with limit parameter
-	private static String TABLE_NAME = "Transactions";
+	private static String TABLE_NAME = "TRANSACTIONS";
 	
-	private static String ID = "id";
-	private static String USERID = "userId";
-	private static String DATE = "date";
-	private static String AMOUNT = "amount";
-	private static String ACCOUNT_TYPE = "accountType";
-	private static String TRANSACTION_TYPE = "transactionType";
-	private static String RESULT = "result";
-	private static String OB = "openingBalance";
-	private static String CB = "closingBalance";
-	private static String COMMENTS = "comments";
+	private static String ID = "ID";
+	private static String USERID = "USERID";
+	private static String DATE = "DATE";
+	private static String AMOUNT = "AMOUNT";
+	private static String ACCOUNT_TYPE = "ACCOUNTTYPE";
+	private static String TRANSACTION_TYPE = "TRANSACTIONTYPE";
+	private static String RESULT = "RESULT";
+	private static String OB = "OPENINGBALANCE";
+	private static String CB = "CLOSINGBALANCE";
+	private static String COMMENTS = "COMMENTS";
 	
 	private static int MAX_ROWS = 5;
 	
@@ -83,7 +90,7 @@ public class MyTransactionDBHandler {
 		return instance;
 	}
 	
-	public List<Integer> createTransactionsInBatch(List<MyTransaction> transactionsList) throws SQLException {
+	public void createTransactionsInBatch(List<MyTransaction> transactionsList, int batch) throws SQLException {
 		
 		ConnectionPool cp = null;
 		Connection dbConn = null;
@@ -92,12 +99,15 @@ public class MyTransactionDBHandler {
 		try {
 			cp = ConnectionPool.getInstance();
 			dbConn = cp.getDBConnection();
+			
 			dbConn.setAutoCommit(false);
 			
 			ps = dbConn.prepareStatement(CREATE_TRANSACTION_ENTRY);
 			
 			int index = 0;
-			List<Integer> transactionOperResults = new ArrayList<>();
+			int totalFailureCount = 0;
+			int totalSuccessCount = 0;
+
 			
 			for (MyTransaction myTransaction : transactionsList) {
 				
@@ -109,17 +119,25 @@ public class MyTransactionDBHandler {
 				ps.setInt(6, myTransaction.getOperResult());
 				ps.setLong(7, myTransaction.getOpeningBalance());
 				ps.setLong(8, myTransaction.getClosingBalance());
-				ps.setString(9, myTransaction.getComment());
+				String comment = myTransaction.getComment();
+				if (myTransaction.getOperResult() == 0) {
+					comment = comment + "." + "Backend issue while update. Will be resolved in 1-2 days.";
+				}
+				ps.setString(9, comment);
 				index++;
 				
 				ps.addBatch();
 				
-				if (index == 100) {
+				if (index == batch) {
 					int[] results = ps.executeBatch();
 					dbConn.setAutoCommit(true);
 					dbConn.setAutoCommit(false);
 					for (int result : results) {
-						transactionOperResults.add(result);
+						if (result == 1) {
+							++totalSuccessCount;
+						} else {
+							++totalFailureCount;
+						}
 					}
 					index = 0;
 				}
@@ -129,12 +147,19 @@ public class MyTransactionDBHandler {
 				int [] results = ps.executeBatch();
 				dbConn.setAutoCommit(true);
 				for (int result : results) {
-					transactionOperResults.add(result);
+					if (result == 1) {
+						++totalSuccessCount;
+					} else {
+						++totalFailureCount;
+					}
 				}
 			}
-			return transactionOperResults;
+			logger.info("createTransactionsInBatch retunrd with success row count {} : failure row count {}", 
+					totalSuccessCount, totalFailureCount);
 		} catch(SQLException ex) {
+			logger.error("******************************");
 			logger.error("Error processing transactions list in bulk mode", ex);
+			logger.error("******************************");
 			throw ex;
 		} finally {
 			if (ps != null) {
@@ -147,6 +172,7 @@ public class MyTransactionDBHandler {
 	}
 	
 	public boolean createTransaction(MyTransaction myTransaction) throws SQLException {
+		
 		ConnectionPool cp = null;
 		Connection dbConn = null;
 		PreparedStatement ps = null;
@@ -164,13 +190,20 @@ public class MyTransactionDBHandler {
 			ps.setInt(6, myTransaction.getOperResult());
 			ps.setLong(7, myTransaction.getOpeningBalance());
 			ps.setLong(8, myTransaction.getClosingBalance());
-			ps.setString(9, myTransaction.getComment());
+			String comment = myTransaction.getComment();
+			if (myTransaction.getOperResult() == 0) {
+				comment = comment + "." + "Backend issue while update. Will be resolved in 1-2 days.";
+			}
+			ps.setString(9, comment);
 			
 			int createResult = ps.executeUpdate();
-			logger.debug(" createResult {}", createResult);
-			return (createResult > 0);
+			boolean recordCreationState = (createResult > 0);
+			logger.debug("Transaction creation status {}", recordCreationState);
+			return recordCreationState;
 		} catch(SQLException ex) {
+			logger.error("******************************");
 			logger.error("Error creating transaction entry", ex);
+			logger.error("******************************");
 			throw ex;
 		} finally {
 			if (ps != null) {
@@ -193,7 +226,6 @@ public class MyTransactionDBHandler {
 			sql = LATEST_BOSS_WIN_RECORDS;
 		}
 		
-		System.out.println(sql);
 		PreparedStatement ps = dbConn.prepareStatement(sql);
 		
 		if (userProfileId != -1) {
@@ -242,7 +274,7 @@ public class MyTransactionDBHandler {
 	public TransactionsHolder getTransactions(long userProfileId, int startRowNumber, int accType) 
 			throws SQLException, NotAllowedException {
 		
-		logger.debug("In getTransactions() with {} {} {}", userProfileId, accType, startRowNumber);
+		logger.info("In getTransactions() with {} {} {}", userProfileId, accType, startRowNumber);
 		
 		UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userProfileId);
 		if (userProfile.getId() == 0) {
@@ -277,14 +309,15 @@ public class MyTransactionDBHandler {
 		
 		TransactionsHolder transactionsDetails = new TransactionsHolder();
 		List<MyTransaction> myTransactions = new ArrayList<>();
+		ResultSet totalRs = null;
+		ResultSet rs = null;
 		
 		try {
-			ResultSet totalRs = totalPs.executeQuery();
+			totalRs = totalPs.executeQuery();
 			if (totalRs != null) {
 				if (totalRs.next()) {
 					
 					int total = totalRs.getInt("COUNT(*)");
-					logger.debug("total : {}", total);
 					transactionsDetails.setTotal(total);
 					
 					int lowerRange = startRowNumber + 1;
@@ -302,9 +335,9 @@ public class MyTransactionDBHandler {
 					}
 					
 				}
-				totalRs.close();
 			}
-			ResultSet rs = ps.executeQuery();
+			
+			rs = ps.executeQuery();
 			if (rs != null) {
 				while (rs.next()) {
 					
@@ -325,11 +358,16 @@ public class MyTransactionDBHandler {
 					
 					myTransactions.add(userTrans);
 				}
-				rs.close();
 			}
 		} catch (SQLException ex) {
 			throw ex;
 		} finally {
+			if (totalRs != null) {
+				totalRs.close();
+			}
+			if (rs != null) {
+				rs.close();
+			}
 			if (totalPs != null) {
 				totalPs.close();
 			}
@@ -341,14 +379,34 @@ public class MyTransactionDBHandler {
 			}
 		}
 		transactionsDetails.setTransactionsList(myTransactions);
+		logger.info("In getTransaction list. Returned with sie {}", myTransactions.size());
 		return transactionsDetails;
 	}
 	
 	public static void main(String[] args) throws SQLException {
+		
 		MyTransactionDBHandler instance = MyTransactionDBHandler.getInstance();
-		List<String> msgs = instance.getRecentWinRecords(220);
-		for (String str : msgs) {
-			System.out.println(str);
+		
+		long total = 200000;
+		List<MyTransaction> transactionList = new ArrayList<>();
+		
+		for (int i = 1; i <= total; i++) {
+			MyTransaction trans = new MyTransaction();
+			
+			trans.setId(i);
+			trans.setUserId(1000);
+			trans.setDate(System.currentTimeMillis());
+			trans.setAmount(100);
+			trans.setAccountType(1);
+			trans.setTransactionType(1);
+			trans.setOperResult(1);
+			trans.setOpeningBalance(1000);
+			trans.setClosingBalance(1100);
+			trans.setComment("Testing");
+			
+			transactionList.add(trans);
 		}
+		System.out.println("Transactions size " + transactionList.size());
+		instance.createTransactionsInBatch(transactionList, 200);
 	}
 }

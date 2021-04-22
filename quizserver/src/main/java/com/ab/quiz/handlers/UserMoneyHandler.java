@@ -46,24 +46,9 @@ public class UserMoneyHandler {
 		return instance;
 	}
 	
-	public UserMoney getUserMoney(long userProfileId) throws SQLException, NotAllowedException {
+	public UserMoney getUserMoney(long id) throws SQLException, NotAllowedException {
 		//UserMoney userMoneyDb = UserMoneyDBHandler.getInstance().getUserMoneyByProfileId(userProfileId);
-		UserMoney userMoneyDb = InMemUserMoneyManager.getInstance().getUserMoneyById(userProfileId);
-		if (userMoneyDb.getId() == 0) {
-			// The entry is not found in DB. So create one..
-			UserMoney userMoney = new UserMoney();
-			
-			userMoney.setId(userProfileId);
-			userMoney.setLoadedAmount(0);
-			userMoney.setReferalAmount(0);
-			userMoney.setWinningAmount(0);
-			userMoney.setLoadedAmtLocked(0);
-			userMoney.setReferalAmtLocked(0);
-			userMoney.setWinningAmtLocked(0);
-			
-			UserMoneyDBHandler.getInstance().createUserMoney(userMoney);
-			return userMoney;
-		}
+		UserMoney userMoneyDb = InMemUserMoneyManager.getInstance().getUserMoneyById(id);
 		return userMoneyDb;
 	}
 	
@@ -113,7 +98,7 @@ public class UserMoneyHandler {
 		WDUserInput wdUserInput = wdInputObject.getWithdrawUserInput();
 		
 		long userProfileId = wdUserInput.getUserProfileId();
-		UserMoney userMoneyDb = UserMoneyDBHandler.getInstance().getUserMoneyByProfileId(userProfileId);
+		UserMoney userMoneyDb = UserMoneyDBHandler.getInstance().getUserMoneyById(userProfileId);
 		if (userMoneyDb.getId() == 0) {
 			throw new NotAllowedException("Invalid user");
 		}
@@ -239,7 +224,7 @@ public class UserMoneyHandler {
 		long userProfileId = wdUserInput.getUserProfileId();
 		
 		UserMoneyDBHandler userMoneyHandler = UserMoneyDBHandler.getInstance();
-		UserMoney userMoney = userMoneyHandler.getUserMoneyByProfileId(userProfileId);
+		UserMoney userMoney = userMoneyHandler.getUserMoneyById(userProfileId);
 		
 		long userOB = -1;
 		int userAccountType = wdUserInput.getFromAccType();

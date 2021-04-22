@@ -147,6 +147,10 @@ public class InMemUserMoneyManager implements Runnable {
 			}
 			logger.info("Total records size and results size {} : {}", list.size(), resultsList.size());
 			
+			if (dbConn != null) {
+				dbConn.close();
+			}
+			
 			int size = list.size();
 			int operResult = 0;
 			for (int counter = 0; counter < size; counter ++) {
@@ -163,8 +167,7 @@ public class InMemUserMoneyManager implements Runnable {
 				transactionsList.add(moneyTran.getTransaction());
 			}
 			
-			List<Integer> transactionsResults = MyTransactionDBHandler.getInstance().createTransactionsInBatch(transactionsList);
-			logger.info("The transactionsResults size is {}", transactionsResults.size());
+			MyTransactionDBHandler.getInstance().createTransactionsInBatch(transactionsList, 200);
 			
 		} catch(SQLException ex) {
 			logger.error("Error in bulk update", ex);
@@ -275,7 +278,7 @@ public class InMemUserMoneyManager implements Runnable {
 		if (userMoney != null) {
 			return userMoney;
 		}
-		return UserMoneyDBHandler.getInstance().getUserMoneyByProfileId(userId);
+		return UserMoneyDBHandler.getInstance().getUserMoneyById(userId);
 	}
 	
 	public synchronized void commitNow() throws SQLException {

@@ -113,7 +113,6 @@ public class BatchPaymentProcessor implements Runnable {
 						UserMoney userMoney = new UserMoney();
 						
 						userMoney.setId(rs.getLong(UserMoneyDBHandler.ID));
-						userMoney.setUserId(rs.getLong(UserMoneyDBHandler.USER_ID));
 						userMoney.setLoadedAmount(rs.getLong(UserMoneyDBHandler.LOADED_AMOUNT));
 						userMoney.setWinningAmount(rs.getLong(UserMoneyDBHandler.WINNING_AMOUNT));
 						userMoney.setReferalAmount(rs.getLong(UserMoneyDBHandler.REFERAL_AMOUNT));
@@ -123,12 +122,14 @@ public class BatchPaymentProcessor implements Runnable {
 				
 						userIdVsUserMoney.put(userMoney.getId(), userMoney);
 					}
-					rs.close();
 				}
 			} catch (SQLException ex) {
 				logger.error("SQLException executing prepared statement", ex);
 				throw ex;
 			} finally {
+				if (rs != null) {
+					rs.close();
+				}
 				if (ps != null) {
 					ps.close();
 				}
@@ -143,7 +144,7 @@ public class BatchPaymentProcessor implements Runnable {
 	public void run() {
 		try {
 			long startTime = System.currentTimeMillis();
-			// Just Committing the in mem transactions
+			// Just Committing the in-mem transactions
 			InMemUserMoneyManager.getInstance().commitNow();
 			
 			fetchBossUserMoneyObjects();

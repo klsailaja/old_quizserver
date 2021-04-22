@@ -2,13 +2,27 @@ package com.ab.quiz.pojo;
 
 public class UserMoney {
 	private long id;
-	private long userProfileId;
 	private long loadedAmount;
 	private long winningAmount;
 	private long referalAmount;
 	private long loadedAmtLocked;
 	private long winningAmtLocked;
 	private long referalAmtLocked;
+	
+	public UserMoney() {
+	}
+	
+	public UserMoney(long id, long loadedAmount, long winningAmount, long referalAmount, long loadedAmtLocked,
+			long winningAmtLocked, long referalAmtLocked) {
+		super();
+		this.id = id;
+		this.loadedAmount = loadedAmount;
+		this.winningAmount = winningAmount;
+		this.referalAmount = referalAmount;
+		this.loadedAmtLocked = loadedAmtLocked;
+		this.winningAmtLocked = winningAmtLocked;
+		this.referalAmtLocked = referalAmtLocked;
+	}
 	
 	public long getLoadedAmtLocked() {
 		return loadedAmtLocked;
@@ -34,12 +48,6 @@ public class UserMoney {
 	public void setId(long id) {
 		this.id = id;
 	}
-	public long getUserProfileId() {
-		return userProfileId;
-	}
-	public void setUserId(long userProfileId) {
-		this.userProfileId = userProfileId;
-	}
 	public long getLoadedAmount() {
 		return loadedAmount;
 	}
@@ -61,8 +69,8 @@ public class UserMoney {
 	
 	@Override
 	public String toString() {
-		return "UserMoney [id=" + id + ", userProfileId=" + userProfileId + ", loadedAmount=" + loadedAmount
-				+ ", winningAmount=" + winningAmount + ", referalAmount=" + referalAmount + "]";
+		return "UserMoney [id=" + id + ", loadedAmount=" + loadedAmount + ", winningAmount=" + winningAmount
+				+ ", referalAmount=" + referalAmount + ", loadedAmtLocked=" + loadedAmtLocked + ", winningAmtLocked="
+				+ winningAmtLocked + ", referalAmtLocked=" + referalAmtLocked + "]";
 	}
-
 }

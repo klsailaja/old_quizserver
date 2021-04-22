@@ -44,8 +44,6 @@ public class GameManager {
 	private TreeMap<Long, GameHandler> gameIdToGameHandler = new TreeMap<Long, GameHandler>();
 	
 	private ReadWriteLock lock = new ReentrantReadWriteLock();
-	private long testingUserIdMode1 = 30;
-	private long testingUserIdMode2 = 30 + (QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED.length - 1) * 10;
 	
 	private GameManager() {
 	}
@@ -59,9 +57,6 @@ public class GameManager {
 	}
 	
 	public void addNewGames(List<GameHandler> gameHandlers) {
-		testingUserIdMode1 = 1001;
-		testingUserIdMode2 = 2001;
-		
 		lock.writeLock().lock();
 		for (GameHandler gameHandler : gameHandlers) {
 			long gameId = gameHandler.getGameDetails().getGameId();
@@ -69,68 +64,7 @@ public class GameManager {
 			gameIdToGameHandler.put(keyLong, gameHandler);
 		}
 		lock.writeLock().unlock();
-		logger.debug("New games are added. The size is {}", gameIdToGameHandler.size());
-		
-		if (QuizConstants.TESTMODE == 1) {
-			for (GameHandler gameHandler : gameHandlers) {
-				addTestUsersToGame(gameHandler);
-			}
-		}
-	}
-	
-	private void addTestUsersToGame(GameHandler gameHandlerInstance) {
-		if (gameHandlerInstance.getGameDetails().getTicketRate() == 0) {
-			return;
-		}
-		
-		int min = 3;
-		int max = QuizConstants.MAX_PLAYERS_PER_GAME;
-		//int randomPlayerCount = min + (int) (Math.random() * (max - min));
-		int randomPlayerCount = 10;
-		
-		for (int index = 1; index <= randomPlayerCount; index ++) {
-			
-			try {
-				
-				long predefinedUserProfileId = -1;
-				if (gameHandlerInstance.getGameDetails().getGameType() == 1) {
-					predefinedUserProfileId = testingUserIdMode1++; 
-				} else {
-					predefinedUserProfileId = testingUserIdMode2++;
-				}
-					
-				GameOperation gameOperation = new GameOperation();
-				gameOperation.setUserProfileId(predefinedUserProfileId);
-				gameOperation.setUserAccountType(UserMoneyAccountType.LOADED_MONEY.getId());
-				GameManager.getInstance().joinGame(gameHandlerInstance.getGameDetails().getGameId(), gameOperation);
-				
-				for (int qIndex = 1; qIndex <= 10; qIndex ++) {
-					PlayerAnswer playerAns = getRandomPlayerAnswer();
-					playerAns.setQuestionNo(qIndex);
-					playerAns.setUserProfileId(predefinedUserProfileId);
-					gameHandlerInstance.submitAnswer(playerAns);
-				}
-			} catch(Exception ex) {
-				logger.error("Exception in addTestUsersToGame", ex);
-			}
-		}
-	}
-	
-	private PlayerAnswer getRandomPlayerAnswer() {
-		int userAnswerMin = 1;
-		int userAnswerMax = 5;
-		int userAnswerFinal = userAnswerMin + (int) (Math.random() * (userAnswerMax - userAnswerMin));
-		
-		int timeMin = 1;
-		int timeMax = 5;
-		int timeFinal = timeMin + (int) (Math.random() * (timeMax - timeMin));
-		int timeFinalMillis = timeFinal * 60 * 1000; 
-		
-		PlayerAnswer answer = new PlayerAnswer();
-		answer.setUserAnswer(userAnswerFinal);
-		answer.setTimeDiff(timeFinalMillis);
-		
-		return answer;
+		logger.info("New games are added. The size is {}", gameIdToGameHandler.size());
 	}
 	
 	public void deleteCompletedGames(List<Long> completedGameIds) {
@@ -143,7 +77,7 @@ public class GameManager {
 		
 		lock.writeLock().unlock();
 		
-		logger.debug("Completed games are deleted. Now the size is {}", gameIdToGameHandler.size());
+		logger.info("Completed games are deleted. Now the size is {}", gameIdToGameHandler.size());
 	}
 	
 	public List<GameDetails> getFutureGames(int gametype) {
@@ -172,7 +106,7 @@ public class GameManager {
 			}
 		}
 		lock.readLock().unlock();
-		logger.debug("Size is " + list.size());
+		logger.info("Size is " + list.size());
 		return list;
 	}
 	

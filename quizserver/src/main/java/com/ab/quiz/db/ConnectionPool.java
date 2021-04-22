@@ -36,8 +36,7 @@ public class ConnectionPool {
             ds.setUsername(JDBC_USER);
             ds.setPassword(JDBC_PASS);
  
-            ds.setMinIdle(2);
-            ds.setMaxIdle(3);
+            ds.setInitialSize(6);
             ds.setMaxOpenPreparedStatements(50);
             ds.setDefaultAutoCommit(true);
             ds.setDefaultTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);

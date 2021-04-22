@@ -25,56 +25,66 @@ import com.ab.quiz.pojo.UserProfile;
 import com.ab.quiz.pojo.UserReferal;
 
 /*
-CREATE TABLE UserProfile(id bigint NOT NULL AUTO_INCREMENT, 
-		name varchar(20) NOT NULL,
-		passwd varchar(70) NOT NULL, 
-		mailId varchar(70) NOT NULL, 
-		myreferalId varchar(10), 
-		referredId varchar(10), 
-		bossUserId bigint,
-        bossName varchar(20),
-		createdDate bigint, 
-		lastLoggedDate bigint, PRIMARY KEY (id));
+CREATE TABLE USERPROFILE(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, 
+		NAME VARCHAR(20) NOT NULL,
+		PASSWD VARCHAR(70) NOT NULL, 
+		MAILID VARCHAR(70) NOT NULL, 
+		MYREFERALID VARCHAR(10), 
+		REFERREDID VARCHAR(10), 
+		BOSSUSERID BIGINT,
+        BOSSNAME VARCHAR(20),
+        LOGGEDIN INT,
+        FORGOTPASSWD INT,
+        CREATEDDATE BIGINT,
+        LASTLOGGEDDATE BIGINT, PRIMARY KEY (ID)) ENGINE = INNODB;
+        
+CREATE INDEX UserProfile_Inx ON USERPROFILE(mailId);        
+DROP INDEX UserProfile_Inx ON USERPROFILE;        
+CREATE INDEX UserProfile_Inx ON USERPROFILE(mailId);
 */
 
 public class UserProfileDBHandler {
 	
 	private static final Logger logger = LogManager.getLogger(UserProfileDBHandler.class);
 
-	private static String ID = "id";
-	private static String PASSWD = "passwd";
-	private static String NAME = "name";
-	private static String MAIL_ID = "mailId";
-	private static String MYREFERAL_ID = "myreferalId";
-	private static String REFERED_ID = "referredId";
-	private static String BOSS_USER_ID = "bossUserId";
-	private static String BOSS_NAME = "bossName";
-	private static String CREATEDDATE = "createdDate";
-	private static String LASTLOGGEDDATE = "lastLoggedDate";
+	private static String ID = "ID";
+	private static String NAME = "NAME";
+	private static String PASSWD = "PASSWD";
+	private static String MAIL_ID = "MAILID";
+	private static String MYREFERAL_ID = "MYREFERALID";
+	private static String REFERED_ID = "REFERREDID";
+	private static String BOSS_USER_ID = "BOSSUSERID";
+	private static String BOSS_NAME = "BOSSNAME";
+	private static String LOGGEDIN = "LOGGEDIN";
+	private static String FORGOTPASSWD = "FORGOTPASSWD";
+	private static String CREATEDDATE = "CREATEDDATE";
+	private static String LASTLOGGEDDATE = "LASTLOGGEDDATE";
 	
 	private static UserProfileDBHandler instance = null;
 	
-	private static final String GET_USER_PROFILE_BY_MAIL_ID = "SELECT * FROM UserProfile WHERE " 
+	private static final String GET_USER_PROFILE_BY_MAIL_ID = "SELECT * FROM USERPROFILE WHERE " 
 			+ MAIL_ID + " = ?";
-	private static final String GET_USER_PROFILE_BY_ID = "SELECT * FROM UserProfile WHERE " 
+	private static final String GET_USER_PROFILE_BY_ID = "SELECT * FROM USERPROFILE WHERE " 
 			+ ID + " = ?";
-	private static final String GET_USER_PROFILE_BY_REFERAL_CODE = "SELECT * FROM UserProfile WHERE " 
+	private static final String GET_USER_PROFILE_BY_REFERAL_CODE = "SELECT * FROM USERPROFILE WHERE " 
 			+ MYREFERAL_ID + " = ?";
-	private static final String GET_MY_REFERALS = "SELECT * FROM UserProfile WHERE " 
+	private static final String GET_MY_REFERALS = "SELECT * FROM USERPROFILE WHERE " 
 			+ REFERED_ID + " = ? ORDER BY " + ID + " LIMIT ?, 10";
-	private static final String GET_TOTAL_COUNT = "SELECT COUNT(*) FROM UserProfile WHERE "
+	private static final String GET_TOTAL_COUNT = "SELECT COUNT(*) FROM USERPROFILE WHERE "
 			+ REFERED_ID + " = ?";
 	  
 	
-	private static final String CREATE_USER_PROFILE = "INSERT INTO UserProfile " 
+	private static final String CREATE_USER_PROFILE = "INSERT INTO USERPROFILE " 
 			+ "(" + NAME + "," + MAIL_ID + "," + PASSWD + "," + MYREFERAL_ID + "," + REFERED_ID + ","
-			+ BOSS_USER_ID + "," + BOSS_NAME + ","
+			+ BOSS_USER_ID + "," + BOSS_NAME + "," + LOGGEDIN + "," + FORGOTPASSWD + ","
 			+ CREATEDDATE + "," + LASTLOGGEDDATE + ") VALUES"   
-			+ "(?,?,?,?,?,?,?,?,?)";
-	private static final String MAX_USER_PROFILE_ID = "SELECT MAX(ID) FROM UserProfile";
+			+ "(?,?,?,?,?,?,?,?,?,?,?)";
+	private static final String MAX_USER_PROFILE_ID = "SELECT MAX(ID) FROM USERPROFILE";
 	
-	private static final String UPDATE_TIME_BY_ID = "UPDATE UserProfile SET " + LASTLOGGEDDATE + "= ? WHERE " + ID + " = ?";
-	private static final String UPDATE_PROFILE_BY_ID = "UPDATE UserProfile SET " + NAME + "= ? , " + PASSWD + "= ? WHERE " + ID + " = ?";
+	private static final String UPDATE_TIME_BY_ID = "UPDATE USERPROFILE SET " + LASTLOGGEDDATE + "= ? WHERE " + ID + " = ?";
+	private static final String UPDATE_PROFILE_BY_ID = "UPDATE USERPROFILE SET " + NAME + "= ? , " 
+			+ PASSWD + "= ? ," + FORGOTPASSWD + "= ? " 
+			+ "WHERE " + ID + " = ?";
 	
 	private static final String SOURCE = "0123456789"; //ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz 
 			
@@ -92,46 +102,16 @@ public class UserProfileDBHandler {
 		return instance;
 	}
 	
-	public long getMaxUserId() throws SQLException {
+	public void testCreatedUserProfileList(List<UserProfile> userProfilesList, int batchSize) throws SQLException {
 		
-		logger.debug("In getMaxUserId() method");
-		long maxUserId = -1;
+		System.out.println("testCreatedUserProfileList " + userProfilesList.size());
+		
 		ConnectionPool cp = null;
 		Connection dbConn = null;
 		PreparedStatement ps = null;
 		
-		try {
-			cp = ConnectionPool.getInstance();
-			dbConn = cp.getDBConnection();
-			ps = dbConn.prepareStatement(MAX_USER_PROFILE_ID);
-			
-			ResultSet rs = ps.executeQuery();
-			if (rs != null) {
-				if (rs.next()) {
-					maxUserId = rs.getLong("MAX(ID)");
-				}
-				rs.close();
-			}
-		} catch (SQLException ex) {
-			logger.error("SQL Exception in getMaxUserId()", ex);
-			throw ex;
-		} finally {
-			if (ps != null) {
-				ps.close();
-			}
-			if (dbConn != null) {
-				dbConn.close();
-			}
-		}
-		logger.debug("Returning from getMaxUserId() {}", maxUserId);
-		return maxUserId;
-	}
-	
-	public void testCreateUserProfile(List<UserProfile> userProfiles) throws SQLException {
-		System.out.println("userProfiles.size() :" + userProfiles.size());
-		ConnectionPool cp = null;
-		Connection dbConn = null;
-		PreparedStatement ps = null;
+		int totalFailureCount = 0;
+		int totalSuccessCount = 0;
 		
 		try {
 			cp = ConnectionPool.getInstance();
@@ -139,11 +119,9 @@ public class UserProfileDBHandler {
 			dbConn.setAutoCommit(false);
 			
 			ps = dbConn.prepareStatement(CREATE_USER_PROFILE);
+			int index = 0;
 			
-			for (int index = 0; index < userProfiles.size(); index ++) {
-				
-				UserProfile userProfile = userProfiles.get(index);
-			
+			for (UserProfile userProfile : userProfilesList) {
 				ps.setString(1, userProfile.getName());
 				ps.setString(2, userProfile.getEmailAddress());
 				ps.setString(3, userProfile.getPasswordHash());
@@ -151,21 +129,44 @@ public class UserProfileDBHandler {
 				ps.setString(5, userProfile.getBossReferredId());
 				ps.setLong(6, userProfile.getBossId());
 				ps.setString(7, userProfile.getBossName());
-				ps.setLong(8,  userProfile.getCreatedDate());
-				ps.setLong(9, userProfile.getLastLoggedDate());
+				ps.setInt(8, userProfile.getIsLoggedIn());
+				ps.setInt(9, userProfile.getForgotPasswdUsed());
+				ps.setLong(10,  userProfile.getCreatedDate());
+				ps.setLong(11, userProfile.getLastLoggedDate());
 			
 				ps.addBatch();
+				index++;
 				
-				if (index % 200 == 0) {
-					ps.executeBatch();
+				if (index % batchSize == 0) {
+					int results[] = ps.executeBatch();
 					dbConn.setAutoCommit(true);
 					dbConn.setAutoCommit(false);
+					for (int result : results) {
+						if (result == 1) {
+							++totalSuccessCount;
+						} else {
+							++totalFailureCount;
+						}
+					}
 				}
 			}
-			ps.executeBatch();
-			dbConn.setAutoCommit(true);
+			if (index > 0) {
+				int results[] = ps.executeBatch();
+				dbConn.setAutoCommit(true);
+				for (int result : results) {
+					if (result == 1) {
+						++totalSuccessCount;
+					} else {
+						++totalFailureCount;
+					}
+				}
+			}
+			logger.info("End of testCreatedUserProfileList with success row count {} : failure row count {}", 
+					totalSuccessCount, totalFailureCount);
 		} catch(SQLException ex) {
-			logger.error("Error in test creating user profiles", ex);
+			logger.error("******************************");
+			logger.error("Error in creating user profiles list in bulk mode", ex);
+			logger.error("******************************");
 			throw ex;
 		} finally {
 			if (ps != null) {
@@ -179,7 +180,7 @@ public class UserProfileDBHandler {
 	
 	public UserProfile createUserProfile(UserProfile userProfile) throws SQLException {
 		
-		logger.debug("In createUserProfile for {}", userProfile.getEmailAddress());
+		logger.info("In createUserProfile for {}", userProfile.getEmailAddress());
 		long maxUseId = getMaxUserId() + 1;
 		int idStrLen = String.valueOf(maxUseId).length();
 		int remainingLen = 8 - idStrLen;
@@ -208,19 +209,27 @@ public class UserProfileDBHandler {
 			ps.setString(5, userProfile.getBossReferredId());
 			ps.setLong(6, userProfile.getBossId());
 			ps.setString(7, userProfile.getBossName());
-			ps.setLong(8,  userProfile.getCreatedDate());
-			ps.setLong(9, userProfile.getLastLoggedDate());
+			ps.setInt(8, userProfile.getIsLoggedIn());
+			ps.setInt(9, userProfile.getForgotPasswdUsed());
+			ps.setLong(10,  userProfile.getCreatedDate());
+			ps.setLong(11, userProfile.getLastLoggedDate());
 		
 			int createResult = ps.executeUpdate();
+			logger.info("createUserProfile for {} is {}", userProfile.getEmailAddress(), (createResult > 0));
 			if (createResult > 0) {
 				idRes = ps.getGeneratedKeys();
 				if (idRes.next()) {
 					long userProfileId = idRes.getLong(1);
 					userProfile.setId(userProfileId);
+					
+					UserMoney userMoneyObject = new UserMoney(userProfileId, 0, 0, 0, 0, 0, 0);
+					UserMoneyDBHandler.getInstance().createUserMoney(userMoneyObject);
 				}
 			}
 		} catch(SQLException ex) {
+			logger.error("******************************");
 			logger.error("Error creating user profile", ex);
+			logger.error("******************************");
 			throw ex;
 		} finally {
 			if (idRes != null) {
@@ -236,10 +245,56 @@ public class UserProfileDBHandler {
 		return userProfile;
 	}
 	
-	public UserProfile getProfile(String sql, String strVal, long longValue) throws SQLException {
+	public long getMaxUserId() throws SQLException {
+		
+		logger.info("In getMaxUserId() method");
+		
+		long maxUserId = -1;
+		
+		ConnectionPool cp = null;
+		Connection dbConn = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		
+		try {
+			cp = ConnectionPool.getInstance();
+			dbConn = cp.getDBConnection();
+			ps = dbConn.prepareStatement(MAX_USER_PROFILE_ID);
+			
+			rs = ps.executeQuery();
+			if (rs != null) {
+				if (rs.next()) {
+					maxUserId = rs.getLong("MAX(ID)");
+				}
+			}
+		} catch (SQLException ex) {
+			logger.error("******************************");
+			logger.error("Exception while getting the getMaxUserId()");
+			logger.error("SQL Exception in getMaxUserId()", ex);
+			logger.error("******************************");
+			throw ex;
+		} finally {
+			if (rs != null) {
+				rs.close();
+			}
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
+		logger.info("Returning from getMaxUserId() {}", maxUserId);
+		return maxUserId;
+	}
+	
+	private UserProfile getProfile(String sql, String strVal, long longValue) throws SQLException {
+		
 		ConnectionPool cp = ConnectionPool.getInstance();
 		Connection dbConn = cp.getDBConnection();
 		PreparedStatement ps = dbConn.prepareStatement(sql);
+		ResultSet rs = null;
+		
 		if (strVal != null) {
 			ps.setString(1, strVal);
 		}
@@ -250,7 +305,7 @@ public class UserProfileDBHandler {
 		UserProfile userProfile = new UserProfile();
 		
 		try {
-			ResultSet rs = ps.executeQuery();
+			rs = ps.executeQuery();
 			if (rs != null) {
 				if (rs.next()) {
 					userProfile.setId(rs.getLong(ID));
@@ -261,14 +316,18 @@ public class UserProfileDBHandler {
 					userProfile.setBossReferredId(rs.getString(REFERED_ID));
 					userProfile.setBossId(rs.getLong(BOSS_USER_ID));
 					userProfile.setBossName(rs.getString(BOSS_NAME));
+					userProfile.setIsLoggedIn(rs.getInt(LOGGEDIN));
+					userProfile.setForgotPasswdUsed(rs.getInt(FORGOTPASSWD));
 					userProfile.setCreatedDate(rs.getLong(CREATEDDATE));
 					userProfile.setLastLoggedTime(rs.getLong(LASTLOGGEDDATE));
 				}
-				rs.close();
 			}
 		} catch (SQLException ex) {
 			throw ex;
 		} finally {
+			if (rs != null) {
+				rs.close();
+			}
 			if (ps != null) {
 				ps.close();
 			}
@@ -316,8 +375,11 @@ public class UserProfileDBHandler {
 		ReferalDetails referalDetails = new ReferalDetails();
 		List<UserReferal> myReferals = new ArrayList<>();
 		
+		ResultSet totalRs = null;
+		ResultSet rs = null;
+		
 		try {
-			ResultSet totalRs = totalPs.executeQuery();
+			totalRs = totalPs.executeQuery();
 			if (totalRs != null) {
 				if (totalRs.next()) {
 					
@@ -340,7 +402,8 @@ public class UserProfileDBHandler {
 				}
 				totalRs.close();
 			}
-			ResultSet rs = ps.executeQuery();
+			
+			rs = ps.executeQuery();
 			if (rs != null) {
 				while (rs.next()) {
 					UserReferal userReferal = new UserReferal();
@@ -349,7 +412,6 @@ public class UserProfileDBHandler {
 					userReferal.setUserName(rs.getString(NAME));
 					userReferal.setLastLoggedDate(rs.getLong(LASTLOGGEDDATE));
 					
-					
 					myReferals.add(userReferal);
 				}
 				rs.close();
@@ -357,6 +419,12 @@ public class UserProfileDBHandler {
 		} catch (SQLException ex) {
 			throw ex;
 		} finally {
+			if (totalRs != null) {
+				totalRs.close();
+			}
+			if (rs != null) {
+				rs.close();
+			}
 			if (ps != null) {
 				ps.close();
 			}
@@ -365,6 +433,7 @@ public class UserProfileDBHandler {
 			}
 		}
 		referalDetails.setReferalList(myReferals);
+		logger.info("getUserReferals with total {}", referalDetails.getReferalList().size());
 		return referalDetails;
 	}
 	
@@ -399,6 +468,7 @@ public class UserProfileDBHandler {
 
 		String userMailId = userProfile.getEmailAddress().trim();
 		logger.debug("This is in updateUserProfileDetails {}", userMailId);
+		
 		UserProfile dbObject = getProfileByMailid(userMailId);
 		if (dbObject.getId() == 0) {
 			throw new NotAllowedException(userMailId + " not registered. Please Check");
@@ -407,10 +477,12 @@ public class UserProfileDBHandler {
 		String userName;
 		String passwd = getRandomPasswd(4);;
 		String passwdHash;
+		int forgotPasswordUsed = 0;
 		
 		if (fromForgotPasswd) {
 			userName = dbObject.getName().trim();
 			passwdHash = getPasswordHash(passwd);
+			forgotPasswordUsed = 1;
 			
 		} else {
 			userName = userProfile.getName();
@@ -420,16 +492,24 @@ public class UserProfileDBHandler {
 		ConnectionPool cp = ConnectionPool.getInstance();
 		Connection dbConn = cp.getDBConnection();
 		PreparedStatement ps = dbConn.prepareStatement(UPDATE_PROFILE_BY_ID);
+		
 		ps.setString(1, userName);
 		ps.setString(2, passwdHash);
-		ps.setLong(3, dbObject.getId());
+		ps.setInt(3, forgotPasswordUsed);
+		ps.setLong(4, dbObject.getId());
 		
 		try {
 			int resultCount = ps.executeUpdate();
-			logger.debug("The updated row count {}", resultCount);
+			boolean result = (resultCount > 0);
+			logger.info("updateUserProfileDetails result is {}", result);
+			if (!result) {
+				throw new NotAllowedException("Could not generate password. Please try later");
+			}
 		}
 		catch(SQLException ex) {
+			logger.error("******************************");
 			logger.error("Error updating in updateUserProfileDetails", ex);
+			logger.error("******************************");
 			throw ex;
 		} finally {
 			if (ps != null) {
@@ -457,45 +537,16 @@ public class UserProfileDBHandler {
 		return true;
 	}
 	
-	private String getRandomPasswd(int maxLen) {
-		StringBuilder sb = new StringBuilder(maxLen); 
-		for (int i = 0; i < maxLen; i++) 
-			sb.append(SOURCE.charAt(secureRnd.nextInt(SOURCE.length())));
-		return sb.toString();
-	}
-	
-	/*
-	public boolean updateUserProfileName(String name, long id) throws SQLException {
-		logger.debug("This is in updateUserProfileName {} {}", name, id);
-		ConnectionPool cp = ConnectionPool.getInstance();
-		Connection dbConn = cp.getDBConnection();
-		PreparedStatement ps = dbConn.prepareStatement(UPDATE_NAME_BY_ID);
+	public void updateLastLoggedTimeInBulkMode(List<Long> playerIds, int batchSize) throws SQLException {
 		
-		ps.setString(1, name);
-		ps.setLong(2,  id);
+		logger.info("In updateLastLoggedTimeInBulkMode with size {}", playerIds.size());
 		
-		try {
-			int resultCount = ps.executeUpdate();
-			logger.debug("The updated row count {}", resultCount);
-		}
-		catch(SQLException ex) {
-			logger.error("Error updating in updateUserProfileName", ex);
-			throw ex;
-		} finally {
-			if (ps != null) {
-				ps.close();
-			}
-			if (dbConn != null) {
-				dbConn.close();
-			}
-		}
-		return true;
-	}*/
-	
-	public void updateLastLoggedTimeInBulkMode(List<Long> playerIds) throws SQLException {
 		ConnectionPool cp = ConnectionPool.getInstance();
 		Connection dbConn = cp.getDBConnection();
 		PreparedStatement ps = null;
+		
+		int totalFailureCount = 0;
+		int totalSuccessCount = 0;
 		
 		try {
 			cp = ConnectionPool.getInstance();
@@ -513,19 +564,38 @@ public class UserProfileDBHandler {
 				ps.addBatch();
 				index++;
 				
-				if (index == 51) {
-					ps.executeBatch();
+				if (index == batchSize) {
+					index = 0;
+					int[] results = ps.executeBatch();
 					dbConn.setAutoCommit(true);
 					dbConn.setAutoCommit(false);
-					index = 0;
+					for (int result : results) {
+						if (result == 1) {
+							++totalSuccessCount;
+						} else {
+							++totalFailureCount;
+						}
+					}
 				}
 			}
 			if (index > 0) {
-				ps.executeBatch();
+				int[] results = ps.executeBatch();
 				dbConn.setAutoCommit(true);
+				for (int result : results) {
+					if (result == 1) {
+						++totalSuccessCount;
+					} else {
+						++totalFailureCount;
+					}
+				}
 			}
+			logger.info("End of updateLastLoggedTimeInBulkMode with success row count {} : failure row count {}", 
+					totalSuccessCount, totalFailureCount);
+			
 		} catch(SQLException ex) {
-			logger.error("Error processing updateLastoggedTime in bulk mode", ex);
+			logger.error("******************************");
+			logger.error("Error processing updateLastLoggedTimeInBulkMode", ex);
+			logger.error("******************************");
 			throw ex;
 		} finally {
 			if (ps != null) {
@@ -536,32 +606,6 @@ public class UserProfileDBHandler {
 			}
 		}
 	}
-	
-	/*
-	public boolean updateUserProfileLoggedTime(long id) throws SQLException {
-		logger.debug("This is in updateUserProfileLoggedTime {}", id);
-		ConnectionPool cp = ConnectionPool.getInstance();
-		Connection dbConn = cp.getDBConnection();
-		PreparedStatement ps = dbConn.prepareStatement(UPDATE_TIME_BY_ID);
-		ps.setLong(1, Calendar.getInstance().getTime().getTime());
-		ps.setLong(2, id);
-		try {
-			int resultCount = ps.executeUpdate();
-			logger.debug("The updated row count {}", resultCount);
-		}
-		catch(SQLException ex) {
-			logger.error("Error updating in updateUserProfileLoggedTime", ex);
-			throw ex;
-		} finally {
-			if (ps != null) {
-				ps.close();
-			}
-			if (dbConn != null) {
-				dbConn.close();
-			}
-		}
-		return true;
-	}*/
 	
 	public static String getPasswordHash(String password) {
         MessageDigest md = null;
@@ -582,12 +626,19 @@ public class UserProfileDBHandler {
         return sb.toString();
     }
 	
+	private String getRandomPasswd(int maxLen) {
+		StringBuilder sb = new StringBuilder(maxLen); 
+		for (int i = 0; i < maxLen; i++) 
+			sb.append(SOURCE.charAt(secureRnd.nextInt(SOURCE.length())));
+		return sb.toString();
+	}
+	
 	public static void main(String[] args) throws SQLException {
 		
 		UserProfileDBHandler dbHandler = UserProfileDBHandler.getInstance();
 		
 		UserMoneyDBHandler userMoneyDBHandler = UserMoneyDBHandler.getInstance();
-		int total = 3000;
+		int total = 1000;
 		boolean batchMode = true;
 		
 		List<UserProfile> testProfiles = new ArrayList<>();
@@ -599,6 +650,8 @@ public class UserProfileDBHandler {
 			userProfile.setPasswordHash("5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5");
 			userProfile.setBossId(21);
 			userProfile.setBossName("Rajasekhar");
+			userProfile.setForgotPasswdUsed(0);
+			userProfile.setIsLoggedIn(0);
 			userProfile.setCreatedDate(1609861020944L);
 			userProfile.setLastLoggedTime(1609861020944L);
 			
@@ -625,6 +678,8 @@ public class UserProfileDBHandler {
 		userProfile.setBossReferredId("NoOne");
 		userProfile.setBossId(0);
 		userProfile.setBossName("");
+		userProfile.setForgotPasswdUsed(0);
+		userProfile.setIsLoggedIn(0);
 		userProfile.setCreatedDate(1609861020944L);
 		userProfile.setLastLoggedTime(1609861020944L);
 		int idStrLen = String.valueOf(21).length();
@@ -650,6 +705,8 @@ public class UserProfileDBHandler {
 			userProfile.setBossReferredId("NoOne");
 			userProfile.setBossId(index + 1);
 			userProfile.setBossName("Raj" + String.valueOf(userProfile.getBossId()));
+			userProfile.setForgotPasswdUsed(0);
+			userProfile.setIsLoggedIn(0);
 			userProfile.setCreatedDate(1609861020944L);
 			userProfile.setLastLoggedTime(1609861020944L);
 			idStrLen = String.valueOf(index).length();
@@ -669,14 +726,14 @@ public class UserProfileDBHandler {
 			}
 		}
 		if (batchMode) {
-			dbHandler.testCreateUserProfile(testProfiles);
+			dbHandler.testCreatedUserProfileList(testProfiles, 200);
 		}
 	
 		List<UserMoney> userMoneys = new ArrayList<>();
 		
 		for (int index = 1; index <= total; index ++) {
 			UserMoney userMoney = new UserMoney();
-			userMoney.setUserId(index);
+			userMoney.setId(index);
 			userMoney.setLoadedAmount(50000);
 			userMoney.setLoadedAmtLocked(0);
 			userMoney.setWinningAmount(0);
@@ -691,7 +748,7 @@ public class UserProfileDBHandler {
 			}
 		}
 		if (batchMode) {
-			userMoneyDBHandler.createMoneyInBulk(userMoneys);
+			userMoneyDBHandler.testCreateMoneyInBatch(userMoneys, 200);
 		}
 	}
 }

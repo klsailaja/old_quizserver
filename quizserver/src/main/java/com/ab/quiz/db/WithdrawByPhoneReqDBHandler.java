@@ -12,22 +12,22 @@ import org.apache.logging.log4j.Logger;
 import com.ab.quiz.pojo.WithdrawReqByPhone;
 
 /*
-CREATE TABLE WithdrawByPhoneReq(id bigint NOT NULL AUTO_INCREMENT, 
-		phoneNumber varchar(15) NOT NULL,
-		paymentMethod int, 
-		userName varchar(20), PRIMARY KEY (id));
+CREATE TABLE WITHDRAWBYPHONEREQ(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, 
+		PHONENUMBER VARCHAR(15) NOT NULL,
+		PAYMENTMETHOD INT, 
+		USERNAME VARCHAR(20), PRIMARY KEY (ID)) ENGINE = INNODB;
 */
 
 public class WithdrawByPhoneReqDBHandler {
 	
 	private static final Logger logger = LogManager.getLogger(WithdrawByPhoneReqDBHandler.class);
 	
-	private static String TABLE_NAME = "WithdrawByPhoneReq";
+	private static String TABLE_NAME = "WITHDRAWBYPHONEREQ";
 	
-	private static String ID = "id";
-	private static String PHONE_NUMBER = "phoneNumber";
-	private static String PH_PAYMENT_METHOD = "paymentMethod";
-	private static String USERNAME = "userName";
+	private static String ID = "ID";
+	private static String PHONE_NUMBER = "PHONENUMBER";
+	private static String PH_PAYMENT_METHOD = "PAYMENTMETHOD";
+	private static String USERNAME = "USERNAME";
 	
 	private static final String CREATE_WITHDRAW_BY_PHONE = "INSERT INTO " + TABLE_NAME   
 			+ "(" + PHONE_NUMBER + "," + PH_PAYMENT_METHOD + "," + USERNAME    
@@ -50,6 +50,7 @@ public class WithdrawByPhoneReqDBHandler {
 	public WithdrawReqByPhone getWithdrawReqByPhoneById(long id) throws SQLException {
 		
 		logger.debug("getWithdrawReqByPhoneById called with {}", id);
+		
 		ConnectionPool cp = null;
 		Connection dbConn = null;
 		PreparedStatement ps = null;
@@ -72,15 +73,22 @@ public class WithdrawByPhoneReqDBHandler {
 					byPhoneEntry.setPaymentMethod(rs.getInt(PH_PAYMENT_METHOD));
 					byPhoneEntry.setAccountHolderName(rs.getString(USERNAME));
 					
-					rs.close();
-					ps.close();
-					dbConn.close();
 					return byPhoneEntry;
 				}
 			}
 		} catch (SQLException ex) {
 			logger.error("SQLException while getting the phone withdraw request details by id ", ex);
 			throw ex;
+		} finally {
+			if (rs != null) {
+				rs.close();
+			}
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
 		}
 		return null;
 	}

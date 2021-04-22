@@ -14,18 +14,18 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /*
-CREATE TABLE WithdrawReceipt(id bigint NOT NULL AUTO_INCREMENT,
- 		receipt MEDIUMBLOB NULL DEFAULT NULL, PRIMARY KEY (id));
+CREATE TABLE WITHDRAWRECEIPT(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+ 		RECEIPT MEDIUMBLOB NULL DEFAULT NULL, PRIMARY KEY (ID));
 */
 
 public class WithdrawReceiptDBHandler {
 	
 	private static final Logger logger = LogManager.getLogger(WithdrawReceiptDBHandler.class);
 	
-	private static String TABLE_NAME = "WithdrawReceipt";
+	private static String TABLE_NAME = "WITHDRAWRECEIPT";
 	
-	private static String ID = "id";
-	private static String RECEIPT_CONTENTS = "receipt";
+	private static String ID = "ID";
+	private static String RECEIPT_CONTENTS = "RECEIPT";
 	
 	private static final String CREATE_WITHDRAW_ENTRY = "INSERT INTO " + TABLE_NAME  
 			+ "(" + RECEIPT_CONTENTS + ") VALUES"

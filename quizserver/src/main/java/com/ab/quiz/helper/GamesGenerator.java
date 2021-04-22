@@ -12,7 +12,7 @@ import org.apache.logging.log4j.Logger;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.db.QuestionDBHandler;
-import com.ab.quiz.exceptions.NotSupportedException;
+import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.GameHandler;
 import com.ab.quiz.handlers.GameManager;
 import com.ab.quiz.pojo.CelebrityDetails;
@@ -119,13 +119,9 @@ public class GamesGenerator implements Runnable {
 			List<GameHandler> completedGames = GameManager.getInstance().getCompletedGameHandlers(mode);
 			SingleThreadScheduler.getInstance().submit(new PaymentTask(completedGames));
 			
-			try {
-				List<GameHandler> inMemGames = generateGameData(1);
-				nextGameSet.addAll(inMemGames);
-			}
-			catch(SQLException ex) {
-				logger.error("SQL Exception in GamesGenerator Task ", ex);
-			}
+			List<GameHandler> inMemGames = generateGameData(1);
+			nextGameSet.addAll(inMemGames);
+			
 			logger.debug("In Memory game set size {}", nextGameSet.size());
 		}
 		catch (Exception ex) {
@@ -154,7 +150,7 @@ public class GamesGenerator implements Runnable {
 				CelebritySpecialHandler handler = CelebritySpecialHandler.getInstance();
 				try {
 					celebrityDetails = handler.getCelebrityDetails(lastProcessedTime, noOfGamesInOneSlot);
-				} catch(NotSupportedException ex) {
+				} catch(NotAllowedException ex) {
 					logger.error("Exception in getting the celebrity details", ex);
 				}
 			}

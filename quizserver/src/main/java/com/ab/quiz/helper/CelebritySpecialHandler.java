@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.ab.quiz.exceptions.NotSupportedException;
+import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.GameManager;
 import com.ab.quiz.pojo.CelebrityDetails;
 import com.ab.quiz.pojo.CelebrityFullDetails;
@@ -62,17 +62,17 @@ public class CelebritySpecialHandler {
 	    }
 	}
 	
-	public List<CelebrityDetails> getCelebrityDetails(long gameStartTime, int maxSize) throws NotSupportedException {
+	public List<CelebrityDetails> getCelebrityDetails(long gameStartTime, int maxSize) throws NotAllowedException {
 		List<CelebrityDetails> details = new ArrayList<>();
 		String hour = getHourIn24HrsFormat(gameStartTime);
 		String celebrityStr = props.getProperty(hour, null);
 		if (celebrityStr == null) {
-			throw new NotSupportedException("No entry found for :" + celebrityStr);
+			throw new NotAllowedException("No entry found for :" + celebrityStr);
 		}
 		
 		List<CelebrityDetails> fullDetails = convertStrToList(celebrityStr);
 		if (fullDetails.size() < maxSize) {
-			throw new NotSupportedException("Configured size is less than asked size : " + fullDetails.size() + ":" + maxSize);
+			throw new NotAllowedException("Configured size is less than asked size : " + fullDetails.size() + ":" + maxSize);
 		}
 		for (int index = 0; index < maxSize; index ++) {
 			details.add(fullDetails.get(index));
@@ -191,7 +191,7 @@ public class CelebritySpecialHandler {
 		return details;
 	}
 	
-	public static void main(String[] args) throws NotSupportedException {
+	public static void main(String[] args) throws NotAllowedException {
 		
 		CelebritySpecialHandler handler = CelebritySpecialHandler.getInstance();
 		

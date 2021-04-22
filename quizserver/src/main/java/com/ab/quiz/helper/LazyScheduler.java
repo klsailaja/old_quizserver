@@ -30,7 +30,7 @@ public class LazyScheduler {
 	}
 	
 	public ScheduledFuture<?> submitRepeatedTask(Runnable run, long initialDelay, long delay, TimeUnit unit) {
-		return scheduler.scheduleWithFixedDelay(run, initialDelay, delay, unit);
+		return scheduler.scheduleAtFixedRate(run, initialDelay, delay, unit);
 	}
 	
 	public void shutDown() {

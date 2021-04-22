@@ -12,23 +12,23 @@ import org.apache.logging.log4j.Logger;
 import com.ab.quiz.pojo.WithdrawReqByBank;
 
 /*
-CREATE TABLE WithdrawByBankReq(id bigint NOT NULL AUTO_INCREMENT, 
-		accountNumber varchar(30) NOT NULL,
-		ifscCode varchar(10) NOT NULL,
-		bankName varchar(20) NOT NULL,
-		userName varchar(20), PRIMARY KEY (id));
+CREATE TABLE WITHDRAWBYBANKREQ(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, 
+		ACCOUNTNUMBER VARCHAR(30) NOT NULL,
+		IFSCCODE VARCHAR(10) NOT NULL,
+		BANKNAME VARCHAR(20) NOT NULL,
+		USERNAME VARCHAR(20), PRIMARY KEY (ID)) ENGINE = INNODB;
 */
 
 public class WithdrawByBankDBHandler {
 	private static final Logger logger = LogManager.getLogger(WithdrawByBankDBHandler.class);
 	
-	private static String TABLE_NAME = "WithdrawByBankReq";
+	private static String TABLE_NAME = "WITHDRAWBYBANKREQ";
 	
-	private static String ID = "id";
-	private static String ACCOUNT_NUMBER = "accountNumber";
-	private static String IFSC_CODE = "ifscCode";
-	private static String BANK_NAME = "bankName";
-	private static String USERNAME = "userName";
+	private static String ID = "ID";
+	private static String ACCOUNT_NUMBER = "ACCOUNTNUMBER";
+	private static String IFSC_CODE = "IFSCCODE";
+	private static String BANK_NAME = "BANKNAME";
+	private static String USERNAME = "USERNAME";
 	
 	private static final String CREATE_WITHDRAW_BY_BANK = "INSERT INTO " + TABLE_NAME   
 			+ "(" + ACCOUNT_NUMBER + "," + IFSC_CODE + "," + BANK_NAME + "," + USERNAME    
@@ -62,7 +62,9 @@ public class WithdrawByBankDBHandler {
 			ps = dbConn.prepareStatement(GET_WITHDRAW_BY_BANK_BY_ID);
 			
 			ps.setLong(1, id);
+			
 			rs = ps.executeQuery();
+			
 			if (rs != null) {
 				if (rs.next()) {
 					
@@ -74,15 +76,22 @@ public class WithdrawByBankDBHandler {
 					byBankEntry.setBankName(rs.getString(BANK_NAME));
 					byBankEntry.setUserName(rs.getString(USERNAME));
 					
-					rs.close();
-					ps.close();
-					dbConn.close();
 					return byBankEntry;
 				}
 			}
 		} catch (SQLException ex) {
 			logger.error("SQLException while getting the bank withdraw request details by id ", ex);
 			throw ex;
+		} finally {
+			if (rs != null) {
+				rs.close();
+			}
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
 		}
 		return null;
 	}
@@ -94,7 +103,7 @@ public class WithdrawByBankDBHandler {
 	
 	public long createReqByBank(WithdrawReqByBank byBankReq) throws SQLException {
 		
-		logger.debug("In createReqByBank for {}", byBankReq.getUserName());
+		logger.info("In createReqByBank for {}", byBankReq.getUserName());
 		
 		ConnectionPool cp = null;
 		Connection dbConn = null;
@@ -112,7 +121,7 @@ public class WithdrawByBankDBHandler {
 			ps.setString(4, byBankReq.getUserName());
 			
 			int createResult = ps.executeUpdate();
-			logger.debug("In createReqByBank create op result : {}", createResult);
+			logger.info("In createReqByBank create op result : {}", createResult);
 			long withdrawReqId = -1;
 			if (createResult > 0) {
 				rs = ps.getGeneratedKeys();
