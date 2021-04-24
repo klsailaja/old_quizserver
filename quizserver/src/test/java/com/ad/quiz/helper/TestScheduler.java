@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 public class TestScheduler {
 	
-	private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(50);
+	private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(250);
 	private static TestScheduler instance = null;
 	
 	private TestScheduler() {

@@ -5,6 +5,14 @@ public class GamePlayers {
 	private long id;
 	private long gameId;
 	private long userId;
+	//private int isWinner;
+	
+	/*public int getIsWinner() {
+		return isWinner;
+	}
+	public void setIsWinner(int isWinner) {
+		this.isWinner = isWinner;
+	}*/
 	
 	public long getId() {
 		return id;

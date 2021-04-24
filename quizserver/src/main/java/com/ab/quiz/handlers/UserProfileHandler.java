@@ -50,20 +50,26 @@ public class UserProfileHandler {
 		if (userProfile.getId() == 0) {
 			throw new NotAllowedException("User does not exist. Please Register first");
 		}
+		if (userProfile.getIsLoggedIn() == 1) {
+			throw new NotAllowedException("You are already logged in. Please signout first");
+		}
 		if (passwdHash.equals(userProfile.getPasswordHash())) {
 			logger.info("Authentication is success for {}", mailId);
-			//UpdateUserLastLoggedTime run = new UpdateUserLastLoggedTime(userProfile.getId());
-			//LazyScheduler.getInstance().submit(run);
+			UserProfileDBHandler.getInstance().updateLoggedInState(userProfile.getId(), 1);
 			return userProfile;
 		}
 		logger.info("Authentication is failure for {}", mailId);
 		throw new NotAllowedException("Password is Wrong. Use Forgot Password Option if required");
 	}
 	
+	public boolean logout(long id) throws SQLException {
+		return UserProfileDBHandler.getInstance().updateLoggedInState(id, 0);
+	}
+	
 	public UserProfile createUserProfile(UserProfile userProfile) throws NotAllowedException, SQLException {
 		// Validate the fields
 		// Get with mail and check if not exists
-		// Check if referal id is correct
+		// Check if referral id is correct
 		// Set the other fields
 		
 		String str = userProfile.getEmailAddress().trim();
@@ -86,7 +92,7 @@ public class UserProfileHandler {
 		if (checkByMailId.getId() > 0) {
 			// Already entry exists
 			logger.info("Entry with {} found in db with the id {}", eMail, checkByMailId.getId());
-			throw new NotAllowedException("Already mail id is registered. Use forgot password if required");
+			throw new NotAllowedException("Already mail id registered. Use forgot password if required");
 		}
 		
 		String bossReferalId = userProfile.getBossReferredId();
@@ -104,6 +110,8 @@ public class UserProfileHandler {
 		long currentTime = System.currentTimeMillis();
 		userProfile.setCreatedDate(currentTime);
 		userProfile.setLastLoggedTime(currentTime);
+		userProfile.setIsLoggedIn(1); // 0 - means not logged in. 1 - means logged in.
+		userProfile.setForgotPasswdUsed(0); // 1 - means forgot passwd used..
 		
 		return UserProfileDBHandler.getInstance().createUserProfile(userProfile);
 	}
@@ -140,7 +148,9 @@ public class UserProfileHandler {
 		
 		UserProfile userProfile = new UserProfile();
 		userProfile.setEmailAddress("ggraj.pec@gmail.com");
+		userProfile.setName("Rajasekhar");
+		userProfile.setPasswordHash("12345");
 		
-		userProfileHandler.updateUserProfileDetails(userProfile, true);
+		userProfileHandler.createUserProfile(userProfile);
 	}
 }

@@ -102,6 +102,7 @@ public class QuestionDBHandler {
 				ps.setInt(8, question.getTimeLine());
 			
 				ps.addBatch();
+				index++;
 				
 				if (index % batchSize == 0) {
 					int results[] = ps.executeBatch();
@@ -284,8 +285,8 @@ public class QuestionDBHandler {
 		System.out.println("Start");
 		readTextFile();
 		UserProfileDBHandler.main(args);
-		MyTransactionDBHandler.main(args);
-		GameHistoryDBHandler.main(args);
+		//MyTransactionDBHandler.main(args);
+		//GameHistoryDBHandler.main(args);
 		System.out.println("End");
 	}
 	

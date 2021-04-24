@@ -42,7 +42,7 @@ import com.ab.quiz.pojo.WithdrawRequestsHolder;
 		OPENEDTIME BIGINT NOT NULL,
 		CLOSEDTIME BIGINT NULL,
 		RECEIPTID BIGINT NULL,
-		CLOSECMTS VARCHAR(100), PRIMARY KEY (ID) ENGINE = INNODB;
+		CLOSECMTS VARCHAR(100), PRIMARY KEY (ID)) ENGINE = INNODB;
 		
 CREATE INDEX WITHDRAWREQUESTS_Inx1 ON WITHDRAWREQUESTS(USERID);		
 DROP INDEX WITHDRAWREQUESTS_Inx1 ON WITHDRAWREQUESTS;		
@@ -58,7 +58,7 @@ public class WithdrawDBHandler {
 	
 	private static String ID = "ID";
 	private static String REFID = "REFID";
-	private static String USER_PROFILE_ID = "USERPROFILEID";
+	private static String USER_PROFILE_ID = "USERID";
 	private static String FROM_APP_BANK_ACC_NAME = "FROMACCTYPE";
 	private static String STATUS = "STATUS";
 	private static String REQUEST_TYPE = "REQTYPE";

@@ -86,7 +86,7 @@ public class PaymentTask implements Runnable {
 		
 		LazyScheduler.getInstance().submit(new UpdateMaxGameIdTask(maxId));
 		LazyScheduler.getInstance().submit(new HistoryGameSaveTask(completedGames));
-		LazyScheduler.getInstance().submit(new DeleteCompletedGamesTask(completedGameIds), 2, TimeUnit.MINUTES);
+		LazyScheduler.getInstance().submit(new DeleteCompletedGamesTask(completedGameIds), 3, TimeUnit.MINUTES);
 		
 	}
 }

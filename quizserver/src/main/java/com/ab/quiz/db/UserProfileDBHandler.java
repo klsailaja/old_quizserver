@@ -86,6 +86,9 @@ public class UserProfileDBHandler {
 			+ PASSWD + "= ? ," + FORGOTPASSWD + "= ? " 
 			+ "WHERE " + ID + " = ?";
 	
+	private static final String UPDATE_LOGGED_STATE_ID = "UPDATE USERPROFILE SET " + LOGGEDIN + "= ? WHERE " + ID + " = ?";
+	
+	
 	private static final String SOURCE = "0123456789"; //ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz 
 			
 	private static final SecureRandom secureRnd = new SecureRandom();
@@ -537,6 +540,39 @@ public class UserProfileDBHandler {
 		return true;
 	}
 	
+	public boolean updateLoggedInState(long id, int loggedInState) throws SQLException {
+		
+		ConnectionPool cp = ConnectionPool.getInstance();
+		Connection dbConn = cp.getDBConnection();
+		PreparedStatement ps = dbConn.prepareStatement(UPDATE_LOGGED_STATE_ID);
+		
+		ps.setLong(1, id);
+		ps.setInt(2, loggedInState);
+		
+		try {
+			int resultCount = ps.executeUpdate();
+			boolean result = (resultCount > 0);
+			logger.info("updateLoggedInState result is {}", result);
+			if (!result) {
+				logger.error("Could not update loggedInstate for id {} with state {}", id, loggedInState);
+			}
+			return result;
+		}
+		catch(SQLException ex) {
+			logger.error("******************************");
+			logger.error("Error updating in updateLoggedInState", ex);
+			logger.error("******************************");
+			throw ex;
+		} finally {
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
+	}
+	
 	public void updateLastLoggedTimeInBulkMode(List<Long> playerIds, int batchSize) throws SQLException {
 		
 		logger.info("In updateLastLoggedTimeInBulkMode with size {}", playerIds.size());
@@ -638,7 +674,7 @@ public class UserProfileDBHandler {
 		UserProfileDBHandler dbHandler = UserProfileDBHandler.getInstance();
 		
 		UserMoneyDBHandler userMoneyDBHandler = UserMoneyDBHandler.getInstance();
-		int total = 1000;
+		int total = 3000;
 		boolean batchMode = true;
 		
 		List<UserProfile> testProfiles = new ArrayList<>();
@@ -648,8 +684,8 @@ public class UserProfileDBHandler {
 			userProfile.setEmailAddress("systemuser" + index + "@gmail.com");
 			userProfile.setName("Systemuser" + index);
 			userProfile.setPasswordHash("5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5");
-			userProfile.setBossId(21);
-			userProfile.setBossName("Rajasekhar");
+			userProfile.setBossId(0);
+			userProfile.setBossName("");
 			userProfile.setForgotPasswdUsed(0);
 			userProfile.setIsLoggedIn(0);
 			userProfile.setCreatedDate(1609861020944L);

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ab.quiz.db.UserProfileDBHandler;
 import com.ab.quiz.exceptions.InternalException;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.UserProfileHandler;
@@ -48,6 +49,18 @@ public class UserProfileController extends BaseController {
 		} catch(SQLException ex) {
 			logger.error("Exception in login", ex);
 			throw new InternalException("Server Error in login");
+		}
+	}
+	
+	@RequestMapping(value="/user/logout/{id}", method = RequestMethod.GET, produces = "application/json")
+	public @ResponseBody String logout(@PathVariable("id") long id) throws InternalException {
+		logger.info("logout called with {} ", id);
+		try {
+			boolean result = UserProfileDBHandler.getInstance().updateLoggedInState(id, 0);
+			return String.valueOf(result);
+		} catch(SQLException ex) {
+			logger.error("Exception in logout", ex);
+			throw new InternalException("Server Error in logout");
 		}
 	}
 

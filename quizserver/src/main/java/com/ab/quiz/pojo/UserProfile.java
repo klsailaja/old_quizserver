@@ -36,8 +36,8 @@ public class UserProfile {
 	public String getEmailAddress() {
 		return emailAddress;
 	}
-	public void setEmailAddress(String phoneNumber) {
-		this.emailAddress = phoneNumber;
+	public void setEmailAddress(String emailAddress) {
+		this.emailAddress = emailAddress;
 	}
 	public String getPasswordHash() {
 		return password_hash;

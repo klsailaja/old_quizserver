@@ -106,7 +106,7 @@ public class GameManager {
 			}
 		}
 		lock.readLock().unlock();
-		logger.info("Size is " + list.size());
+		logger.info("retunred size is " + list.size());
 		return list;
 	}
 	
