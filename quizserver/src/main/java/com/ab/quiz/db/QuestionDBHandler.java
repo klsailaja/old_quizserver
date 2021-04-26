@@ -285,8 +285,8 @@ public class QuestionDBHandler {
 		System.out.println("Start");
 		readTextFile();
 		UserProfileDBHandler.main(args);
-		//MyTransactionDBHandler.main(args);
-		//GameHistoryDBHandler.main(args);
+		MyTransactionDBHandler.main(args);
+		GameHistoryDBHandler.main(args);
 		System.out.println("End");
 	}
 	

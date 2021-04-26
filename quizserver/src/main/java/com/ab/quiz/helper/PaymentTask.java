@@ -57,6 +57,8 @@ public class PaymentTask implements Runnable {
 				List<Long> actualWinUserIds = pp.getWinnerUserIdSet();
 				Map<Long, Long> gamePlayers = completedGame.getUserIdToBossIdDetails();
 				
+				// Filter for the winner userids and their boss ids. Others ignore them.
+				
 				Iterator<Long> it = gamePlayers.keySet().iterator();
 				while (it.hasNext())
 				{
@@ -66,8 +68,8 @@ public class PaymentTask implements Runnable {
 					}
 				}
 				
+			
 				batchPaymentProcessor.addUserBossIds(gamePlayers);
-				logger.info("gamePlayers contents {}", gamePlayers);
 				// Bulk processing End
 			}
 			

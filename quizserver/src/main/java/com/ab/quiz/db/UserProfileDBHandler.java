@@ -674,7 +674,7 @@ public class UserProfileDBHandler {
 		UserProfileDBHandler dbHandler = UserProfileDBHandler.getInstance();
 		
 		UserMoneyDBHandler userMoneyDBHandler = UserMoneyDBHandler.getInstance();
-		int total = 3000;
+		int total = 150000;
 		boolean batchMode = true;
 		
 		List<UserProfile> testProfiles = new ArrayList<>();

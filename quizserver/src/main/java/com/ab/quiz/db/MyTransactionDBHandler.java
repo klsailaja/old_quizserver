@@ -390,7 +390,7 @@ public class MyTransactionDBHandler {
 		
 		MyTransactionDBHandler instance = MyTransactionDBHandler.getInstance();
 		
-		long total = 200000;
+		long total = 800000;
 		List<MyTransaction> transactionList = new ArrayList<>();
 		
 		for (int i = 1; i <= total; i++) {

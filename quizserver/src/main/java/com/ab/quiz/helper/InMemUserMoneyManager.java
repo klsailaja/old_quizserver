@@ -85,12 +85,15 @@ public class InMemUserMoneyManager implements Runnable {
 		}
 		try {
 			if (loadedTransactions.size() > 0) {
+				logger.info("Loaded money related transactions size {}", loadedTransactions.size());
 				bulkUpdate(loadedTransactions, UserMoneyDBHandler.UPDATE_LOADED_AMOUNT_BY_USER_ID);	
 			}
 			if (winningTransactions.size() > 0) {
+				logger.info("Winning money related transactions size {}", winningTransactions.size());
 				bulkUpdate(winningTransactions, UserMoneyDBHandler.UPDATE_WINNING_AMOUNT_BY_USER_ID);
 			}
 			if (referralTransactions.size() > 0) {
+				logger.info("Referal money related transactions size {}", referralTransactions.size());
 				bulkUpdate(referralTransactions, UserMoneyDBHandler.UPDATE_REFERAL_AMOUNT_BY_USER_ID);
 			}
 		} catch(SQLException ex) {
@@ -182,63 +185,65 @@ public class InMemUserMoneyManager implements Runnable {
 		}
 	}
 	
-	public synchronized void update(List<MoneyTransaction> moneyTransactions, Map<Long, UserMoney> committedObjects) {
+	public void update(List<MoneyTransaction> moneyTransactions, Map<Long, UserMoney> committedObjects) {
 		
-		if ((moneyTransactions != null) && (moneyTransactions.size() == 0)) {
-			return;
-		}
-		
-		List<Long> userIds = new ArrayList<>();
-		Map<Long, List<MoneyTransaction>> userIdVsCurrentTransactions = new HashMap<>();
-		
-		for (MoneyTransaction transaction : moneyTransactions) {
+		synchronized (LockObject.getInstance().getLockObject()) {
 			
-			long userId = transaction.getUserProfileId();
-			if (!userIds.contains(userId)) {
-				userIds.add(userId);
+			if ((moneyTransactions != null) && (moneyTransactions.size() == 0)) {
+				return;
 			}
-			
-			List<MoneyTransaction> userPendingTrans = userIdVsPendingTransactions.get(userId);
-			if (userPendingTrans == null) {
-				userPendingTrans = new ArrayList<>();
-			}
-			userPendingTrans.add(transaction);
-			userIdVsPendingTransactions.put(userId, userPendingTrans);
-			
-			List<MoneyTransaction> userCurrentTrans = userIdVsCurrentTransactions.get(userId);
-			if (userCurrentTrans == null) {
-				userCurrentTrans = new ArrayList<>();
-			}
-			userCurrentTrans.add(transaction);
-			userIdVsCurrentTransactions.put(userId, userCurrentTrans);
-		}
-		
-		for (Long userId : userIds) {
-			
-			UserMoney userMoney = null;
-			if (committedObjects != null) {
-				userMoney = committedObjects.get(userId);
-			}
-			try {
-				if (userMoney == null) {
-					userMoney = getUserMoneyById(userId);
+
+			List<Long> userIds = new ArrayList<>();
+			Map<Long, List<MoneyTransaction>> userIdVsCurrentTransactions = new HashMap<>();
+
+			for (MoneyTransaction transaction : moneyTransactions) {
+
+				long userId = transaction.getUserProfileId();
+				if (!userIds.contains(userId)) {
+					userIds.add(userId);
 				}
-			} catch(SQLException ex) {
-				logger.error("User Money object not found for {}", userId);
-				logger.error("User Money object not found in In Mem trasactions", ex);
-				continue;
+
+				List<MoneyTransaction> userPendingTrans = userIdVsPendingTransactions.get(userId);
+				if (userPendingTrans == null) {
+					userPendingTrans = new ArrayList<>();
+				}
+				userPendingTrans.add(transaction);
+				userIdVsPendingTransactions.put(userId, userPendingTrans);
+
+				List<MoneyTransaction> userCurrentTrans = userIdVsCurrentTransactions.get(userId);
+				if (userCurrentTrans == null) {
+					userCurrentTrans = new ArrayList<>();
+				}
+				userCurrentTrans.add(transaction);
+				userIdVsCurrentTransactions.put(userId, userCurrentTrans);
 			}
-			
-			long userLoadedAmount = userMoney.getLoadedAmount();
-			long userWinningAmount = userMoney.getWinningAmount();
-			long userReferralAmount = userMoney.getReferalAmount();
-			
-			List<MoneyTransaction> userCuurentTrans = userIdVsCurrentTransactions.get(userId);
-			
-			for (MoneyTransaction moneyTran : userCuurentTrans) {
-				
-				UserMoneyAccountType userAccountType = moneyTran.getAccountType();
-				switch(userAccountType) {
+
+			for (Long userId : userIds) {
+
+				UserMoney userMoney = null;
+				if (committedObjects != null) {
+					userMoney = committedObjects.get(userId);
+				}
+				try {
+					if (userMoney == null) {
+						userMoney = getUserMoneyById(userId);
+					}
+				} catch (SQLException ex) {
+					logger.error("User Money object not found for {}", userId);
+					logger.error("User Money object not found in In Mem trasactions", ex);
+					continue;
+				}
+
+				long userLoadedAmount = userMoney.getLoadedAmount();
+				long userWinningAmount = userMoney.getWinningAmount();
+				long userReferralAmount = userMoney.getReferalAmount();
+
+				List<MoneyTransaction> userCuurentTrans = userIdVsCurrentTransactions.get(userId);
+
+				for (MoneyTransaction moneyTran : userCuurentTrans) {
+
+					UserMoneyAccountType userAccountType = moneyTran.getAccountType();
+					switch (userAccountType) {
 					case LOADED_MONEY: {
 						if (moneyTran.getOperType() == UserMoneyOperType.ADD) {
 							userLoadedAmount = userLoadedAmount + moneyTran.getAmount();
@@ -263,26 +268,31 @@ public class InMemUserMoneyManager implements Runnable {
 						}
 						break;
 					}
+					}
 				}
+
+				userMoney.setLoadedAmount(userLoadedAmount);
+				userMoney.setWinningAmount(userWinningAmount);
+				userMoney.setReferalAmount(userReferralAmount);
+				postUserIdVsMoney.put(userId, userMoney);
 			}
-			
-			userMoney.setLoadedAmount(userLoadedAmount);
-			userMoney.setWinningAmount(userWinningAmount);
-			userMoney.setReferalAmount(userReferralAmount);
-			postUserIdVsMoney.put(userId, userMoney);
 		}
 	}
 	
-	public synchronized UserMoney getUserMoneyById(long userId) throws SQLException {
-		UserMoney userMoney = postUserIdVsMoney.get(userId);
-		if (userMoney != null) {
-			return userMoney;
+	public UserMoney getUserMoneyById(long userId) throws SQLException {
+		synchronized (LockObject.getInstance().getLockObject()) {
+			UserMoney userMoney = postUserIdVsMoney.get(userId);
+			if (userMoney != null) {
+				return userMoney;
+			}
+			return UserMoneyDBHandler.getInstance().getUserMoneyById(userId);
 		}
-		return UserMoneyDBHandler.getInstance().getUserMoneyById(userId);
 	}
 	
-	public synchronized void commitNow() throws SQLException {
-		updateUserMoneyRecords();
+	public void commitNow() throws SQLException {
+		synchronized (LockObject.getInstance().getLockObject()) {
+			updateUserMoneyRecords();
+		}
 	}
 	
 	public void run() {

@@ -143,33 +143,35 @@ public class BatchPaymentProcessor implements Runnable {
 	}
 	
 	public void run() {
-		try {
-			long startTime = System.currentTimeMillis();
-			// Just Committing the in-mem transactions
-			InMemUserMoneyManager.getInstance().commitNow();
-			
-			fetchBossUserMoneyObjects();
-			
-			for (PaymentProcessor processor : paymentProcessors) {
-				
-				processor.processPayments(userIdVsUserMoney, userIdVsBossId);
-				
-				Map<Long, UserMoney> inMemMap = InMemUserMoneyManager.getInstance().getInMemUserMoneyObjects();
-				
-				// The In mem uncommitted objects are used for further transactions 
-				for (Map.Entry<Long, UserMoney> entry : inMemMap.entrySet()) {
-					Long id = entry.getKey();
-					UserMoney userCashObj = entry.getValue();
-					if (userIdVsUserMoney.get(id) != null) {
-						userIdVsUserMoney.put(id, userCashObj);
+		synchronized (LockObject.getInstance().getLockObject()) {
+			try {
+				long startTime = System.currentTimeMillis();
+				// Just Committing the in-mem transactions
+				InMemUserMoneyManager.getInstance().commitNow();
+
+				fetchBossUserMoneyObjects();
+
+				for (PaymentProcessor processor : paymentProcessors) {
+
+					processor.processPayments(userIdVsUserMoney, userIdVsBossId);
+
+					Map<Long, UserMoney> inMemMap = InMemUserMoneyManager.getInstance().getInMemUserMoneyObjects();
+
+					// The In mem uncommitted objects are used for further transactions
+					for (Map.Entry<Long, UserMoney> entry : inMemMap.entrySet()) {
+						Long id = entry.getKey();
+						UserMoney userCashObj = entry.getValue();
+						if (userIdVsUserMoney.get(id) != null) {
+							userIdVsUserMoney.put(id, userCashObj);
+						}
 					}
 				}
+				InMemUserMoneyManager.getInstance().commitNow();
+				logger.info("Total Time in Run {}", (System.currentTimeMillis() - startTime));
+
+			} catch (Exception ex) {
+				logger.error("Exception in bulk processing", ex);
 			}
-			InMemUserMoneyManager.getInstance().commitNow();
-			logger.info("Total Time in Run {}", (System.currentTimeMillis() - startTime));
-			
-		} catch(Exception ex) {
-			logger.error("Exception in bulk processing", ex);
 		}
 	}
 }
