@@ -130,6 +130,7 @@ public class TestUsersTask implements Runnable {
 				gameOperation.setUserProfileId(predefinedUserProfileId);
 				gameOperation.setUserAccountType(UserMoneyAccountType.LOADED_MONEY.getId());
 				GameManager.getInstance().joinGame(gameDetails.getGameId(), gameOperation);
+				Thread.sleep(300);
 				
 				for (int qIndex = 1; qIndex <= 10; qIndex ++) {
 					PlayerAnswer playerAns = getRandomPlayerAnswer();

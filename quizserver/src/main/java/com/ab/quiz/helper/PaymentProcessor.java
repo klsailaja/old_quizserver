@@ -81,6 +81,7 @@ public class PaymentProcessor {
 				MyTransaction transaction = Utils.getTransactionPojo(userProfileId, gameStartTime, 
 						amountWon, TransactionType.CREDITED.getId(), 
 						UserMoneyAccountType.WINNING_MONEY.getId(), userOB, userCB, comments);
+				transaction.setIsWin(1);
 				
 				MoneyTransaction moneyTransaction = new MoneyTransaction();
 				moneyTransaction.setAccountType(UserMoneyAccountType.WINNING_MONEY);

@@ -83,14 +83,86 @@ public class GameHistoryDBHandler {
 		return instance;
 	}
 	
-	public void bulkInsertGameResults(List<GameResults> gameResultsList, List<GamePlayers> playersList, int batchSize1, 
-			int batchSize2) throws SQLException {
+	public void bulkInsertGamePlayers(List<GamePlayers> playersList, int batchSize) throws SQLException {
+		
+		logger.info("In bulkInsertGamePlayers {}", playersList.size());
+		
+		ConnectionPool cp = null;
+		Connection dbConn = null;
+		PreparedStatement psPlayer = null;
+		
+		long startTime = System.currentTimeMillis();
+		
+		try {
+			cp = ConnectionPool.getInstance();
+			dbConn = cp.getDBConnection();
+			
+			dbConn.setAutoCommit(false);
+			
+			psPlayer = dbConn.prepareStatement(CREATE_PLAYER_HISTORY);
+			
+			int totalFailureCount = 0;
+			int totalSuccessCount = 0;
+			
+			int index = 0;
+			for (GamePlayers gamePlayer : playersList) {
+				psPlayer.setLong(1, gamePlayer.getGameId());
+				psPlayer.setLong(2, gamePlayer.getUserId());
+				psPlayer.addBatch();
+				index++;
+				
+				if (index == batchSize) {
+					index = 0;
+					int results[] = psPlayer.executeBatch();
+					for (int result : results) {
+						if (result == 1) {
+							++totalSuccessCount;
+						} else {
+							++totalFailureCount;
+						}
+					}
+					dbConn.setAutoCommit(true);
+					dbConn.setAutoCommit(false);
+				}
+			}
+			if (index > 0) {
+				int results[] = psPlayer.executeBatch();
+				for (int result : results) {
+					if (result == 1) {
+						++totalSuccessCount;
+					} else {
+						++totalFailureCount;
+					}
+				}
+				dbConn.setAutoCommit(true);
+			}
+			logger.info("Bulk inserted Game Player records with success row count {} : failure row count {}", 
+					totalSuccessCount, totalFailureCount);
+			logger.info("Time taken to process this query in Millis : {}", (System.currentTimeMillis() - startTime));
+		} catch(SQLException ex) {
+			logger.error("******************************");
+			logger.error("Error creating game players entries in bulk mode", ex);
+			logger.error("******************************");
+			throw ex;
+		} finally {
+			logger.info("Fianlly 1111111111111");
+			if (psPlayer != null) {
+				psPlayer.close();
+			}
+			if (dbConn != null) {
+				logger.info("2222222222222 closed");
+				dbConn.close();
+			}
+		}
+	}
+	
+	public void bulkInsertGameResults(List<GameResults> gameResultsList, int batchSize1) 
+			throws SQLException {
 		
 		ConnectionPool cp = null;
 		Connection dbConn = null;
 		
 		PreparedStatement ps = null;
-		PreparedStatement psPlayer = null;
 		
 		try {
 			cp = ConnectionPool.getInstance();
@@ -116,6 +188,9 @@ public class GameHistoryDBHandler {
 				
 				if (index == batchSize1) {
 					int results[] = ps.executeBatch();
+					dbConn.setAutoCommit(true);
+					dbConn.setAutoCommit(false);
+					index = 0;
 					for (int result : results) {
 						if (result == 1) {
 							++totalSuccessCount;
@@ -123,14 +198,12 @@ public class GameHistoryDBHandler {
 							++totalFailureCount;
 						}
 					}
-					index = 0;
-					dbConn.setAutoCommit(true);
-					dbConn.setAutoCommit(false);
 				}
 			}
 			
 			if (index > 0) {
 				int results[] = ps.executeBatch();
+				dbConn.setAutoCommit(true);
 				for (int result : results) {
 					if (result == 1) {
 						++totalSuccessCount;
@@ -138,59 +211,17 @@ public class GameHistoryDBHandler {
 						++totalFailureCount;
 					}
 				}
-				dbConn.setAutoCommit(true);
 			}
 			
-			dbConn.setAutoCommit(false);
 			logger.info("Bulk inserted Game Records with success row count {} : failure row count {}", 
 					totalSuccessCount, totalFailureCount);
-			totalFailureCount = 0;
-			totalSuccessCount = 0;
 			
-			psPlayer = dbConn.prepareStatement(CREATE_PLAYER_HISTORY);
-			
-			index = 0;
-			for (GamePlayers gamePlayer : playersList) {
-				psPlayer.setLong(1, gamePlayer.getGameId());
-				psPlayer.setLong(2, gamePlayer.getUserId());
-				//psPlayer.setInt(3, gamePlayer.getIsWinner());
-				psPlayer.addBatch();
-				index++;
-				
-				if (index == batchSize2) {
-					index = 0;
-					int results[] = psPlayer.executeBatch();
-					for (int result : results) {
-						if (result == 1) {
-							++totalSuccessCount;
-						} else {
-							++totalFailureCount;
-						}
-					}
-					dbConn.setAutoCommit(true);
-					dbConn.setAutoCommit(false);
-				}
-			}
-			if (index > 0) {
-				int results[] = psPlayer.executeBatch();
-				for (int result : results) {
-					if (result == 1) {
-						++totalSuccessCount;
-					} else {
-						++totalFailureCount;
-					}
-				}
-				dbConn.setAutoCommit(true);
-			}
 		} catch(SQLException ex) {
 			logger.error("******************************");
-			logger.error("Error creating game history and players entries in bulk mode", ex);
+			logger.error("Error creating game history entries in bulk mode", ex);
 			logger.error("******************************");
 			throw ex;
 		} finally {
-			if (psPlayer != null) {
-				psPlayer.close();
-			}
 			if (ps != null) {
 				ps.close();
 			}
@@ -431,6 +462,7 @@ public class GameHistoryDBHandler {
 			gamePlayersList.add(gp3);
 		}
 		System.out.println("GamePlayers size " + gamePlayersList.size());
-		instance.bulkInsertGameResults(gameResultsList, gamePlayersList, 400, 500);
+		instance.bulkInsertGameResults(gameResultsList, 400);
+		instance.bulkInsertGamePlayers(gamePlayersList, 500);
 	}
 }

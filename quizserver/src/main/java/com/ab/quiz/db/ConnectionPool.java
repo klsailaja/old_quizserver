@@ -3,28 +3,46 @@ package com.ab.quiz.db;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import org.apache.commons.dbcp2.BasicDataSource;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class ConnectionPool {
+	
 	// JDBC Driver Name & Database URL
     static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
     static final String JDBC_DB_URL = "jdbc:mysql://localhost:3306/telugu_movies_db?useUnicode=yes&characterEncoding=UTF-8";
-    
     
     // JDBC Database Credentials
     static final String JDBC_USER = "rajasekhar";
     static final String JDBC_PASS = "rajasekhar";
     
-    private BasicDataSource dataSource;
-    
     private static ConnectionPool instance;
+    private MyConnectionPool myconnectionPool;
+    private static final Logger logger = LogManager.getLogger(ConnectionPool.class);
     
-    public static ConnectionPool getInstance() {
+    public static ConnectionPool getInstance() throws SQLException {
     	if (instance == null) {
+    		logger.info("Initializing Connection Pool");
     		instance = new ConnectionPool();
-    		instance.setUp();
+    		instance.myconnectionPool = new MyConnectionPool(JDBC_DB_URL, JDBC_USER, JDBC_PASS);
+    		instance.myconnectionPool.setCheckConnections(true);
+    		instance.myconnectionPool.setMaxUseTime(5 * 60 * 1000);
     	}
     	return instance;
+    }
+    
+    public Connection getDBConnection() throws SQLException {
+    	return myconnectionPool.getConnection();
+    }
+    
+
+    /*public GenericObjectPool<PoolableConnection> getConnectionPool() {
+        return gPool;
+    }
+ 
+    // This Method Is Used To Print The Connection Pool Status
+    private void printDbStatus() {
+        System.out.println("Max.: " + getConnectionPool().getMaxActive() + "; Active: " + getConnectionPool().getNumActive() + "; Idle: " + getConnectionPool().getNumIdle());
     }
     
     private void setUp() {
@@ -45,11 +63,27 @@ public class ConnectionPool {
     	}
     }
     
-    public Connection getDBConnection() throws SQLException {
-    	return dataSource.getConnection();
-    }
+    private static GenericObjectPool<PoolableConnection> gPool = null;
     
+    public DataSource setUpPool() throws Exception{
+        //Class.forName(JDBC_DRIVER);
+ 
+        // Creates an Instance of GenericObjectPool That Holds Our Pool of Connections Object!
+        
+ 
+        // Creates a ConnectionFactory Object Which Will Be Use by the Pool to Create the Connection Object!
+        ConnectionFactory cf = new DriverManagerConnectionFactory(JDBC_DB_URL, JDBC_USER, JDBC_PASS);
+ 
+        // Creates a PoolableConnectionFactory That Will Wraps the Connection Object Created by the ConnectionFactory to Add Object Pooling Functionality!
+        PooledObjectFactory<PoolableConnection> pcf = new PoolableConnectionFactory(cf, null);
+        
+        gPool = new GenericObjectPool<PoolableConnection>(pcf);
+        gPool.setMaxTotal(4);
+        gPool.setMaxWaitMillis(5 * 1000);
+        return new PoolingDataSource<PoolableConnection>(gPool);
+    }
+ 
     public void shutDown() throws SQLException {
     	dataSource.close();
-    }
+    }*/
 }

@@ -286,6 +286,7 @@ public class InMemUserMoneyManager implements Runnable {
 	}
 	
 	public void run() {
+		logger.info("This is in In Mem User Money Module in periodic run");
 		try {
 			commitNow();
 		} catch (Exception ex) {

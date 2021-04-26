@@ -85,6 +85,7 @@ public class Utils {
 		transaction.setOpeningBalance(ob);
 		transaction.setClosingBalance(cb);
 		transaction.setComment(comments);
+		transaction.setIsWin(0);
 		
 		return transaction;
 	}

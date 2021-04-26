@@ -12,8 +12,16 @@ public class MyTransaction {
 	private long openingBalance;
 	private long closingBalance;
 	private String comments;
+	private int isWin;
 	
 	private int sNo;
+	
+	public int getIsWin() {
+		return isWin;
+	}
+	public void setIsWin(int isWin) {
+		this.isWin = isWin;
+	}
 	
 	public int getOperResult() {
 		return operResult;

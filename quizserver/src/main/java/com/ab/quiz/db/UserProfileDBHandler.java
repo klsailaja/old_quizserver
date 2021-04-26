@@ -132,7 +132,7 @@ public class UserProfileDBHandler {
 				ps.setString(5, userProfile.getBossReferredId());
 				ps.setLong(6, userProfile.getBossId());
 				ps.setString(7, userProfile.getBossName());
-				ps.setInt(8, userProfile.getIsLoggedIn());
+				ps.setInt(8, userProfile.getLoggedIn());
 				ps.setInt(9, userProfile.getForgotPasswdUsed());
 				ps.setLong(10,  userProfile.getCreatedDate());
 				ps.setLong(11, userProfile.getLastLoggedDate());
@@ -212,7 +212,7 @@ public class UserProfileDBHandler {
 			ps.setString(5, userProfile.getBossReferredId());
 			ps.setLong(6, userProfile.getBossId());
 			ps.setString(7, userProfile.getBossName());
-			ps.setInt(8, userProfile.getIsLoggedIn());
+			ps.setInt(8, userProfile.getLoggedIn());
 			ps.setInt(9, userProfile.getForgotPasswdUsed());
 			ps.setLong(10,  userProfile.getCreatedDate());
 			ps.setLong(11, userProfile.getLastLoggedDate());
@@ -319,10 +319,10 @@ public class UserProfileDBHandler {
 					userProfile.setBossReferredId(rs.getString(REFERED_ID));
 					userProfile.setBossId(rs.getLong(BOSS_USER_ID));
 					userProfile.setBossName(rs.getString(BOSS_NAME));
-					userProfile.setIsLoggedIn(rs.getInt(LOGGEDIN));
+					userProfile.setLoggedIn(rs.getInt(LOGGEDIN));
 					userProfile.setForgotPasswdUsed(rs.getInt(FORGOTPASSWD));
 					userProfile.setCreatedDate(rs.getLong(CREATEDDATE));
-					userProfile.setLastLoggedTime(rs.getLong(LASTLOGGEDDATE));
+					userProfile.setLastLoggedDate(rs.getLong(LASTLOGGEDDATE));
 				}
 			}
 		} catch (SQLException ex) {
@@ -687,9 +687,9 @@ public class UserProfileDBHandler {
 			userProfile.setBossId(0);
 			userProfile.setBossName("");
 			userProfile.setForgotPasswdUsed(0);
-			userProfile.setIsLoggedIn(0);
+			userProfile.setLoggedIn(0);
 			userProfile.setCreatedDate(1609861020944L);
-			userProfile.setLastLoggedTime(1609861020944L);
+			userProfile.setLastLoggedDate(1609861020944L);
 			
 			int idStrLen = String.valueOf(index).length();
 			int remainingLen = 8 - idStrLen;
@@ -715,9 +715,9 @@ public class UserProfileDBHandler {
 		userProfile.setBossId(0);
 		userProfile.setBossName("");
 		userProfile.setForgotPasswdUsed(0);
-		userProfile.setIsLoggedIn(0);
+		userProfile.setLoggedIn(0);
 		userProfile.setCreatedDate(1609861020944L);
-		userProfile.setLastLoggedTime(1609861020944L);
+		userProfile.setLastLoggedDate(1609861020944L);
 		int idStrLen = String.valueOf(21).length();
 		int remainingLen = 8 - idStrLen;
 		String userName = userProfile.getName().toUpperCase();
@@ -742,9 +742,9 @@ public class UserProfileDBHandler {
 			userProfile.setBossId(index + 1);
 			userProfile.setBossName("Raj" + String.valueOf(userProfile.getBossId()));
 			userProfile.setForgotPasswdUsed(0);
-			userProfile.setIsLoggedIn(0);
+			userProfile.setLoggedIn(0);
 			userProfile.setCreatedDate(1609861020944L);
-			userProfile.setLastLoggedTime(1609861020944L);
+			userProfile.setLastLoggedDate(1609861020944L);
 			idStrLen = String.valueOf(index).length();
 			remainingLen = 8 - idStrLen;
 			userName = userProfile.getName().toUpperCase();

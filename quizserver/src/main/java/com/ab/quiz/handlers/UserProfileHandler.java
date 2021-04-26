@@ -50,12 +50,12 @@ public class UserProfileHandler {
 		if (userProfile.getId() == 0) {
 			throw new NotAllowedException("User does not exist. Please Register first");
 		}
-		if (userProfile.getIsLoggedIn() == 1) {
+		/*if (userProfile.getLoggedIn() == 1) {
 			throw new NotAllowedException("You are already logged in. Please signout first");
-		}
+		}*/
 		if (passwdHash.equals(userProfile.getPasswordHash())) {
 			logger.info("Authentication is success for {}", mailId);
-			UserProfileDBHandler.getInstance().updateLoggedInState(userProfile.getId(), 1);
+			//UserProfileDBHandler.getInstance().updateLoggedInState(userProfile.getId(), 1);
 			return userProfile;
 		}
 		logger.info("Authentication is failure for {}", mailId);
@@ -109,8 +109,8 @@ public class UserProfileHandler {
 		}
 		long currentTime = System.currentTimeMillis();
 		userProfile.setCreatedDate(currentTime);
-		userProfile.setLastLoggedTime(currentTime);
-		userProfile.setIsLoggedIn(1); // 0 - means not logged in. 1 - means logged in.
+		userProfile.setLastLoggedDate(currentTime);
+		userProfile.setLoggedIn(1); // 0 - means not logged in. 1 - means logged in.
 		userProfile.setForgotPasswdUsed(0); // 1 - means forgot passwd used..
 		
 		return UserProfileDBHandler.getInstance().createUserProfile(userProfile);

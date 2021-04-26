@@ -436,11 +436,11 @@ public class GameManager {
 		long currentTime = System.currentTimeMillis();
 		long currentGameStartTime = gameHandler.getGameDetails().getStartTime();
 		if (currentTime > currentGameStartTime) {
-			throw new NotAllowedException("Game already started. Cannot withdraw now");
+			throw new NotAllowedException("Game already started. Cannot leave now");
 		}
 		if (currentTime < currentGameStartTime) {
 			if ((currentGameStartTime - currentTime) <= QuizConstants.GAME_BEFORE_LOCK_PERIOD_IN_MILLIS) {
-				throw new NotAllowedException("Game about to start. Cannot withdraw now");
+				throw new NotAllowedException("Game about to start. Cannot leave now");
 			}
 		}
 		
@@ -454,6 +454,9 @@ public class GameManager {
 		try {
 			
 			long tktRate = gameHandler.getGameDetails().getTicketRate();
+			if (tktRate == 0) {
+				return true;
+			}
 			/*UserMoney userMoney = UserMoneyDBHandler.getInstance().
 					getUserMoneyByProfileId(gameOper.getUserProfileId());*/
 			UserMoney userMoney = InMemUserMoneyManager.getInstance().getUserMoneyById(gameOper.getUserProfileId());
@@ -469,7 +472,7 @@ public class GameManager {
 			
 			MyTransaction transaction = Utils.getTransactionPojo(gameOper.getUserProfileId(), 
 					currentGameStartTime, (int)tktRate, TransactionType.CREDITED.getId(), 
-					accType.getId(), userOB, userCB, "Refund for canceled game# " + gameId);
+					accType.getId(), userOB, userCB, "Refund for left game# " + gameId);
 			
 			MoneyTransaction joinTransaction = new MoneyTransaction(accType, UserMoneyOperType.ADD, 
 					gameOper.getUserProfileId(), tktRate, transaction);

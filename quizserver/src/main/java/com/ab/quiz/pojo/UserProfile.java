@@ -12,14 +12,14 @@ public class UserProfile {
 	private long lastLoggedDate;
 	private String bossName;
 	private long bossId;
-	private int isLoggedIn;
+	private int loggedIn;
 	private int forgotPasswdUsed;
-	
-	public int getIsLoggedIn() {
-		return isLoggedIn;
+		
+	public int getLoggedIn() {
+		return loggedIn;
 	}
-	public void setIsLoggedIn(int isLoggedIn) {
-		this.isLoggedIn = isLoggedIn;
+	public void setLoggedIn(int loggedIn) {
+		this.loggedIn = loggedIn;
 	}
 	public int getForgotPasswdUsed() {
 		return forgotPasswdUsed;
@@ -72,7 +72,7 @@ public class UserProfile {
 	public long getLastLoggedDate() {
 		return lastLoggedDate;
 	}
-	public void setLastLoggedTime(long lastLoggedDate) {
+	public void setLastLoggedDate(long lastLoggedDate) {
 		this.lastLoggedDate = lastLoggedDate;
 	}
 	

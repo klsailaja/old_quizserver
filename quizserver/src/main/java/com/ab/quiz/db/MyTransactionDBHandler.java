@@ -22,6 +22,7 @@ CREATE TABLE TRANSACTIONS(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 		AMOUNT INT NOT NULL,
 		ACCOUNTTYPE INT NOT NULL,
 		TRANSACTIONTYPE INT NOT NULL,
+		ISWIN INT NOT NULL,
 		RESULT INT NOT NULL,
 		OPENINGBALANCE BIGINT NOT NULL,
 		CLOSINGBALANCE BIGINT NOT NULL,
@@ -46,6 +47,7 @@ public class MyTransactionDBHandler {
 	private static String AMOUNT = "AMOUNT";
 	private static String ACCOUNT_TYPE = "ACCOUNTTYPE";
 	private static String TRANSACTION_TYPE = "TRANSACTIONTYPE";
+	private static String ISWIN = "ISWIN";
 	private static String RESULT = "RESULT";
 	private static String OB = "OPENINGBALANCE";
 	private static String CB = "CLOSINGBALANCE";
@@ -55,9 +57,9 @@ public class MyTransactionDBHandler {
 	
 	private static final String CREATE_TRANSACTION_ENTRY = "INSERT INTO " + TABLE_NAME   
 			+ "(" + USERID + "," + DATE + "," + AMOUNT + "," + ACCOUNT_TYPE + ","
-			+ TRANSACTION_TYPE + "," + RESULT + "," + OB + "," + CB + "," 
+			+ TRANSACTION_TYPE + "," + ISWIN + "," + RESULT + "," + OB + "," + CB + "," 
 			+ COMMENTS + ") VALUES"
-			+ "(?,?,?,?,?,?,?,?,?)";
+			+ "(?,?,?,?,?,?,?,?,?,?)";
 	private static final String GET_TRANSACTIONS_BY_USER_ID_ACC_TYPE = "SELECT * FROM " + TABLE_NAME 
 			+ " WHERE " + USERID + " = ? AND " + ACCOUNT_TYPE + " = ? ORDER BY " + ID + " ASC LIMIT ?, " + MAX_ROWS;
 	
@@ -70,9 +72,9 @@ public class MyTransactionDBHandler {
 			+ USERID + " = ? AND " + ACCOUNT_TYPE + " = ?";
 	
 	private static final String LATEST_WIN_RECORDS = "SELECT " + USERID + "," + AMOUNT + "," + DATE + " FROM " + TABLE_NAME 
-			+ " WHERE " + COMMENTS + " LIKE 'Winning%' ORDER BY " + ID + " DESC LIMIT 0,120";
+			+ " WHERE " + ISWIN + " = 1 ORDER BY " + ID + " DESC LIMIT 0,120";
 	private static final String LATEST_BOSS_WIN_RECORDS = "SELECT " + USERID + "," + AMOUNT + "," + DATE + " FROM " + TABLE_NAME 
-			+ " WHERE " + USERID + " = ? AND " + COMMENTS + " LIKE 'Winning%' ORDER BY " + ID + " DESC LIMIT 0,10";
+			+ " WHERE " + USERID + " = ? AND " + ISWIN + " = 1 ORDER BY " + ID + " DESC LIMIT 0,10";
 	
 	private static final Logger logger = LogManager.getLogger(MyTransactionDBHandler.class);
 	private static MyTransactionDBHandler instance = null;
@@ -116,14 +118,15 @@ public class MyTransactionDBHandler {
 				ps.setInt(3, myTransaction.getAmount());
 				ps.setInt(4, myTransaction.getAccountType());
 				ps.setInt(5, myTransaction.getTransactionType());
-				ps.setInt(6, myTransaction.getOperResult());
-				ps.setLong(7, myTransaction.getOpeningBalance());
-				ps.setLong(8, myTransaction.getClosingBalance());
+				ps.setInt(6, myTransaction.getIsWin());
+				ps.setInt(7, myTransaction.getOperResult());
+				ps.setLong(8, myTransaction.getOpeningBalance());
+				ps.setLong(9, myTransaction.getClosingBalance());
 				String comment = myTransaction.getComment();
 				if (myTransaction.getOperResult() == 0) {
 					comment = comment + "." + "Backend issue while update. Will be resolved in 1-2 days.";
 				}
-				ps.setString(9, comment);
+				ps.setString(10, comment);
 				index++;
 				
 				ps.addBatch();
@@ -154,7 +157,7 @@ public class MyTransactionDBHandler {
 					}
 				}
 			}
-			logger.info("createTransactionsInBatch retunrd with success row count {} : failure row count {}", 
+			logger.info("createTransactionsInBatch returned with success row count {} : failure row count {}", 
 					totalSuccessCount, totalFailureCount);
 		} catch(SQLException ex) {
 			logger.error("******************************");

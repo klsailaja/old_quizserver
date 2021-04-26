@@ -133,11 +133,12 @@ public class BatchPaymentProcessor implements Runnable {
 				if (ps != null) {
 					ps.close();
 				}
+				if (dbConn != null) {
+					dbConn.close();
+				}
 			}
 		}
-		if (dbConn != null) {
-			dbConn.close();
-		}
+		
 		logger.info("After size {}", userIdVsUserMoney.size());
 	}
 	
