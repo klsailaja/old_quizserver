@@ -65,6 +65,7 @@ public class CelebritySpecialHandler {
 	public List<CelebrityDetails> getCelebrityDetails(long gameStartTime, int maxSize) throws NotAllowedException {
 		List<CelebrityDetails> details = new ArrayList<>();
 		String hour = getHourIn24HrsFormat(gameStartTime);
+		
 		String celebrityStr = props.getProperty(hour, null);
 		if (celebrityStr == null) {
 			throw new NotAllowedException("No entry found for :" + celebrityStr);
@@ -195,7 +196,7 @@ public class CelebritySpecialHandler {
 		
 		CelebritySpecialHandler handler = CelebritySpecialHandler.getInstance();
 		
-		List<CelebrityDetails> details = handler.getCelebrityDetails(System.currentTimeMillis(), 2);
+		List<CelebrityDetails> details = handler.getCelebrityDetails(System.currentTimeMillis(), 21);
 		for (CelebrityDetails cd: details) {
 			System.out.println(cd);
 		}

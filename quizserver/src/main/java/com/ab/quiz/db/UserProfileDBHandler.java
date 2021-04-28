@@ -27,8 +27,8 @@ import com.ab.quiz.pojo.UserReferal;
 /*
 CREATE TABLE USERPROFILE(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, 
 		NAME VARCHAR(20) NOT NULL,
-		PASSWD VARCHAR(70) NOT NULL, 
-		MAILID VARCHAR(70) NOT NULL, 
+		PASSWD VARCHAR(80) NOT NULL, 
+		MAILID VARCHAR(320) NOT NULL, 
 		MYREFERALID VARCHAR(10), 
 		REFERREDID VARCHAR(10), 
 		BOSSUSERID BIGINT,
@@ -674,7 +674,7 @@ public class UserProfileDBHandler {
 		UserProfileDBHandler dbHandler = UserProfileDBHandler.getInstance();
 		
 		UserMoneyDBHandler userMoneyDBHandler = UserMoneyDBHandler.getInstance();
-		int total = 150000;
+		int total = 3000;
 		boolean batchMode = true;
 		
 		List<UserProfile> testProfiles = new ArrayList<>();

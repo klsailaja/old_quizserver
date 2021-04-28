@@ -150,9 +150,9 @@ public class TestUsersTask implements Runnable {
 		int userAnswerFinal = userAnswerMin + (int) (Math.random() * (userAnswerMax - userAnswerMin));
 		
 		int timeMin = 1;
-		int timeMax = 5;
+		int timeMax = 29;
 		int timeFinal = timeMin + (int) (Math.random() * (timeMax - timeMin));
-		int timeFinalMillis = timeFinal * 60 * 1000; 
+		int timeFinalMillis = timeFinal * 1000; 
 		
 		PlayerAnswer answer = new PlayerAnswer();
 		answer.setUserAnswer(userAnswerFinal);

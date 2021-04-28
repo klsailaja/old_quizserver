@@ -16,6 +16,7 @@ import java.util.StringTokenizer;
 public class GenerateQuestions {
 	
 	private static List<String> celebrityNames = new ArrayList<>();
+	private static List<String> perMovieCelebrityNames = new ArrayList<>();
 	private static List<String> questionsList = new ArrayList<>();
 	private static List<String> extraOptionsList = new ArrayList<>();
 	private static Map<String,List<String>> extraOptionsMap = new HashMap<>();
@@ -25,6 +26,9 @@ public class GenerateQuestions {
 	private static void formCelebrity(String celebrityName) {
 		if (!celebrityNames.contains(celebrityName)) {
 			celebrityNames.add(celebrityName);
+		}
+		if (!perMovieCelebrityNames.contains(celebrityName)) {
+			perMovieCelebrityNames.add(celebrityName);
 		}
 	}
 	
@@ -174,6 +178,7 @@ public class GenerateQuestions {
         	
         	map.clear();
         	finalQuestions.clear();
+        	perMovieCelebrityNames.clear();
         	
 	    	StringTokenizer strTokenizer1 = new StringTokenizer(line, ":");
 	    	
@@ -321,60 +326,73 @@ public class GenerateQuestions {
 	    		}
 	    	}
 	    	
+	    	StringBuffer celebrityIdSet = new StringBuffer();
 	    	List<Integer> celebrityIds = new ArrayList<>();
-	    	for (String celebrityName : celebrityNames) {
-    			int id = 2 + celebrityNames.indexOf(celebrityName);
+	    	for (String celebrityName : perMovieCelebrityNames) {
+    			int id = 1 + celebrityNames.indexOf(celebrityName);
     			celebrityIds.add(id);
+    			celebrityIdSet.append(id);
+    			celebrityIdSet.append(",");
     		}
-	    	//System.out.println(celebrityIds);
+	    	String celebrityIdSetStr = celebrityIdSet.toString();
+	    	int pos = celebrityIdSetStr.lastIndexOf(",");
+	    	celebrityIdSetStr = celebrityIdSetStr.substring(0, pos);
+	    	celebrityIdSetStr = "('" + celebrityIdSetStr + "')";
 	    	
-	    	//initialize LCM and GCD with the first element
-		    long lcm = celebrityIds.get(0);
-		    long gcd = celebrityIds.get(0);
-		 
-		    //loop through the array to find GCD
-		    //use GCD to find the LCM
-		    for(int i=1; i<celebrityIds.size(); i++){
-		      gcd = findGCD(celebrityIds.get(i), lcm);
-		      lcm = (lcm*celebrityIds.get(i))/gcd;
-		    }
-		    
-		    //output the LCM
-		    //System.out.println("LCM: "+lcm);
+	    	String sqlQry = "INSERT INTO QUIZQUESTIONS (NSTATEMENT,NOPTIONA,NOPTIONB,NOPTIONC,NOPTIOND,CORRECTOPTION,CATEGORY) VALUES('";
 	    	
 	    	for (String lineQuestion : finalQuestions) {
-	    		StringBuffer strBuffer = new StringBuffer(lineQuestion);
-	    		strBuffer.append(":");
-	    		strBuffer.append("1");
-	    		strBuffer.append(":");
-	    		strBuffer.append(lcm);
-	    		strBuffer.append(":");
-	    		strBuffer.append("-1");
 	    		
-	    		//System.out.println(strBuffer.toString());
+	    		StringTokenizer finalQuestionStrTokenizer = new StringTokenizer(lineQuestion, ":");
+	    		String categoryNameStr = finalQuestionStrTokenizer.nextToken();
+	    		String questionTxt = finalQuestionStrTokenizer.nextToken();
+	    		String optionATxt = finalQuestionStrTokenizer.nextToken();
+	    		String optionBTxt = finalQuestionStrTokenizer.nextToken();
+	    		String optionCTxt = finalQuestionStrTokenizer.nextToken();
+	    		String optionDTxt = finalQuestionStrTokenizer.nextToken();
+	    		
+	    		StringBuffer strBuffer = new StringBuffer(sqlQry);
+	    		strBuffer.append(questionTxt);
+	    		strBuffer.append("'");
+	    		strBuffer.append(",");
+	    		strBuffer.append("'");
+	    		strBuffer.append(optionATxt);
+	    		strBuffer.append("'");
+	    		strBuffer.append(",");
+	    		strBuffer.append("'");
+	    		strBuffer.append(optionBTxt);
+	    		strBuffer.append("'");
+	    		strBuffer.append(",");
+	    		strBuffer.append("'");
+	    		strBuffer.append(optionCTxt);
+	    		strBuffer.append("'");
+	    		strBuffer.append(",");
+	    		strBuffer.append("'");
+	    		strBuffer.append(optionDTxt);
+	    		strBuffer.append("'");
+	    		strBuffer.append(",");
+	    		strBuffer.append("1");
+	    		strBuffer.append(",");
+	    		strBuffer.append(celebrityIdSetStr);
+	    		strBuffer.append(");");
+	    		
+	    		System.out.println(strBuffer.toString());
 	    		
 	    		//Use try-with-resource to get auto-closeable writer instance
 	    	    writer.append(strBuffer.toString());
 	    	    writer.append("\n");
+	    	    writer.flush();
 	    	    qCount++;
 		    	System.out.println("qCount :" + qCount);
 	    	}
 		}
 		
 		for (int i = 0; i < celebrityNames.size(); i++) {
-			String str = String.valueOf(i + 2);
+			String str = String.valueOf(i + 1);
 			System.out.println(str);
 			System.out.println(celebrityNames.get(i));
 		}
 	}
-	
-	public static long findGCD(long a, long b) {
-	   // base condition
-	    if (b == 0)
-	      return a;
-	    return findGCD(b, a%b);
-	  }
-	
 	
 	private static int getRandomNumber(int min, int max) {
         return min + (int)(Math.random() * (max - min));

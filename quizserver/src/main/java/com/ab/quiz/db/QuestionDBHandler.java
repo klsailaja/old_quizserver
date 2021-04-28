@@ -20,18 +20,13 @@ import com.ab.quiz.pojo.Question;
 /*
 CREATE TABLE QUIZQUESTIONS(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, 
 		NSTATEMENT VARCHAR(200) NOT NULL,
-		CATEGORY BIGINT NOT NULL,
+        CATEGORY SET('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20') NOT NULL,
 		TIMELINE INT NOT NULL,
 		NOPTIONA VARCHAR(100) NOT NULL,
 		NOPTIONB VARCHAR(100) NOT NULL,
 		NOPTIONC VARCHAR(100) NOT NULL,
-		NOPTIONd VARCHAR(100) NOT NULL, 
+		NOPTIOND VARCHAR(100) NOT NULL, 
 		CORRECTOPTION INT, PRIMARY KEY (ID)) ENGINE = INNODB;
-		
-CREATE INDEX QUIZQUESTIONS_Inx ON QUIZQUESTIONS(CATEGORY);        
-DROP INDEX QUIZQUESTIONS_Inx ON QUIZQUESTIONS;        
-CREATE INDEX QUIZQUESTIONS_Inx ON QUIZQUESTIONS(CATEGORY);
-
 */
 
 public class QuestionDBHandler {
@@ -56,8 +51,11 @@ public class QuestionDBHandler {
 			+ " WHERE " + ID + " IN (?,?,?,?,?,?,?,?,?,?,?)";*/
 	private static final String GET_QUESTIONS_BY_RANDOM = "SELECT * FROM " + TABLE_NAME
 			+ " ORDER BY RAND() LIMIT 11";
-	private static final String GET_QUESTIONS_RANDOM_CELEBRITY = "SELECT * FROM " +
-			TABLE_NAME + " WHERE MOD(" + CATEGORY + ",?) = 0 ORDER BY RAND() LIMIT 11";
+	/*private static final String GET_QUESTIONS_RANDOM_CELEBRITY = "SELECT * FROM " +
+			TABLE_NAME + " WHERE MOD(" + CATEGORY + ",?) = 0 ORDER BY RAND() LIMIT 11";*/
+	private static final String GET_QUESTIONS_RANDOM_CELEBRITY = "SELECT * FROM " + 
+			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 ORDER BY RAND() LIMIT 11";
+			
 	
 	private static final Logger logger = LogManager.getLogger(QuestionDBHandler.class);
 	private static QuestionDBHandler instance = null;
@@ -156,7 +154,7 @@ public class QuestionDBHandler {
 		ResultSet rs = null;
 		
 		if (category != -1) {
-			ps.setLong(1, category);
+			ps.setString(1, String.valueOf(category));
 		}
 		
 		List<Question> questionSet = new ArrayList<>(11);
@@ -283,10 +281,10 @@ public class QuestionDBHandler {
 	
 	public static void main(String[] args) throws Exception {
 		System.out.println("Start");
-		readTextFile();
+		//readTextFile();
 		UserProfileDBHandler.main(args);
-		MyTransactionDBHandler.main(args);
-		GameHistoryDBHandler.main(args);
+		//MyTransactionDBHandler.main(args);
+		//GameHistoryDBHandler.main(args);
 		System.out.println("End");
 	}
 	
