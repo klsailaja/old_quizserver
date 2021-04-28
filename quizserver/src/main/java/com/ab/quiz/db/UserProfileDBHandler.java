@@ -338,7 +338,7 @@ public class UserProfileDBHandler {
 				dbConn.close();
 			}
 		}
-		logger.debug("The userProfile is {}", userProfile);
+		//logger.debug("The userProfile is {}", userProfile);
 		return userProfile;
 	}
 	
@@ -442,7 +442,6 @@ public class UserProfileDBHandler {
 	
 	public UserProfile getProfileById(long profileId) throws SQLException {
 		
-		logger.debug("In getProfileById {}", profileId);
 		String sql = GET_USER_PROFILE_BY_ID;
 		
 		try {

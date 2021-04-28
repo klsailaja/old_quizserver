@@ -83,13 +83,11 @@ public class GameManager {
 	public List<GameDetails> getFutureGames(int gametype) {
 		// Iterate through the Tree Map and return the list
 		
-		logger.debug("In getFutureGames()");
+		logger.debug("In getFutureGames() with {}", gametype);
 		
 		List<GameDetails> list = new ArrayList<>();
 		
-		logger.debug("Before the lock");
 		lock.readLock().lock();
-		logger.debug("After the read lock obtained");
 		
 		Set<Map.Entry<Long, GameHandler>> setValues = gameIdToGameHandler.entrySet();
 		long currentTime = System.currentTimeMillis();
@@ -101,12 +99,12 @@ public class GameManager {
 			}
 			long startTime = gameHandler.getGameDetails().getStartTime();
 			if ((currentTime < startTime) && ((startTime - currentTime) >= QuizConstants.GAME_BEFORE_LOCK_PERIOD_IN_MILLIS)) {
-				logger.debug("Adding Game Id : " + gameHandler.getGameDetails());
+				logger.debug("Adding Game Id : " + gameHandler.getGameDetails().getGameId());
 				list.add(gameHandler.getGameDetails());
 			}
 		}
 		lock.readLock().unlock();
-		logger.info("retunred size is " + list.size());
+		logger.info("In getFutureGames() Returned size is " + list.size());
 		return list;
 	}
 	
@@ -185,18 +183,18 @@ public class GameManager {
 		// Discard completed state games
 		// Include Locked, In-Progress, Future
 		HashMap <Long, GameStatus> gameIdToGameStatus = new HashMap<>();
-		GameHandler cancelGameHandler = null;
 		
 		lock.readLock().lock();
 		
 		Set<Map.Entry<Long, GameHandler>> setValues = gameIdToGameHandler.entrySet();
 		long currentTime = System.currentTimeMillis();
+		List<GameHandler> cancelledGames = new ArrayList<>();
 		
 		for (Map.Entry<Long, GameHandler> eachEntry : setValues) {
 			GameHandler gameHandler = eachEntry.getValue();
-			if (gameHandler.getGameDetails().getGameType() != gameType) {
+			/*if (gameHandler.getGameDetails().getGameType() != gameType) {
 				continue;
-			}
+			}*/
 			if (userProfileId != -1) {
 				if (!gameHandler.isUserEnrolled(userProfileId)) {
 					continue;
@@ -211,7 +209,7 @@ public class GameManager {
 			if (diff <= QuizConstants.GAME_BEFORE_LOCK_PERIOD_IN_MILLIS) {
 				// Locked state
 				if (gameHandler.getEnrolledUserCount() < 3) {
-					cancelGameHandler = gameHandler;
+					cancelledGames.add(gameHandler);
 					continue;
 				} 
 			}
@@ -223,18 +221,24 @@ public class GameManager {
 			gameIdToGameStatus.put(gameStatus.getGameId(), gameStatus);
 		}
 		
-		lock.readLock().unlock();
-		if (cancelGameHandler != null) {
+		for (GameHandler cancelGameHandler : cancelledGames) {
+			
+			Map<Long, Boolean> revertedStatus = cancelGameHandler.getRevertedStatus();
+			if (revertedStatus == null) {
+				revertedStatus = cancelGameHandler.cancelGame();
+				cancelGameHandler.getGameDetails().setStatus(-1);
+			}
 			GameStatus gameStatus = new GameStatus();
 			gameStatus.setGameId(cancelGameHandler.getGameDetails().getGameId());
 			gameStatus.setCurrentCount(cancelGameHandler.getEnrolledUserCount());
 			gameStatus.setGameStatus(-1);	// Cancelled
-			
-			Map<Long, Boolean> revertedStatus = cancelGameHandler.cancelGame();
 			gameStatus.setUserAccountRevertStatus(revertedStatus);
 			
 			gameIdToGameStatus.put(gameStatus.getGameId(), gameStatus);
 		}
+		lock.readLock().unlock();
+		
+		
 		
 		GameStatusHolder holder = new GameStatusHolder();
 		holder.setVal(gameIdToGameStatus);
@@ -271,10 +275,18 @@ public class GameManager {
 		}
 		
 		int gameType = gameHandler.getGameDetails().getGameType();
+		int otherGameType = -1;
+		if (gameType == 1) {
+			otherGameType = 2;
+		} else {
+			otherGameType = 1;
+		}
 		
 		// Step 2
 		long currentGameStartTime = gameHandler.getGameDetails().getStartTime();
 		List<GameDetails> enrolledGames = getEnrolledGames(gameType, gameOper.getUserProfileId());
+		List<GameDetails> otherTypeEnrolledGames = getEnrolledGames(otherGameType, gameOper.getUserProfileId());
+		enrolledGames.addAll(otherTypeEnrolledGames);
 		if (enrolledGames.size() > 0) {
 			HashMap<Long, Integer> startTimeToGameId = new HashMap<>();
 			for (GameDetails gameDetails : enrolledGames) {

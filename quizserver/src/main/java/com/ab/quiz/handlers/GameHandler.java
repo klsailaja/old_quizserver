@@ -47,6 +47,7 @@ public class GameHandler {
 	// This map maintains the UserId Vs Boss Id
 	private Map<Long, Long> userIdVsBossId = new HashMap<>();
 	//private Map<Long, String> userIdVsName = new HashMap<>();
+	private Map<Long, Boolean> userCreditedStatus;
 	
 	
 	private static final Logger logger = LogManager.getLogger(GameHandler.class);
@@ -136,8 +137,12 @@ public class GameHandler {
 		return -1;
 	}
 	
+	public Map<Long, Boolean> getRevertedStatus() {
+		return userCreditedStatus;
+	}
+	
 	public Map<Long, Boolean> cancelGame() throws SQLException {
-		Map<Long, Boolean> userCreditedStatus = new HashMap<>();
+		userCreditedStatus = new HashMap<>();
 		
 		Set<Map.Entry<Long, PlayerSummary>> setValues = userProfileIdVsSummary.entrySet();
 		long userProfileId = 0;
@@ -160,7 +165,7 @@ public class GameHandler {
 				continue;
 			}
 			long userCB = userOB + amt;
-			String comments = "Reverted for Cancelled game#:" + gameDetails.getGameId();
+			String comments = "Refund for Cancelled game#:" + gameDetails.getGameId();
 			
 			MyTransaction transaction = Utils.getTransactionPojo(userProfileId, gameDetails.getStartTime(), 
 					gameDetails.getTicketRate(), TransactionType.CREDITED.getId(), accountUsed, userOB, userCB, comments); 

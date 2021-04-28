@@ -44,9 +44,9 @@ public class UserProfileHandler {
 	public UserProfile login(LoginData loginData) throws SQLException,NotAllowedException {
 		String mailId = loginData.getMailAddress().trim();
 		String passwdHash = loginData.getPassword().trim();
-		logger.info("Login method called with {} {}", mailId, passwdHash);
+		logger.debug("Login method called with {} {}", mailId, passwdHash);
 		UserProfile userProfile = getUserProfileByMailId(mailId);
-		logger.info("userProfile is {}", userProfile);
+		logger.debug("userProfile is {}", userProfile);
 		if (userProfile.getId() == 0) {
 			throw new NotAllowedException("User does not exist. Please Register first");
 		}
@@ -55,7 +55,6 @@ public class UserProfileHandler {
 		}*/
 		if (passwdHash.equals(userProfile.getPasswordHash())) {
 			logger.info("Authentication is success for {}", mailId);
-			//UserProfileDBHandler.getInstance().updateLoggedInState(userProfile.getId(), 1);
 			return userProfile;
 		}
 		logger.info("Authentication is failure for {}", mailId);
@@ -96,17 +95,19 @@ public class UserProfileHandler {
 		}
 		
 		String bossReferalId = userProfile.getBossReferredId();
+		if ((bossReferalId == null) || (bossReferalId.length() == 0)) {
+			throw new NotAllowedException("Valid Referral code Compulsory");
+		}
 		if ((bossReferalId != null) && (bossReferalId.length() > 0)) {
 			checkByMailId = dbInstance.getProfileByBossRefaralCode(bossReferalId);
 			if (checkByMailId.getId() == 0) {
+				logger.debug("Invalid Referral code. No User exists with this code");
 				throw new NotAllowedException("Invalid Referral code. No User exists with this code");
 			}
 			userProfile.setBossId(checkByMailId.getId());
 			userProfile.setBossName(checkByMailId.getName());
-		} else {
-			userProfile.setBossId(0);
-			userProfile.setBossName("");
-		}
+		} 
+		
 		long currentTime = System.currentTimeMillis();
 		userProfile.setCreatedDate(currentTime);
 		userProfile.setLastLoggedDate(currentTime);
