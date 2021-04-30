@@ -6,7 +6,15 @@ public class GameStatus {
 	long gameId;
 	int currentCount;
 	int gameStatus;
+	int viewId;
 	Map <Long, Boolean> userAccountRevertStatus;
+	
+	public int getViewId() {
+		return viewId;
+	}
+	public void setViewId(int viewId) {
+		this.viewId = viewId;
+	}
  
 	public long getGameId() {
 		return gameId;

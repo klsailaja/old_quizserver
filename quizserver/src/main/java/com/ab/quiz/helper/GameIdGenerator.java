@@ -40,7 +40,7 @@ public class GameIdGenerator {
 	}
 	
 	public int getTempGameId() {
-		if (tempGameId == 10000) {
+		if (tempGameId >= 10000) {
 			tempGameId = 0;
 		}
 		++tempGameId;

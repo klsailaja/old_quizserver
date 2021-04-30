@@ -99,7 +99,7 @@ public class GameHandler {
 	}
 	
 	public boolean withdraw(long userProfileId) throws NotAllowedException {
-		
+		logger.debug("In withdraw :" + userProfileIdVsSummary.keySet());
 		userIdVsBossId.remove(userProfileId);
 		userProfileIdVsAnswers.remove(userProfileId);
 		//userIdVsName.remove(userProfileId);
@@ -111,8 +111,10 @@ public class GameHandler {
 			player = userProfileIdVsSummary.remove(userProfileId);
 		}
 		if (player == null) { // This user never joined
+			logger.debug("False");
 			return false;
 		}
+		logger.debug("True");
 		return true;
 	}
 	
@@ -233,9 +235,9 @@ public class GameHandler {
 			finalPlayerSummary = leaderBoard.fillRankAndWinningMoney();
 			
 			questionNoVsSummary.put(qNo, finalPlayerSummary);
-			for (PlayerSummary ps : finalPlayerSummary) {
+			/*for (PlayerSummary ps : finalPlayerSummary) {
 				logger.info(ps);
-			}
+			}*/
 			logger.info("**************************************************************");
 		}
 		return finalPlayerSummary;

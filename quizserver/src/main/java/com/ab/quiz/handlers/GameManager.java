@@ -192,9 +192,17 @@ public class GameManager {
 		
 		for (Map.Entry<Long, GameHandler> eachEntry : setValues) {
 			GameHandler gameHandler = eachEntry.getValue();
-			/*if (gameHandler.getGameDetails().getGameType() != gameType) {
-				continue;
-			}*/
+			if (gameType != -1) { // Ignore Game Type. Get all games status here.
+				if (gameHandler.getGameDetails().getGameType() != gameType) {
+					continue;
+				}
+			} else {
+				int statusSizes = gameIdToGameStatus.size();
+				if (statusSizes == 2 * QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED.length) {
+					// All games status is not necessary. First slot in Mixed and Celebrities are enough.
+					break;
+				}
+			}
 			if (userProfileId != -1) {
 				if (!gameHandler.isUserEnrolled(userProfileId)) {
 					continue;
@@ -215,6 +223,7 @@ public class GameManager {
 			}
 			GameStatus gameStatus = new GameStatus();
 			gameStatus.setGameId(gameHandler.getGameDetails().getGameId());
+			gameStatus.setViewId(gameHandler.getGameDetails().getTempGameId());
 			gameStatus.setCurrentCount(gameHandler.getEnrolledUserCount());
 			gameStatus.setGameStatus(1);  // Still active
 			
@@ -230,6 +239,7 @@ public class GameManager {
 			}
 			GameStatus gameStatus = new GameStatus();
 			gameStatus.setGameId(cancelGameHandler.getGameDetails().getGameId());
+			gameStatus.setViewId(cancelGameHandler.getGameDetails().getTempGameId());
 			gameStatus.setCurrentCount(cancelGameHandler.getEnrolledUserCount());
 			gameStatus.setGameStatus(-1);	// Cancelled
 			gameStatus.setUserAccountRevertStatus(revertedStatus);
@@ -237,8 +247,6 @@ public class GameManager {
 			gameIdToGameStatus.put(gameStatus.getGameId(), gameStatus);
 		}
 		lock.readLock().unlock();
-		
-		
 		
 		GameStatusHolder holder = new GameStatusHolder();
 		holder.setVal(gameIdToGameStatus);
@@ -339,7 +347,6 @@ public class GameManager {
 		}
 		
 		try {
-			//UserMoney userMoney = UserMoneyDBHandler.getInstance().getUserMoneyByProfileId(gameOper.getUserProfileId());
 			UserMoney userMoney = InMemUserMoneyManager.getInstance().getUserMoneyById(gameOper.getUserProfileId());
 			if (userMoney.getId() == 0) {
 				throw new NotAllowedException("User Money details not found");
@@ -467,10 +474,8 @@ public class GameManager {
 			
 			long tktRate = gameHandler.getGameDetails().getTicketRate();
 			if (tktRate == 0) {
-				return true;
+				return gameHandler.withdraw(gameOper.getUserProfileId());
 			}
-			/*UserMoney userMoney = UserMoneyDBHandler.getInstance().
-					getUserMoneyByProfileId(gameOper.getUserProfileId());*/
 			UserMoney userMoney = InMemUserMoneyManager.getInstance().getUserMoneyById(gameOper.getUserProfileId());
 			long userOB = 0;
 			if (accType == UserMoneyAccountType.LOADED_MONEY) {
@@ -493,17 +498,10 @@ public class GameManager {
 			
 			InMemUserMoneyManager.getInstance().update(unjoinTransList, null);
 			
-			/*boolean finalResult = UserMoneyDBHandler.getInstance().updateUserMoney(accType, 
-					UserMoneyOperType.ADD, gameOper.getUserProfileId(), tktRate, transaction);
-			
-			if (!finalResult) {
-				throw new NotAllowedException("Refund not done due some issue. Will be done in a day");
-			}*/
 		} catch (SQLException e) {
 			logger.error("SQL Exception while updating user money",e);
 			throw e;
 		}
-		
 		return gameHandler.withdraw(gameOper.getUserProfileId());
 	}
 	

@@ -52,7 +52,7 @@ public class GamesGenerator implements Runnable {
 		if (mode == 1) {
 			minute = (minute/QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MINS) * QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MINS;
 		} else {
-			minute = minute/5;
+			minute = minute / 5;
 			if ((minute % 2) == 0) {
 				minute++;
 			}
@@ -109,6 +109,8 @@ public class GamesGenerator implements Runnable {
 	public void run() {
 		logger.info("Running Repeated Task for mode {}", mode);
 		try {
+			
+			GameManager.getInstance().getAllGamesStatus(mode);
 			
 			List<GameHandler> newGames = new ArrayList<>();
 			for (int index = 1; index <= QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED.length; index ++) {

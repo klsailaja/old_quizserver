@@ -18,10 +18,10 @@ public class QuizConstants {
 	
 	public static final int TIME_GAP_BETWEEN_SLOTS_IN_MINS = 10; // In minutes
 	public static final int TIME_GAP_BETWEEN_SLOTS_IN_MILLIS = TIME_GAP_BETWEEN_SLOTS_IN_MINS * 60 * 1000;
-	public static final int START_PAYMENTS_BEFORE_COMPLETION_TIME_OFFSET = 15 * 1000;
+	public static final int START_PAYMENTS_BEFORE_COMPLETION_TIME_OFFSET = 10 * 1000;
 	 
 	
-	public static final long GAME_BEFORE_LOCK_PERIOD_IN_SECS = 10; // In secs
+	public static final long GAME_BEFORE_LOCK_PERIOD_IN_SECS = 15; // In secs
 	public static final long GAME_BEFORE_LOCK_PERIOD_IN_MILLIS = GAME_BEFORE_LOCK_PERIOD_IN_SECS * 1000;
 	public static final long GAP_BETWEEN_QUESTIONS = 60 * 1000;
 	

@@ -123,6 +123,7 @@ public class GamesController extends BaseController {
 	public @ResponseBody String unjoin(@PathVariable("gameId") long gameId, 
 			@RequestBody GameOperation gameOper) throws NotAllowedException, InternalException {
 		try {
+			logger.debug("unjoin called with {}", gameId);
 			Boolean result = GameManager.getInstance().unjoin(gameId, gameOper);
 			return Boolean.toString(result);
 		} catch (SQLException ex) {

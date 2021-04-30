@@ -71,6 +71,7 @@ public class PaymentTask implements Runnable {
 			
 				batchPaymentProcessor.addUserBossIds(gamePlayers);
 				// Bulk processing End
+				completedGame.getGameDetails().setStatus(0);
 			}
 			
 			Long gameId = completedGame.getGameDetails().getGameId(); 
