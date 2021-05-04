@@ -19,6 +19,8 @@ import com.ab.quiz.pojo.CelebrityDetails;
 import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.PlayerAnswer;
 import com.ab.quiz.pojo.Question;
+import com.ab.quiz.tasks.CheckCancellerTask;
+import com.ab.quiz.tasks.InMemGameGeneratorTask;
 
 public class GamesGenerator implements Runnable {
 	
@@ -104,13 +106,17 @@ public class GamesGenerator implements Runnable {
 		LazyScheduler.getInstance().submitRepeatedTask(this, initailDelay, 
 					repeatedTaskInterval, TimeUnit.MILLISECONDS);
 		
+		long gameCancellerTaskDelay = firstGameTime - System.currentTimeMillis()
+				- QuizConstants.GAME_BEFORE_LOCK_PERIOD_IN_MILLIS + 1 * 1000;
+		
+		LazyScheduler.getInstance().submitRepeatedTask(new CheckCancellerTask(mode), gameCancellerTaskDelay, 
+				repeatedTaskInterval, TimeUnit.MILLISECONDS);
+		
 	}
 
 	public void run() {
 		logger.info("Running Repeated Task for mode {}", mode);
 		try {
-			
-			GameManager.getInstance().getAllGamesStatus(mode);
 			
 			List<GameHandler> newGames = new ArrayList<>();
 			for (int index = 1; index <= QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED.length; index ++) {
@@ -121,17 +127,19 @@ public class GamesGenerator implements Runnable {
 			List<GameHandler> completedGames = GameManager.getInstance().getCompletedGameHandlers(mode);
 			SingleThreadScheduler.getInstance().submit(new PaymentTask(completedGames));
 			
-			List<GameHandler> inMemGames = generateGameData(1);
-			nextGameSet.addAll(inMemGames);
-			
-			logger.debug("In Memory game set size {}", nextGameSet.size());
+			LazyScheduler.getInstance().submit(new InMemGameGeneratorTask(this));
 		}
 		catch (Exception ex) {
 			logger.error("Exception in the periodic task execution", ex);
 		}
 	}
 	
-	private List<GameHandler> generateGameData(int slotCount) throws SQLException {
+	public void addNextGameSet(List<GameHandler> inMemGames) {
+		nextGameSet.addAll(inMemGames);
+		logger.debug("In Memory game set size {}", nextGameSet.size());
+	}
+	
+	public List<GameHandler> generateGameData(int slotCount) throws SQLException {
 		
 		List<GameHandler> gameHandlerList = new ArrayList<>();
 		

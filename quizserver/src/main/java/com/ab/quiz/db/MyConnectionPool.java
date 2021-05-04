@@ -212,7 +212,7 @@ public class MyConnectionPool {
 					// is a bug).
 					System.err.println("Warning: forced closing of a connection that has been in use too long.");
 					System.err.println("Connection was acquired in:");
-					pc.printStackTrace();
+					//pc.printStackTrace();
 					System.err.println();
 
 					_connections.remove(i);

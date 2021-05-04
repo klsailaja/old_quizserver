@@ -231,7 +231,6 @@ public class GameManager {
 		}
 		
 		for (GameHandler cancelGameHandler : cancelledGames) {
-			
 			Map<Long, Boolean> revertedStatus = cancelGameHandler.getRevertedStatus();
 			if (revertedStatus == null) {
 				revertedStatus = cancelGameHandler.cancelGame();

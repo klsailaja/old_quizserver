@@ -18,7 +18,7 @@ public class QuizConstants {
 	
 	public static final int TIME_GAP_BETWEEN_SLOTS_IN_MINS = 10; // In minutes
 	public static final int TIME_GAP_BETWEEN_SLOTS_IN_MILLIS = TIME_GAP_BETWEEN_SLOTS_IN_MINS * 60 * 1000;
-	public static final int START_PAYMENTS_BEFORE_COMPLETION_TIME_OFFSET = 10 * 1000;
+	public static final int START_PAYMENTS_BEFORE_COMPLETION_TIME_OFFSET = 25 * 1000;
 	 
 	
 	public static final long GAME_BEFORE_LOCK_PERIOD_IN_SECS = 15; // In secs
@@ -27,7 +27,7 @@ public class QuizConstants {
 	
 	public static final int MAX_PLAYERS_PER_GAME = 10;
 	
-	public static int TESTMODE = 0;
+	public static int TESTMODE = 1;
 	
 	// Chat Related settings
 	public static int DELETE_OLD_MSGS_TIME_PERIOD = 30;

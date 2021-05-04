@@ -113,7 +113,7 @@ public class TestUsersTask implements Runnable {
 		/*int min = 3;
 		int max = QuizConstants.MAX_PLAYERS_PER_GAME;*/
 		//int randomPlayerCount = min + (int) (Math.random() * (max - min));
-		int randomPlayerCount = 10;
+		int randomPlayerCount = 9;
 		
 		for (int index = 1; index <= randomPlayerCount; index ++) {
 			
