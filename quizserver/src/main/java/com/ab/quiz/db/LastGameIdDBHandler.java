@@ -86,6 +86,7 @@ public class LastGameIdDBHandler {
 		ps.setLong(1, gameId);
 		
 		try {
+			dbConn.setAutoCommit(true);
 			int resultCount = ps.executeUpdate();
 			logger.info("The updated row count is {}", (resultCount > 0));
 		}

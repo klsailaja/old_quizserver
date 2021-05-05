@@ -8,10 +8,10 @@ import com.ab.quiz.pojo.PrizeDetail;
 
 public class Utils {
 	
-	private static double[] twoWinners = {70.0, 30.0};
+	private static double[] twoWinners = {65.0, 35.0};
 	private static double[] threeWinners = {60.0, 25.0, 15.0};
 	private static double[] fourWinners = {50.0, 25.0, 15.0, 10.0};
-	private static double[] fiveWinners = {45.0, 18.0, 15.0, 12.0, 10.0};
+	private static double[] fiveWinners = {45.0, 25.0, 13.0, 10.0, 7.0};
 	
 	public static List<PrizeDetail> getPrizeDetails(int ticketRate, int playerCount) {
 		
@@ -25,19 +25,19 @@ public class Utils {
 			{
 				winners = twoWinners;
 				winnerCount = 2;
-				addedBrainsShare = 10.0;
+				addedBrainsShare = 5.0;
 				break;
 			}
 			case 5: {
 				winners = threeWinners;
 				winnerCount = 3;
-				addedBrainsShare = 15.0;
+				addedBrainsShare = 5.0;
 				break;
 			}
 			case 6: {
 				winners = fourWinners;
 				winnerCount = 4;
-				addedBrainsShare = 15.0;
+				addedBrainsShare = 10.0;
 				break;
 			}
 			case 7:
@@ -46,12 +46,19 @@ public class Utils {
 			case 10: {
 				winners = fiveWinners;
 				winnerCount = 5;
-				addedBrainsShare = 20.0;
+				addedBrainsShare = 10.0;
 				break;
 			}
 		}
 		
 		double totalAmount = ticketRate * playerCount;
+		if (totalAmount <= 200.00) {
+			addedBrainsShare = 5.0;
+		} else if ((totalAmount > 200.00) && (totalAmount <= 500.00)) {
+			addedBrainsShare = 10.0;
+		} else {
+			addedBrainsShare = 15.0;
+		}
 		double totalPrizeMoney = totalAmount - (totalAmount * addedBrainsShare)/100;
 		totalPrizeMoney = totalPrizeMoney - winnerCount * ticketRate;
 		
@@ -92,5 +99,19 @@ public class Utils {
 	
 	public static int getBossMoney(int profit) {
 		return (profit/50);
+	}
+	
+	public static void main(String[] args) {
+		int[] rates = {10,20,50,75,100};
+		int[] players = {3,4,5,6,7,8,9,10};
+		for (int rate : rates) {
+			for (int ct : players) {
+				List<PrizeDetail> prizes = Utils.getPrizeDetails(rate, ct);
+				System.out.println("For " + rate + ":" + ct);
+				for (PrizeDetail pd : prizes) {
+					System.out.println(pd);
+				}
+			}
+		}
 	}
 }

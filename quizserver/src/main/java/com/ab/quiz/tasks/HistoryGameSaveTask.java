@@ -10,7 +10,6 @@ import org.apache.logging.log4j.Logger;
 import com.ab.quiz.db.GameHistoryDBHandler;
 import com.ab.quiz.db.UserProfileDBHandler;
 import com.ab.quiz.handlers.GameHandler;
-import com.ab.quiz.helper.PaymentProcessor;
 import com.ab.quiz.pojo.GamePlayers;
 import com.ab.quiz.pojo.GameResults;
 import com.ab.quiz.pojo.PlayerSummary;
@@ -81,14 +80,6 @@ public class HistoryGameSaveTask implements Runnable {
 			
 			List<GamePlayers> playersList = gameHandler.getPlayerDetails();
 			allGamePlayers.addAll(playersList);
-			
-			PaymentProcessor pp = gameHandler.getPaymentHandler();
-			List<Long> actualWinUserIds = pp.getWinnerUserIdSet();
-			for (GamePlayers gp : playersList) {
-				if (actualWinUserIds.contains(gp.getUserId())) {
-					//gp.setIsWinner(1);
-				}
-			}
 		}
 		
 		try {

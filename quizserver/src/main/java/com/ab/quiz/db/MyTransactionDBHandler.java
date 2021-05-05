@@ -133,6 +133,7 @@ public class MyTransactionDBHandler {
 				
 				if (index == batch) {
 					int[] results = ps.executeBatch();
+					dbConn.commit();
 					dbConn.setAutoCommit(true);
 					dbConn.setAutoCommit(false);
 					for (int result : results) {
@@ -148,6 +149,7 @@ public class MyTransactionDBHandler {
 			
 			if (index > 0) {
 				int [] results = ps.executeBatch();
+				dbConn.commit();
 				dbConn.setAutoCommit(true);
 				for (int result : results) {
 					if (result == 1) {

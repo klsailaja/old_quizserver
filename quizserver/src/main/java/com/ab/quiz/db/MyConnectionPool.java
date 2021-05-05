@@ -40,7 +40,7 @@ public class MyConnectionPool {
 	protected boolean _checkConnections = true;
 
 	protected long _cleaningInterval = 30 * 1000; // 30 seconds
-	protected long _maxIdleTime = 60 * 1000; // 30 seconds
+	protected long _maxIdleTime = 30 * 1000; // 30 seconds
 
 	protected long _maxUseTime = -1; // disabled by default
 
@@ -107,11 +107,17 @@ public class MyConnectionPool {
 	public void setMaxUseTime(long maxUseTime) {
 		_maxUseTime = maxUseTime;
 	}
+	
+	public Connection getConnectionNotFromPool() throws SQLException {
+		Connection con = DriverManager.getConnection(_url, _user, _password);
+		con.setAutoCommit(true);
+		con.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
+		return con;
+	}
 
 	/*--------------------------------------------------+
 	| Methods                                           |
 	+--------------------------------------------------*/
-
 	public Connection getConnection() throws SQLException {
 
 		if (_draining) {
@@ -196,12 +202,16 @@ public class MyConnectionPool {
 			for (int i = _connections.size() - 1; i >= 0; i--) {
 				pc = _connections.get(i);
 
+				//logger.info("Rajasekhar {} and {} and {}", pc.hashCode(), pc.inUse(), (pc.getTimeClosed() < maxIdleDeadline));
 				if (!pc.inUse() && pc.getTimeClosed() < maxIdleDeadline) {
 					// Connection has been idle too long, close it.
+					//logger.info("Rajasekhar closing here {}", pc.hashCode());
 					_connections.remove(i);
 					try {
+						//logger.info("Rajasekhar expire called {}", pc.hashCode());
 						pc.expire();
 					} catch (SQLException ignore) {
+						logger.info("Rajasekhar SQLException", ignore);
 					}
 				} else if (_maxUseTime >= 0 && // don't check if disabled
 						pc.inUse() && pc.getTimeOpened() < maxUseDeadline) {
@@ -210,9 +220,9 @@ public class MyConnectionPool {
 					// Print the location where the connetion was acquired
 					// as it probably forgot to close the connection (which
 					// is a bug).
-					System.err.println("Warning: forced closing of a connection that has been in use too long.");
+					System.err.println("Warning: forced closing of a connection that has been in use too long." + pc.hashCode());
 					System.err.println("Connection was acquired in:");
-					//pc.printStackTrace();
+					pc.printStackTrace();
 					System.err.println();
 
 					_connections.remove(i);
@@ -226,6 +236,7 @@ public class MyConnectionPool {
 
 			// Stop the PoolCleaner if the pool is empty.
 			if (_connections.size() == 0 && _cleaner != null) {
+				logger.info("No Active DB Connections. Stopping the thread");
 				_cleaner.halt();
 				_cleaner = null;
 			}
@@ -256,7 +267,7 @@ public class MyConnectionPool {
 				PoolConnection pc = _connections.get(i);
 
 				if (pc.inUse()) {
-					System.err.println("Warning: forced closing of a connection still in use.");
+					System.err.println("Warning: forced closing of a connection still in use. " + pc.hashCode());
 					System.err.println("Connection was acquired in:");
 					pc.printStackTrace();
 					System.err.println();
@@ -358,6 +369,7 @@ public class MyConnectionPool {
 		 * Once expired, a connection can no longer be used.
 		 **/
 		public void expire() throws SQLException {
+			logger.info("DB Conn expire here {}", _conn.hashCode());
 			_conn.close();
 			_conn = null;
 		}
@@ -372,7 +384,9 @@ public class MyConnectionPool {
 
 		public synchronized void close() throws SQLException {
 			// Multiple calls to close?
+			//logger.info("Rajasekhar close " + this.hashCode());
 			if (_inUse) {
+				//logger.info("Rajasekhar if " + this.hashCode());
 				_timeClosed = System.currentTimeMillis();
 				_inUse = false;
 

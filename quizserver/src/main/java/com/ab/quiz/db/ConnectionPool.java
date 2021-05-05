@@ -26,13 +26,17 @@ public class ConnectionPool {
     		instance = new ConnectionPool();
     		instance.myconnectionPool = new MyConnectionPool(JDBC_DB_URL, JDBC_USER, JDBC_PASS);
     		instance.myconnectionPool.setCheckConnections(true);
-    		instance.myconnectionPool.setMaxUseTime(5 * 60 * 1000);
+    		instance.myconnectionPool.setMaxUseTime(2 * 60 * 1000);
     	}
     	return instance;
     }
     
     public Connection getDBConnection() throws SQLException {
     	return myconnectionPool.getConnection();
+    }
+    
+    public Connection getConnectionNotFromPool() throws SQLException {
+    	return myconnectionPool.getConnectionNotFromPool();
     }
     
 

@@ -38,15 +38,15 @@ public class TestUsersTask implements Runnable {
 		long mode2StartTime = getStartTime(2);
 		
 		long startTaskTime = mode1StartTime;
-		mode = 2;
+		mode = 1;
 		if (mode2StartTime < startTaskTime) {
 			startTaskTime = mode2StartTime;
-			mode = 1;
+			mode = 2;
 		}
 		
 		long initailDelay = startTaskTime - System.currentTimeMillis() + 1 * 1000;
 		
-		submitRepeatedTask(this, initailDelay, 5 * 60 * 1000, TimeUnit.MILLISECONDS);
+		submitRepeatedTask(this, 0, 5 * 60 * 1000, TimeUnit.MILLISECONDS);
 	}
 	
 	private long getStartTime(int mode) {
@@ -110,10 +110,10 @@ public class TestUsersTask implements Runnable {
 			return;
 		}
 		
-		/*int min = 3;
-		int max = QuizConstants.MAX_PLAYERS_PER_GAME;*/
+		//int min = 3;
+		//int max = QuizConstants.MAX_PLAYERS_PER_GAME;
 		//int randomPlayerCount = min + (int) (Math.random() * (max - min));
-		int randomPlayerCount = 9;
+		int randomPlayerCount = 8;
 		
 		for (int index = 1; index <= randomPlayerCount; index ++) {
 			
@@ -130,7 +130,7 @@ public class TestUsersTask implements Runnable {
 				gameOperation.setUserProfileId(predefinedUserProfileId);
 				gameOperation.setUserAccountType(UserMoneyAccountType.LOADED_MONEY.getId());
 				GameManager.getInstance().joinGame(gameDetails.getGameId(), gameOperation);
-				Thread.sleep(300);
+				//Thread.sleep(300);
 				
 				for (int qIndex = 1; qIndex <= 10; qIndex ++) {
 					PlayerAnswer playerAns = getRandomPlayerAnswer();

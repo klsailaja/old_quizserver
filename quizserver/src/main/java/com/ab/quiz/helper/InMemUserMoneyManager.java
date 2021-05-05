@@ -133,6 +133,7 @@ public class InMemUserMoneyManager implements Runnable {
 				
 				if (index == 50) {
 					int[] results = ps.executeBatch();
+					dbConn.commit();
 					dbConn.setAutoCommit(true);
 					dbConn.setAutoCommit(false);
 					for (int result : results) {
@@ -143,6 +144,7 @@ public class InMemUserMoneyManager implements Runnable {
 			}
 			if (index > 0) {
 				int [] results = ps.executeBatch();
+				dbConn.commit();
 				dbConn.setAutoCommit(true);
 				for (int result : results) {
 					resultsList.add(result);

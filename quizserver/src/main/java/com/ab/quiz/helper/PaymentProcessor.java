@@ -139,6 +139,7 @@ public class PaymentProcessor {
 				MyTransaction transaction1 = Utils.getTransactionPojo(bossUserProfileId, gameDetails.getStartTime(), 
 								bossShare, TransactionType.CREDITED.getId(), 
 								UserMoneyAccountType.REFERAL_MONEY.getId(), bossOB, bossCB, bossCmts);
+				transaction1.setIsWin(1);
 				
 				moneyTransaction = new MoneyTransaction();
 				moneyTransaction.setAccountType(UserMoneyAccountType.WINNING_MONEY);

@@ -96,6 +96,7 @@ public class GameHistoryDBHandler {
 		try {
 			cp = ConnectionPool.getInstance();
 			dbConn = cp.getDBConnection();
+			logger.info("In bulkInsertGamePlayers " + dbConn.hashCode());
 			
 			dbConn.setAutoCommit(false);
 			
@@ -121,6 +122,7 @@ public class GameHistoryDBHandler {
 							++totalFailureCount;
 						}
 					}
+					dbConn.commit();
 					dbConn.setAutoCommit(true);
 					dbConn.setAutoCommit(false);
 				}
@@ -134,6 +136,7 @@ public class GameHistoryDBHandler {
 						++totalFailureCount;
 					}
 				}
+				dbConn.commit();
 				dbConn.setAutoCommit(true);
 			}
 			logger.info("Bulk inserted Game Player records with success row count {} : failure row count {}", 
@@ -150,7 +153,7 @@ public class GameHistoryDBHandler {
 				psPlayer.close();
 			}
 			if (dbConn != null) {
-				logger.info("2222222222222 closed");
+				logger.info("In bulkInsertGamePlayers close " + dbConn.hashCode());
 				dbConn.close();
 			}
 		}
@@ -166,7 +169,9 @@ public class GameHistoryDBHandler {
 		
 		try {
 			cp = ConnectionPool.getInstance();
-			dbConn = cp.getDBConnection();
+			//dbConn = cp.getDBConnection();
+			dbConn = cp.getConnectionNotFromPool();
+			logger.info("In BulkInsertGameResults " + dbConn.hashCode());
 			
 			dbConn.setAutoCommit(false);
 			
@@ -188,6 +193,7 @@ public class GameHistoryDBHandler {
 				
 				if (index == batchSize1) {
 					int results[] = ps.executeBatch();
+					dbConn.commit();
 					dbConn.setAutoCommit(true);
 					dbConn.setAutoCommit(false);
 					index = 0;
@@ -203,6 +209,7 @@ public class GameHistoryDBHandler {
 			
 			if (index > 0) {
 				int results[] = ps.executeBatch();
+				dbConn.commit();
 				dbConn.setAutoCommit(true);
 				for (int result : results) {
 					if (result == 1) {
@@ -226,6 +233,7 @@ public class GameHistoryDBHandler {
 				ps.close();
 			}
 			if (dbConn != null) {
+				logger.info("In BulkInsertGameResults close" + dbConn.hashCode());
 				dbConn.close();
 			}
 		}
