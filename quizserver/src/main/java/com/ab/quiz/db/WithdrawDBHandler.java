@@ -19,6 +19,8 @@ import com.ab.quiz.constants.WithdrawReqState;
 import com.ab.quiz.constants.WithdrawReqType;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.UserMoneyHandler;
+import com.ab.quiz.helper.InMemUserMoneyManager;
+import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.helper.Utils;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.UserMoney;
@@ -28,6 +30,7 @@ import com.ab.quiz.pojo.WithdrawReqByBank;
 import com.ab.quiz.pojo.WithdrawReqByPhone;
 import com.ab.quiz.pojo.WithdrawRequest;
 import com.ab.quiz.pojo.WithdrawRequestsHolder;
+import com.ab.quiz.tasks.AddTransactionsTask;
 
 /*
  *
@@ -265,7 +268,7 @@ public class WithdrawDBHandler {
 				userOB = userMoney.getReferalAmount();
 			}
 			long time = System.currentTimeMillis();
-			String comments = "Withdraw Request Processed. Receipt Attached.";
+			String comments = "Withdraw Request Processed. Receipt Attached for " + wdRequest.getRefId();
 			long userCB = userOB;
 			
 			MyTransaction transaction = Utils.getTransactionPojo(userProfileId, time, 
@@ -321,6 +324,24 @@ public class WithdrawDBHandler {
 			throw new NotAllowedException("This Request not owned by you");
 		}
 		
+		boolean hasInMemRecords = InMemUserMoneyManager.getInstance().hasInMemRecords(userProfileId);
+		if (hasInMemRecords) {
+			InMemUserMoneyManager.getInstance().commitNow();
+		}
+		
+		List<UserMoneyAccountType> accTypes = new ArrayList<>();
+		accTypes.add(UserMoneyAccountType.findById(wdRequest.getFromAccType()));
+		
+		List<TransactionType> transactionTypes = new ArrayList<>();
+		transactionTypes.add(TransactionType.CREDITED);
+		
+		List<String> comments = new ArrayList<>();
+		comments.add("Withdraw Request Cancelled");
+		
+		List<MyTransaction> wdRelatedTransactions = UserMoneyDBHandler.getInstance(). 
+				getTransactionObjects(wdRequest.getUserProfileId(), wdRequest.getAmount(), 
+				accTypes, transactionTypes, comments);
+		
 		ConnectionPool cp = null;
 		Connection dbConn = null;
 		PreparedStatement updateWDStatePS = null;
@@ -340,22 +361,6 @@ public class WithdrawDBHandler {
 			
 			logger.debug("Changed the withdraw req state result : {}", (result1 > 0));
 			
-			UserMoneyDBHandler userMoneyHandler = UserMoneyDBHandler.getInstance();
-			UserMoney userMoney = userMoneyHandler.getUserMoneyById(userProfileId);
-			long userOB = userMoney.getLoadedAmount();
-			if (wdRequest.getFromAccType() == UserMoneyAccountType.WINNING_MONEY.getId()) {
-				userOB = userMoney.getWinningAmount();
-			} else if (wdRequest.getFromAccType() == UserMoneyAccountType.REFERAL_MONEY.getId()) {
-				userOB = userMoney.getReferalAmount();
-			}
-			long time = System.currentTimeMillis();
-			String comments = "Withdraw Request Cancelled";
-			long userCB = userOB + wdRequest.getAmount();
-			
-			MyTransaction transaction = Utils.getTransactionPojo(userProfileId, time, 
-					wdRequest.getAmount(), TransactionType.CREDITED.getId(), 
-					wdRequest.getFromAccType(), userOB, userCB, comments);
-			
 			String revertMoneySql = UserMoneyHandler.getInstance().getUserAccWithDrawSql(wdRequest.getFromAccType());
 			
 			revertMoneyPS = dbConn.prepareStatement(revertMoneySql);
@@ -366,13 +371,15 @@ public class WithdrawDBHandler {
 			
 			result2 = revertMoneyPS.executeUpdate();
 			
-			int operRes = 0;
-			
+			int transferRes = 0;
 			if (result2 > 0) {
-				operRes = 1;
+				transferRes = 1;
 			}
-			transaction.setOperResult(operRes);
-			MyTransactionDBHandler.getInstance().createTransaction(transaction);
+			
+			for (MyTransaction transaction : wdRelatedTransactions) {
+				transaction.setOperResult(transferRes);
+			}
+			LazyScheduler.getInstance().submit(new AddTransactionsTask(wdRelatedTransactions));
 			return true;
 			 
 		} catch (SQLException ex) {
@@ -438,6 +445,7 @@ public class WithdrawDBHandler {
 			
 			int result = ps.executeUpdate();
 			logger.debug("In createWithDrawReq create op result : {}", result);
+			
 			return (result >= 1);
 		} catch (SQLException ex) {
 			logger.error("Error creating createWithDrawReq ", ex);

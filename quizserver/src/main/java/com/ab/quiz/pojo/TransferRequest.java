@@ -1,19 +1,33 @@
 package com.ab.quiz.pojo;
 
 public class TransferRequest {
-	private int accType;
+	private int sourceAccType;
+	private int destAccType;
+	private String sqlQry;
 	private int amount;
 	
-	public int getAccType() {
-		return accType;
+	public String getSqlQry() {
+		return sqlQry;
 	}
-	public void setAccType(int accType) {
-		this.accType = accType;
+	public void setSqlQry(String sqlQry) {
+		this.sqlQry = sqlQry;
 	}
 	public int getAmount() {
 		return amount;
 	}
 	public void setAmount(int amount) {
 		this.amount = amount;
+	}
+	public int getSourceAccType() {
+		return sourceAccType;
+	}
+	public void setSourceAccType(int sourceAccType) {
+		this.sourceAccType = sourceAccType;
+	}
+	public int getDestAccType() {
+		return destAccType;
+	}
+	public void setDestAccType(int destAccType) {
+		this.destAccType = destAccType;
 	}
 }

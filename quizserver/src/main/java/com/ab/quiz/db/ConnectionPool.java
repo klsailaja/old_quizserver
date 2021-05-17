@@ -26,7 +26,7 @@ public class ConnectionPool {
     		instance = new ConnectionPool();
     		instance.myconnectionPool = new MyConnectionPool(JDBC_DB_URL, JDBC_USER, JDBC_PASS);
     		instance.myconnectionPool.setCheckConnections(true);
-    		instance.myconnectionPool.setMaxUseTime(2 * 60 * 1000);
+    		instance.myconnectionPool.setMaxUseTime(3 * 60 * 1000);
     	}
     	return instance;
     }

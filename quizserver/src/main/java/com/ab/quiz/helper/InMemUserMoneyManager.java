@@ -47,6 +47,10 @@ public class InMemUserMoneyManager implements Runnable {
 		return instance;
 	}
 	
+	public boolean hasInMemRecords(long userId) {
+		return userIdVsPendingTransactions.containsKey(userId);
+	}
+	
 	private void clearStates() {
 		postUserIdVsMoney.clear();
 		userIdVsPendingTransactions.clear();

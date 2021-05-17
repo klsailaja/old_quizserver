@@ -49,7 +49,7 @@ public class UserMoneyController extends BaseController {
 		}
 	}
 	
-	@RequestMapping(value = "/money/{userProfileId}/transfer", method = RequestMethod.PUT, produces = "application/json")
+	@RequestMapping(value = "/money/{userProfileId}/transfer", method = RequestMethod.POST, produces = "application/json")
 	public @ResponseBody boolean transferMoney(@PathVariable("userProfileId") long userProfileId, 
 			@RequestBody TransferRequest transferReq) throws NotAllowedException, InternalException {
 		try {

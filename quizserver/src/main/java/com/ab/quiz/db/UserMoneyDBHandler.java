@@ -4,18 +4,25 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
 import com.ab.quiz.exceptions.NotAllowedException;
+import com.ab.quiz.helper.InMemUserMoneyManager;
+import com.ab.quiz.helper.LazyScheduler;
+import com.ab.quiz.helper.Utils;
 import com.ab.quiz.pojo.MyTransaction;
+import com.ab.quiz.pojo.TransferRequest;
 import com.ab.quiz.pojo.UserMoney;
 import com.ab.quiz.pojo.WDUserInput;
 import com.ab.quiz.pojo.WithdrawReqByPhone;
+import com.ab.quiz.tasks.AddTransactionsTask;
 
 /*
 CREATE TABLE USERMONEY (ID BIGINT UNSIGNED NOT NULL, 
@@ -321,22 +328,99 @@ public class UserMoneyDBHandler {
 		return true;
 	}
 	
-	public boolean transferAmount(long userProfileId, long amt, int sourceAccType) throws SQLException {
+	public List<MyTransaction> getTransactionObjects(long userId, int amount, List<UserMoneyAccountType> accountTypeList,
+			List<TransactionType> transactionTypes, List<String> comments) {
+		
+		logger.info("This is in getTransactionObjects method");
+		List<MyTransaction> transactionList = new ArrayList<>();
+
+		try {
+			UserMoney userMoney = InMemUserMoneyManager.getInstance().getUserMoneyById(userId);
+			
+			for (int index = 0; index < accountTypeList.size(); index ++) {
+				
+				UserMoneyAccountType accountType = accountTypeList.get(index); 
+				
+				long userOB = userMoney.getLoadedAmount();
+				if (accountType.getId() == UserMoneyAccountType.WINNING_MONEY.getId()) {
+					userOB = userMoney.getWinningAmount();
+				} else if (accountType.getId() == UserMoneyAccountType.REFERAL_MONEY.getId()) {
+					userOB = userMoney.getReferalAmount();
+				}
+				
+				long userCB = userOB - amount;
+				TransactionType transactionType = transactionTypes.get(index);
+				if (transactionType.getId() == TransactionType.CREDITED.getId()) {
+					userCB = userOB + amount;
+				}
+				String comment = comments.get(index);
+				
+				MyTransaction transaction = Utils.getTransactionPojo(userId, System.currentTimeMillis(), 
+						amount, transactionType.getId(), accountType.getId(), userOB, userCB, comment);
+				transaction.setIsWin(0);
+				transactionList.add(transaction);
+			}
+		} catch(SQLException ex) {
+			logger.error("Exception in getTransactionObjects", ex);
+		}
+		logger.info("The final size of Transactions created is {}", transactionList.size());
+		return transactionList;
+	}
+	
+	private String getAccountName(int accType) {
+		switch (accType) {
+			case 1 : {
+				return "MAIN";
+			}
+			case 2 : {
+				return "WINNING";
+			}
+			case 3 : {
+				return "REFERRAL";
+			}
+		}
+		return null;
+	}
+	
+	
+	public boolean transferAmount(long userProfileId, TransferRequest transferReq) throws SQLException {
+		
+		int amt = transferReq.getAmount();
+		String sqlQry = transferReq.getSqlQry();
 		
 		logger.debug("transferAmount called with id {} amt {}", userProfileId, amt);
+		
+		boolean hasInMemRecords = InMemUserMoneyManager.getInstance().hasInMemRecords(userProfileId);
+		if (hasInMemRecords) {
+			InMemUserMoneyManager.getInstance().commitNow();
+		}
+		
+		List<UserMoneyAccountType> accTypes = new ArrayList<>();
+		accTypes.add(UserMoneyAccountType.findById(transferReq.getSourceAccType()));
+		accTypes.add(UserMoneyAccountType.findById(transferReq.getDestAccType()));
+		
+		List<TransactionType> transactionTypes = new ArrayList<>();
+		transactionTypes.add(TransactionType.DEBITED);
+		transactionTypes.add(TransactionType.CREDITED);
+		
+		String srcAccountName = getAccountName(transferReq.getSourceAccType());
+		String destAccountName = getAccountName(transferReq.getDestAccType());
+		
+		List<String> comments = new ArrayList<>();
+		comments.add("Transferred to " + destAccountName + " Account");
+		comments.add("Transferred from " + srcAccountName + " Account");
+		
+		List<MyTransaction> transferRelatedTransactions = getTransactionObjects(userProfileId, amt, 
+				accTypes, transactionTypes, comments);
 		
 		ConnectionPool cp = ConnectionPool.getInstance();
 		Connection dbConn = cp.getDBConnection();
 		
-		String sqlQry = TRANSFER_AMOUNT_BY_USER_ID;
-		UserMoneyAccountType srcAccType = UserMoneyAccountType.findById(sourceAccType);
+		sqlQry = sqlQry + " WHERE " + ID + " = ? ";   
 		
-		if (srcAccType != null) {
-			sqlQry = TRANSFER_RF_AMOUNT_BY_USER_ID;
-		}
 		PreparedStatement ps = dbConn.prepareStatement(sqlQry);
 		
-		logger.debug("The qry is {}", sqlQry);
+		logger.info("The qry is {}", sqlQry);
 		
 		ps.setLong(1, amt * -1);
 		ps.setLong(2, amt);
@@ -345,6 +429,15 @@ public class UserMoneyDBHandler {
 		try {
 			int resultCount = ps.executeUpdate();
 			logger.debug("The updated row count {}", resultCount);
+			
+			int transferRes = 0;
+			if (resultCount > 0) {
+				transferRes = 1;
+			}
+			for (MyTransaction transaction : transferRelatedTransactions) {
+				transaction.setOperResult(transferRes);
+			}
+			LazyScheduler.getInstance().submit(new AddTransactionsTask(transferRelatedTransactions));
 		}
 		catch(SQLException ex) {
 			logger.error("Error updating in transferAmount", ex);
