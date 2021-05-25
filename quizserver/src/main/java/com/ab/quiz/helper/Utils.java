@@ -102,15 +102,20 @@ public class Utils {
 	}
 	
 	public static void main(String[] args) {
+		
 		int[] rates = {10,20,50,75,100};
 		int[] players = {3,4,5,6,7,8,9,10};
+		
 		for (int rate : rates) {
 			for (int ct : players) {
 				List<PrizeDetail> prizes = Utils.getPrizeDetails(rate, ct);
 				System.out.println("For " + rate + ":" + ct);
+				int playersPrizeMoney = 0;
 				for (PrizeDetail pd : prizes) {
 					System.out.println(pd);
+					playersPrizeMoney = playersPrizeMoney + pd.getPrizeMoney();
 				}
+				System.out.println("Our Share is " + ((rate * ct) - playersPrizeMoney));
 			}
 		}
 	}

@@ -138,7 +138,7 @@ public class UserMoneyHandler {
 			}
 		}
 		
-		logger.debug("Withdraw Amount and Account Money {} and {}", wdUserInput.getAmount(), accountMoney);
+		logger.info("Withdraw Amount and Account Money {} and {}", wdUserInput.getAmount(), accountMoney);
 		
 		if (wdUserInput.getAmount() > accountMoney) {
 			throw new NotAllowedException("Withdraw Amount is more than available amount");

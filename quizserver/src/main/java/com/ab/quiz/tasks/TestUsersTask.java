@@ -106,14 +106,14 @@ public class TestUsersTask implements Runnable {
 		if (gameDetails.getTicketRate() == 0) {
 			return;
 		}
-		if (gameDetails.getCurrentCount() == 10) {
+		if (gameDetails.getCurrentCount() > 0) {
 			return;
 		}
 		
 		//int min = 3;
 		//int max = QuizConstants.MAX_PLAYERS_PER_GAME;
 		//int randomPlayerCount = min + (int) (Math.random() * (max - min));
-		int randomPlayerCount = 8;
+		int randomPlayerCount = 10;
 		
 		for (int index = 1; index <= randomPlayerCount; index ++) {
 			

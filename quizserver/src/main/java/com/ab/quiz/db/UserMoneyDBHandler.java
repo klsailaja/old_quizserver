@@ -68,16 +68,6 @@ public class UserMoneyDBHandler {
 	public static final String UPDATE_REFERAL_AMOUNT_BY_USER_ID = "UPDATE USERMONEY SET " 
 			+ REFERAL_AMOUNT + " = " + REFERAL_AMOUNT + " + ? WHERE " + ID + " = ? ";
 	
-	private static final String TRANSFER_AMOUNT_BY_USER_ID = "UPDATE USERMONEY SET " 
-			+ WINNING_AMOUNT + " = " + WINNING_AMOUNT + " + ? , "
-			+ LOADED_AMOUNT + " = " + LOADED_AMOUNT + " + ? "
-			+ "WHERE " + ID + " = ? ";
-	
-	private static final String TRANSFER_RF_AMOUNT_BY_USER_ID = "UPDATE USERMONEY SET " 
-			+ REFERAL_AMOUNT + " = " + REFERAL_AMOUNT + " + ? , "
-			+ LOADED_AMOUNT + " = " + LOADED_AMOUNT + " + ? "
-			+ "WHERE " + ID + " = ? ";
-	
 	public static final String WITHDRAW_LOADED_MONEY_BY_USER_ID = "UPDATE USERMONEY SET " 
 			+ LOADED_AMOUNT + " = " + LOADED_AMOUNT + " + ? , "
 			+ LOADED_AMOUNT_LOCKED + " = " + LOADED_AMOUNT_LOCKED + " + ? "

@@ -84,7 +84,7 @@ public class HistoryGameSaveTask implements Runnable {
 		
 		try {
 			GameHistoryDBHandler.getInstance().bulkInsertGameResults(allGameResults, 20);
-			GameHistoryDBHandler.getInstance().bulkInsertGamePlayers(allGamePlayers, 100);
+			GameHistoryDBHandler.getInstance().bulkInsertGamePlayers(allGamePlayers, 50);
 			UserProfileDBHandler.getInstance().updateLastLoggedTimeInBulkMode(updateLastLoggedIn, 50);
 		} catch (SQLException e) {
 			logger.error("SQLException while doing bulk insert of game results and game players", e);
