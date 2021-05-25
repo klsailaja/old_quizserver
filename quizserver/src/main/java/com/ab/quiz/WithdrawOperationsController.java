@@ -58,12 +58,12 @@ public class WithdrawOperationsController extends BaseController {
 	}
 	
 	@RequestMapping(value = "/wd/cancel/{profileId}/{wdrefid}", method = RequestMethod.GET, produces = "application/json")
-	public @ResponseBody Boolean cancelWithdrawReq(@PathVariable("profile") long userProfileId, 
-			@PathVariable("wdrefid") String wdRefid) throws NotAllowedException, InternalException {
+	public @ResponseBody Boolean cancelWithdrawReq(@PathVariable("profileId") long userProfileId, 
+			@PathVariable("wdrefid") String wdrefid) throws NotAllowedException, InternalException {
 		
-		logger.info("cancelWithdrawReq is called with userProfileId {} and wdRefId {}", userProfileId, wdRefid);
+		logger.info("cancelWithdrawReq is called with userProfileId {} and wdRefId {}", userProfileId, wdrefid);
 		try {
-			boolean result = UserMoneyHandler.getInstance().cancelWithdrawRequest(userProfileId, wdRefid);
+			boolean result = UserMoneyHandler.getInstance().cancelWithdrawRequest(userProfileId, wdrefid);
 			logger.info("cancelWithdrawReq request result is {}", result);
 			return new Boolean(result);
 		} catch (SQLException ex) {

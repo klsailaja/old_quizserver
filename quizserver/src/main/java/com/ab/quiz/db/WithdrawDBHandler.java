@@ -433,7 +433,7 @@ public class WithdrawDBHandler {
 			ps.setLong(2, wdUserInput.getUserProfileId());
 			ps.setInt(3, wdUserInput.getFromAccType());
 			ps.setInt(4, WithdrawReqState.OPEN.getId());
-			ps.setInt(5, 1);
+			ps.setInt(5, wdUserInput.getRequestType());
 			ps.setLong(6, wdDetailsId);
 			ps.setInt(7, wdUserInput.getAmount());
 			

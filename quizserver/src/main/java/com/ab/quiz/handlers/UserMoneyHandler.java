@@ -225,7 +225,7 @@ public class UserMoneyHandler {
 		boolean wdrecordsCreated = wdDBHandler.createWithDrawReq(wdUserInput, byPhoneReq, byBankReq);
 		if (!wdrecordsCreated) {
 			logger.debug("Withdraw DB Records not created in DB");
-			return false;
+			throw new NotAllowedException("Could not insert beneficiary details to DB");
 		}
 		
 		String wdSql = getUserAccWithDrawSql(wdUserInput.getFromAccType());
