@@ -113,7 +113,10 @@ public class WithdrawDBHandler {
 			+ " WHERE " + STATUS + " =? ORDER BY " + ID + " DESC LIMIT 0,120";
 	private static final String LATEST_BOSS_WD_RECORDS = "SELECT " + USER_PROFILE_ID + "," + AMOUNT + "," 
 			+ REQUEST_CLOSED_TIME + " FROM " + TABLE_NAME 
-			+ " WHERE " + USER_PROFILE_ID + " = ? AND " + STATUS + " =? ORDER BY " + ID + " DESC LIMIT 0,10"; 
+			+ " WHERE " + USER_PROFILE_ID + " = ? AND " + STATUS + " =? ORDER BY " + ID + " DESC LIMIT 0,10";
+	
+	private static final String REMOVE_OLD_RECORDS = "DELETE FROM " + TABLE_NAME 
+			+ " WHERE (" + REQUEST_CLOSED_TIME + " < ? AND ID <> 0)";
 	
 	private WithdrawDBHandler() {
 	}
@@ -124,6 +127,37 @@ public class WithdrawDBHandler {
 			instance = new WithdrawDBHandler();
 		}
 		return instance;
+	}
+	
+	public int deleteRecords(long timePeriod) throws SQLException {
+		logger.info("In deleteRecords method");
+		
+		ConnectionPool cp = null;
+		Connection dbConn = null;
+		PreparedStatement ps = null;
+		
+		try {
+			cp = ConnectionPool.getInstance();
+			dbConn = cp.getDBConnection();
+			ps = dbConn.prepareStatement(REMOVE_OLD_RECORDS);
+			
+			ps.setLong(1, timePeriod);
+			
+			int result = ps.executeUpdate();
+			logger.debug("In deleteRecords create op result : {}", result);
+			
+			return result;
+		} catch (SQLException ex) {
+			logger.error("Error in deleteRecords ", ex);
+			throw ex;
+		} finally {
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
 	}
 	
 	public long getMaxWithdrawReqId() throws SQLException {

@@ -1,6 +1,9 @@
 package com.ab.quiz;
 
 import java.sql.SQLException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,7 +14,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.helper.GamesGenerator;
+import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.helper.WinMsgHandler;
+import com.ab.quiz.tasks.CheckCancellerTask;
+import com.ab.quiz.tasks.DeleteOldRecords;
 import com.ab.quiz.tasks.TestUsersTask;
 
 @SpringBootApplication
@@ -65,16 +71,30 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 			gameGenerator1.setupGames();
 			gameGenerator2.setupGames();
 			
-			logger.info("Server started successfully...");
-			
 			WinMsgHandler.getInstance();
+			
+			Calendar calendar = Calendar.getInstance();
+			calendar.add(Calendar.DATE, 1);
+			calendar.set(Calendar.HOUR, 3);
+			calendar.set(Calendar.MINUTE, 0);
+			calendar.set(Calendar.SECOND, 0);
+			calendar.set(Calendar.AM_PM, Calendar.AM);
+			
+			long initialDelay = calendar.getTimeInMillis() - System.currentTimeMillis();
+			//initialDelay = 0;
+			
+			LazyScheduler.getInstance().submitRepeatedTask(new DeleteOldRecords(), initialDelay, 
+					24 * 60 * 1000, TimeUnit.MILLISECONDS);
+			
 			if (QuizConstants.TESTMODE == 1) {
 				TestUsersTask task = new TestUsersTask();
 				task.setUp();
 			}
+			
+			logger.info("Server started successfully...");
+			
 		} catch(SQLException ex) {
 			logger.error("SQLException in TeluguMovieQuizApplication", ex);
 		}
-
 	}
 }

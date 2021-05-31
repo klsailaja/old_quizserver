@@ -67,7 +67,11 @@ public class GameHistoryDBHandler {
 			+ " WHERE " + PLAYER_USERID + " = ? " + "ORDER BY " + PLAYER_ID + " LIMIT ?,10";
 	private static final String GET_TOTAL_COUNT = "SELECT COUNT(*) FROM " +  PLAYER_HISTORY_TABLE_NAME + " WHERE "
 			+ PLAYER_USERID + " = ? ";
-			
+	private static final String REMOVE_OLD_RECORDS = "DELETE FROM " + TABLE_NAME 
+			+ " WHERE (" + GAME_PLAYED_TIME + " < ? AND ID <> 0)";
+	private static final String SELECT_OLD_RECORDS_GAMEID = "SELECT " + GAMEID + " FROM " + TABLE_NAME + " WHERE " + GAME_PLAYED_TIME + " < ?";
+	private static final String REMOVE_OLD_RECORDS_PLAYERS = "DELETE FROM " + PLAYER_HISTORY_TABLE_NAME 
+			+ " WHERE " + PLAYER_GAMEID + " = ? ";
 	
 	private static final Logger logger = LogManager.getLogger(GameHistoryDBHandler.class);
 	private static GameHistoryDBHandler instance = null;
@@ -81,6 +85,130 @@ public class GameHistoryDBHandler {
 			instance = new GameHistoryDBHandler();
 		}
 		return instance;
+	}
+	
+	public List<Long> deleteRecords(long timePeriod) throws SQLException {
+		logger.info("In deleteRecords method");
+		
+		ConnectionPool cp = null;
+		Connection dbConn = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		List<Long> gameIds = new ArrayList<Long>();
+		
+		try {
+			cp = ConnectionPool.getInstance();
+			dbConn = cp.getDBConnection();
+			ps = dbConn.prepareStatement(SELECT_OLD_RECORDS_GAMEID);
+			
+			ps.setLong(1, timePeriod);
+			
+			rs = ps.executeQuery();
+			if (rs != null) {
+				while (rs.next()) {
+					gameIds.add(rs.getLong(GAMEID));
+				}
+			}
+			
+			PreparedStatement psDel = dbConn.prepareStatement(REMOVE_OLD_RECORDS);
+			psDel.setLong(1, timePeriod);
+			int result = psDel.executeUpdate();
+			logger.info("In deleteRecords number of games deleted count : {}", result);
+			if (psDel != null) {
+				psDel.close();
+			}
+			
+		} catch (SQLException ex) {
+			logger.error("******************************");
+			logger.error("SQLException in deleteRecords()", ex);
+			logger.error("******************************");
+			throw ex;
+		} finally {
+			if (rs != null) {
+				rs.close();
+			}
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
+		return gameIds;
+	}
+	
+	public void bulkDeletePlayerDetails(List<Long> gameIds, int batchSize) throws SQLException {
+		if (gameIds.size() == 0) {
+			return;
+		}
+		
+		ConnectionPool cp = null;
+		Connection dbConn = null;
+		PreparedStatement psPlayer = null;
+		
+		long startTime = System.currentTimeMillis();
+		
+		try {
+			cp = ConnectionPool.getInstance();
+			dbConn = cp.getDBConnection();
+			logger.info("In bulkDeletePlayerDetails ");
+			
+			dbConn.setAutoCommit(false);
+			
+			psPlayer = dbConn.prepareStatement(REMOVE_OLD_RECORDS_PLAYERS);
+			
+			int totalFailureCount = 0;
+			int totalSuccessCount = 0;
+			
+			int index = 0;
+			for (Long gameId : gameIds) {
+				psPlayer.setLong(1, gameId);
+				psPlayer.addBatch();
+				index++;
+				
+				if (index == batchSize) {
+					index = 0;
+					int results[] = psPlayer.executeBatch();
+					for (int result : results) {
+						if (result >= 1) {
+							++totalSuccessCount;
+						} else {
+							++totalFailureCount;
+						}
+					}
+					dbConn.commit();
+					dbConn.setAutoCommit(true);
+					dbConn.setAutoCommit(false);
+				}
+			}
+			if (index > 0) {
+				int results[] = psPlayer.executeBatch();
+				for (int result : results) {
+					if (result >= 1) {
+						++totalSuccessCount;
+					} else {
+						++totalFailureCount;
+					}
+				}
+				dbConn.commit();
+				dbConn.setAutoCommit(true);
+			}
+			logger.info("Bulk deleted Game Player records with success row count {} : failure row count {}", 
+					totalSuccessCount, totalFailureCount);
+			logger.info("Time taken to process this query in Millis : {}", (System.currentTimeMillis() - startTime));
+		} catch(SQLException ex) {
+			logger.error("******************************");
+			logger.error("Error deleting game players entries in bulk mode", ex);
+			logger.error("******************************");
+			throw ex;
+		} finally {
+			if (psPlayer != null) {
+				psPlayer.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
 	}
 	
 	public void bulkInsertGamePlayers(List<GamePlayers> playersList, int batchSize) throws SQLException {
@@ -148,12 +276,10 @@ public class GameHistoryDBHandler {
 			logger.error("******************************");
 			throw ex;
 		} finally {
-			logger.info("Fianlly 1111111111111");
 			if (psPlayer != null) {
 				psPlayer.close();
 			}
 			if (dbConn != null) {
-				logger.info("In bulkInsertGamePlayers close " + dbConn.hashCode());
 				dbConn.close();
 			}
 		}

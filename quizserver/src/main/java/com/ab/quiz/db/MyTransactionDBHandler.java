@@ -75,6 +75,8 @@ public class MyTransactionDBHandler {
 			+ " WHERE " + ISWIN + " = 1 ORDER BY " + ID + " DESC LIMIT 0,120";
 	private static final String LATEST_BOSS_WIN_RECORDS = "SELECT " + USERID + "," + AMOUNT + "," + DATE + " FROM " + TABLE_NAME 
 			+ " WHERE " + USERID + " = ? AND " + ISWIN + " = 1 ORDER BY " + ID + " DESC LIMIT 0,10";
+	private static final String REMOVE_OLD_RECORDS = "DELETE FROM " + TABLE_NAME 
+			+ " WHERE (" + DATE + " < ? AND ID <> 0)";
 	
 	private static final Logger logger = LogManager.getLogger(MyTransactionDBHandler.class);
 	private static MyTransactionDBHandler instance = null;
@@ -90,6 +92,37 @@ public class MyTransactionDBHandler {
 			instance = new MyTransactionDBHandler();
 		}
 		return instance;
+	}
+	
+	public int deleteRecords(long timePeriod) throws SQLException {
+		logger.info("In deleteRecords method");
+		
+		ConnectionPool cp = null;
+		Connection dbConn = null;
+		PreparedStatement ps = null;
+		
+		try {
+			cp = ConnectionPool.getInstance();
+			dbConn = cp.getDBConnection();
+			ps = dbConn.prepareStatement(REMOVE_OLD_RECORDS);
+			
+			ps.setLong(1, timePeriod);
+			
+			int result = ps.executeUpdate();
+			logger.debug("In deleteRecords create op result : {}", result);
+			
+			return result;
+		} catch (SQLException ex) {
+			logger.error("Error in deleteRecords ", ex);
+			throw ex;
+		} finally {
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
 	}
 	
 	public void createTransactionsInBatch(List<MyTransaction> transactionsList, int batch) throws SQLException {
@@ -249,12 +282,14 @@ public class MyTransactionDBHandler {
 					//long dateTime = rs.getLong(DATE);
 					
 					UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userId);
+					String userName = userProfile.getName();
 					String str = msg1;
 					if (userProfileId != -1) {
+						userName = userProfile.getBossName();
 						str = msg2;
 					}
 					
-					str = str.replace("$NAME", userProfile.getName());
+					str = str.replace("$NAME", userName);
 					str = str.replace("$AMT", String.valueOf(amt));
 					
 					winMessages.add(str);
