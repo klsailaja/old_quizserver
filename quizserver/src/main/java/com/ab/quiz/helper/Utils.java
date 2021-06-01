@@ -103,7 +103,7 @@ public class Utils {
 	
 	public static void main(String[] args) {
 		
-		int[] rates = {10,20,50,75,100};
+		int[] rates = {10,20,50,100,150,200};
 		int[] players = {3,4,5,6,7,8,9,10};
 		
 		for (int rate : rates) {

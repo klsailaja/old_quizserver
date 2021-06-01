@@ -2,7 +2,6 @@ package com.ab.quiz;
 
 import java.sql.SQLException;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
@@ -16,7 +15,6 @@ import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.helper.GamesGenerator;
 import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.helper.WinMsgHandler;
-import com.ab.quiz.tasks.CheckCancellerTask;
 import com.ab.quiz.tasks.DeleteOldRecords;
 import com.ab.quiz.tasks.TestUsersTask;
 
