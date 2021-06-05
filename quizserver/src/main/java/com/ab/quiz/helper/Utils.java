@@ -103,8 +103,11 @@ public class Utils {
 	
 	public static void main(String[] args) {
 		
-		int[] rates = {10,20,50,100,150,200};
+		//int[] rates = {10,20,50,100,150,200};
+		int[] rates = {10,20,50,75,100,50,100,150,200,250};
 		int[] players = {3,4,5,6,7,8,9,10};
+		int totalOurShare = 0;
+		int avgShare = 0;
 		
 		for (int rate : rates) {
 			for (int ct : players) {
@@ -115,8 +118,15 @@ public class Utils {
 					System.out.println(pd);
 					playersPrizeMoney = playersPrizeMoney + pd.getPrizeMoney();
 				}
+				int ourSharePerGame = ((rate * ct) - playersPrizeMoney);
+				avgShare = avgShare + ourSharePerGame; 
 				System.out.println("Our Share is " + ((rate * ct) - playersPrizeMoney));
 			}
+			avgShare = avgShare / players.length;
+			totalOurShare = totalOurShare + avgShare; 
 		}
+		System.out.println("Total share is " + (totalOurShare));
+		long totalAmt = (totalOurShare * 2 * 144);
+		System.out.println("totalAmt :" + totalAmt);
 	}
 }
