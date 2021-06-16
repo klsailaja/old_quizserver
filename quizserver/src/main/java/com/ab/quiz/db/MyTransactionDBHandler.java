@@ -225,14 +225,15 @@ public class MyTransactionDBHandler {
 			ps.setInt(3, myTransaction.getAmount());
 			ps.setInt(4, myTransaction.getAccountType());
 			ps.setInt(5, myTransaction.getTransactionType());
-			ps.setInt(6, myTransaction.getOperResult());
-			ps.setLong(7, myTransaction.getOpeningBalance());
-			ps.setLong(8, myTransaction.getClosingBalance());
+			ps.setInt(6, myTransaction.getIsWin());
+			ps.setInt(7, myTransaction.getOperResult());
+			ps.setLong(8, myTransaction.getOpeningBalance());
+			ps.setLong(9, myTransaction.getClosingBalance());
 			String comment = myTransaction.getComment();
 			if (myTransaction.getOperResult() == 0) {
 				comment = comment + "." + "Backend issue while update. Will be resolved in 1-2 days.";
 			}
-			ps.setString(9, comment);
+			ps.setString(10, comment);
 			
 			int createResult = ps.executeUpdate();
 			boolean recordCreationState = (createResult > 0);

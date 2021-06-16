@@ -66,9 +66,14 @@ public class GenerateQuestions {
 		}
 		return relevantQuestions;
 	}
-
 	
-	private static List<String> getFormedQuestions(boolean isCelebrity, String tokensList, String prefixStr, String categoryStr) {
+	private static List<String> getFormedQuestions(boolean isCelebrity, 
+			String tokensList, String prefixStr, String categoryStr) {
+		return getFormedQuestions(isCelebrity, tokensList, prefixStr, categoryStr, null);
+	}
+	
+	private static List<String> getFormedQuestions(boolean isCelebrity, 
+			String tokensList, String prefixStr, String categoryStr, String relation) {
 		
 		tokensList = tokensList.trim();
 		//System.out.println("tokensList :" + tokensList);
@@ -86,7 +91,13 @@ public class GenerateQuestions {
 		}
 		
 		int fillCt = totalTokensCt - tokens.size();
-		List<String> extraOptionsList = extraOptionsMap.get(categoryStr);
+		String extraOptionsKey = categoryStr;
+		if (extraOptionsKey.equals("h")) {
+			extraOptionsKey = relation;
+		} 
+		List<String> extraOptionsList = extraOptionsMap.get(extraOptionsKey);
+		System.out.println("extraOptionsKey " + extraOptionsKey);
+		System.out.println(extraOptionsMap);
 		
 		if (extraOptionsList != null) {
 			int size = extraOptionsList.size();
@@ -144,6 +155,9 @@ public class GenerateQuestions {
 		
 		for (String extraOption : extraOptionsList) {
 			extraOption = extraOption.trim();
+			if (extraOption.length() == 0) {
+				continue;
+			}
 			StringTokenizer strTokenizer = new StringTokenizer(extraOption, "=");
 			String key = strTokenizer.nextToken();
 			String value = strTokenizer.nextToken();
@@ -200,48 +214,139 @@ public class GenerateQuestions {
 	    			case "b": {
 	    				// Hero category
 	    				String str = strTokenizer2.nextToken();
-	    				List<String> categoryQuestions = getFormedQuestions(true, str, "H", "b");
+	    				
+	    				String cinemaList = strTokenizer2.nextToken();
+	    				List<String> cinemaTokens = getStrTokens(cinemaList);
+	    				fillVarsValsMap("bc", cinemaTokens);
+	    				
+	    				String isCelebrityStr = null;
+	    				if (strTokenizer2.hasMoreTokens()) {
+	    					isCelebrityStr = strTokenizer2.nextToken(); 
+	    				}
+	    				boolean isCelebrity = false; 
+	    				if ((isCelebrityStr != null) && (isCelebrityStr.equals("1"))) {
+	    					isCelebrity = true;
+	    				}
+	    				
+	    				List<String> categoryQuestions = getFormedQuestions(isCelebrity, str, "H", "b");
 	    				finalQuestions.addAll(categoryQuestions);
 	    				break;
 	    			}
 	    			case "c": {
 	    				// Heroines category
 	    				String str = strTokenizer2.nextToken();
-	    				List<String> categoryQuestions = getFormedQuestions(true, str, "HR", "c");
+	    				
+	    				String cinemaList = strTokenizer2.nextToken();
+	    				List<String> cinemaTokens = getStrTokens(cinemaList);
+	    				fillVarsValsMap("cc", cinemaTokens);
+	    				
+	    				String isCelebrityStr = null;
+	    				if (strTokenizer2.hasMoreTokens()) {
+	    					isCelebrityStr = strTokenizer2.nextToken(); 
+	    				}
+	    				boolean isCelebrity = false; 
+	    				if ((isCelebrityStr != null) && (isCelebrityStr.equals("1"))) {
+	    					isCelebrity = true;
+	    				}
+	    				List<String> categoryQuestions = getFormedQuestions(isCelebrity, str, "HR", "c");
 	    				finalQuestions.addAll(categoryQuestions);
 	    				break;
 	    			}
 	    			case "d": {
+	    				String cinemaList = strTokenizer2.nextToken();
+	    				List<String> cinemaTokens = getStrTokens(cinemaList);
+	    				fillVarsValsMap("dc", cinemaTokens);
 	    				List<String> categoryQuestions = getFormedQuestions(false, "", "H", "d");
 	    				finalQuestions.addAll(categoryQuestions);
 	    				break;
 	    			}
 	    			case "e": {
+	    				// Directors
 	    				String str = strTokenizer2.nextToken();
-	    				List<String> categoryQuestions = getFormedQuestions(true, str, "D", "e");
+	    				String cinemaList = strTokenizer2.nextToken();
+	    				List<String> cinemaTokens = getStrTokens(cinemaList);
+	    				fillVarsValsMap("ec", cinemaTokens);
+	    				String isCelebrityStr = null;
+	    				if (strTokenizer2.hasMoreTokens()) {
+	    					isCelebrityStr = strTokenizer2.nextToken(); 
+	    				}
+	    				boolean isCelebrity = false; 
+	    				if ((isCelebrityStr != null) && (isCelebrityStr.equals("1"))) {
+	    					isCelebrity = true;
+	    				}
+	    				List<String> categoryQuestions = getFormedQuestions(isCelebrity, str, "D", "e");
 	    				finalQuestions.addAll(categoryQuestions);
 	    				break;
 	    			}
 	    			case "f": {
+	    				// Music director
 	    				String str = strTokenizer2.nextToken();
-	    				List<String> categoryQuestions = getFormedQuestions(true, str, "MD", "f");
+	    				String cinemaList = strTokenizer2.nextToken();
+	    				List<String> cinemaTokens = getStrTokens(cinemaList);
+	    				fillVarsValsMap("fc", cinemaTokens);
+	    				String isCelebrityStr = null;
+	    				if (strTokenizer2.hasMoreTokens()) {
+	    					isCelebrityStr = strTokenizer2.nextToken(); 
+	    				}
+	    				boolean isCelebrity = false; 
+	    				if ((isCelebrityStr != null) && (isCelebrityStr.equals("1"))) {
+	    					isCelebrity = true;
+	    				}
+	    				List<String> categoryQuestions = getFormedQuestions(isCelebrity, str, "MD", "f");
 	    				finalQuestions.addAll(categoryQuestions);
 	    				break;
 	    			}
 	    			case "g": {
+	    				// Villian
 	    				String str = strTokenizer2.nextToken();
-	    				List<String> categoryQuestions = getFormedQuestions(true, str, "V", categoryStr);
+	    				String cinemaList = strTokenizer2.nextToken();
+	    				List<String> cinemaTokens = getStrTokens(cinemaList);
+	    				fillVarsValsMap("gc", cinemaTokens);
+	    				String isCelebrityStr = null;
+	    				if (strTokenizer2.hasMoreTokens()) {
+	    					isCelebrityStr = strTokenizer2.nextToken(); 
+	    				}
+	    				boolean isCelebrity = false; 
+	    				if ((isCelebrityStr != null) && (isCelebrityStr.equals("1"))) {
+	    					isCelebrity = true;
+	    				}
+	    				List<String> categoryQuestions = getFormedQuestions(isCelebrity, str, "V", categoryStr);
 	    				finalQuestions.addAll(categoryQuestions);
 	    				break;
 	    			}
 	    			case "h": {
+	    				// x Relation artist name
 	    				String relatedChar = strTokenizer2.nextToken();
 	    				String relation = strTokenizer2.nextToken();
 	    				String str = strTokenizer2.nextToken();
+	    				String cinemaList = strTokenizer2.nextToken();
+	    				List<String> cinemaTokens = getStrTokens(cinemaList);
+	    				fillVarsValsMap("hc", cinemaTokens);
+	    				
+	    				String isCelebrityStr1 = null;
+	    				if (strTokenizer2.hasMoreTokens()) {
+	    					isCelebrityStr1 = strTokenizer2.nextToken(); 
+	    				}
+	    				boolean isCelebrity1 = false; 
+	    				if ((isCelebrityStr1 != null) && (isCelebrityStr1.equals("1"))) {
+	    					isCelebrity1 = true;
+	    				}
+	    				
+	    				String isCelebrityStr2 = null;
+	    				if (strTokenizer2.hasMoreTokens()) {
+	    					isCelebrityStr2 = strTokenizer2.nextToken(); 
+	    				}
+	    				boolean isCelebrity2 = false; 
+	    				if ((isCelebrityStr2 != null) && (isCelebrityStr2.equals("1"))) {
+	    					isCelebrity2 = true;
+	    				}
+	    				if (isCelebrity1) {
+	    					formCelebrity(relatedChar);
+	    				}
 	    				
 	    				map.put("%RELATION_CHAR%", relatedChar);
 	    				map.put("%RELATION%", relation);
-	    				List<String> categoryQuestions = getFormedQuestions(false, str, "RL", categoryStr);
+	    				List<String> categoryQuestions = getFormedQuestions(isCelebrity2, str, "RL", categoryStr, relation);
 	    				finalQuestions.addAll(categoryQuestions);
 	    				break;
 	    			}
@@ -249,7 +354,9 @@ public class GenerateQuestions {
 	    				String relatedChar = strTokenizer2.nextToken();
 	    				String relation = strTokenizer2.nextToken();
 	    				String str = strTokenizer2.nextToken();
-	    				
+	    				String cinemaList = strTokenizer2.nextToken();
+	    				List<String> cinemaTokens = getStrTokens(cinemaList);
+	    				fillVarsValsMap("ic", cinemaTokens);
 	    				map.put("%RELATION_CHAR%", relatedChar);
 	    				map.put("%RELATION%", relation);
 	    				List<String> categoryQuestions = getFormedQuestions(false, str, "RN", categoryStr);
@@ -257,41 +364,101 @@ public class GenerateQuestions {
 	    				break;
 	    			}
 	    			case "j": {
+	    				// x relation name
 	    				String artistName = strTokenizer2.nextToken();
 	    				String str = strTokenizer2.nextToken();
 	    				map.put("%RELATION_CHAR%", artistName);
-	    				formCelebrity(artistName);	
+	    				String cinemaList = strTokenizer2.nextToken();
+	    				List<String> cinemaTokens = getStrTokens(cinemaList);
+	    				fillVarsValsMap("jc", cinemaTokens);
+	    				
+	    				String isCelebrityStr = null;
+	    				if (strTokenizer2.hasMoreTokens()) {
+	    					isCelebrityStr = strTokenizer2.nextToken(); 
+	    				}
+	    				boolean isCelebrity = false; 
+	    				if ((isCelebrityStr != null) && (isCelebrityStr.equals("1"))) {
+	    					isCelebrity = true;
+	    				}
+	    				
+	    				
+	    				if (isCelebrity) {	
+	    					formCelebrity(artistName);
+	    				}
 	    				List<String> categoryQuestions = getFormedQuestions(false, str, "PERU", categoryStr);
 	    				finalQuestions.addAll(categoryQuestions);
 	    				break;
 	    			}
 	    			case "k": {
+	    				// x profession ??
 	    				String artistName = strTokenizer2.nextToken();
 	    				String str = strTokenizer2.nextToken();
 	    				map.put("%RELATION_CHAR%", artistName);
-	    				formCelebrity(artistName);	
+	    				String cinemaList = strTokenizer2.nextToken();
+	    				List<String> cinemaTokens = getStrTokens(cinemaList);
+	    				fillVarsValsMap("kc", cinemaTokens);
+	    				
+	    				String isCelebrityStr = null;
+	    				if (strTokenizer2.hasMoreTokens()) {
+	    					isCelebrityStr = strTokenizer2.nextToken(); 
+	    				}
+	    				boolean isCelebrity = false; 
+	    				if ((isCelebrityStr != null) && (isCelebrityStr.equals("1"))) {
+	    					isCelebrity = true;
+	    				}
+	    				if (isCelebrity) {
+	    					formCelebrity(artistName);
+	    				}
 	    				List<String> categoryQuestions = getFormedQuestions(false, str, "PR", categoryStr);
 	    				finalQuestions.addAll(categoryQuestions);
 	    				break;
 	    			}
 	    			case "l": {
+	    				// Combination of 2 artists
 	    				String artistName1 = strTokenizer2.nextToken();
 	    				String artistName2 = strTokenizer2.nextToken();
 	    				map.put("%ARTIST1%", artistName1);
 	    				map.put("%ARTIST2%", artistName2);
-	    				formCelebrity(artistName1);
-	    				formCelebrity(artistName2);
+	    				String cinemaList = strTokenizer2.nextToken();
+	    				List<String> cinemaTokens = getStrTokens(cinemaList);
+	    				fillVarsValsMap("lc", cinemaTokens);
+	    				
+	    				String isCelebrityStr1 = null;
+	    				if (strTokenizer2.hasMoreTokens()) {
+	    					isCelebrityStr1 = strTokenizer2.nextToken(); 
+	    				}
+	    				boolean isCelebrity1 = false; 
+	    				if ((isCelebrityStr1 != null) && (isCelebrityStr1.equals("1"))) {
+	    					isCelebrity1 = true;
+	    				}
+	    				String isCelebrityStr2 = null;
+	    				if (strTokenizer2.hasMoreTokens()) {
+	    					isCelebrityStr2 = strTokenizer2.nextToken(); 
+	    				}
+	    				boolean isCelebrity2 = false; 
+	    				if ((isCelebrityStr2 != null) && (isCelebrityStr2.equals("1"))) {
+	    					isCelebrity2 = true;
+	    				}
+	    				
+	    				if (isCelebrity1) {
+	    					formCelebrity(artistName1);
+	    				}
+	    				if (isCelebrity2) {
+	    					formCelebrity(artistName2);
+	    				}
 	    				List<String> categoryQuestions = getFormedQuestions(false, "", "", categoryStr);
 	    				finalQuestions.addAll(categoryQuestions);
 	    				break;
 	    			}
 	    			case "m": {
+	    				// Song lyrics in which movie
 	    				String str = strTokenizer2.nextToken();
 	    				List<String> categoryQuestions = getFormedQuestions(false, str, "SG", categoryStr);
 	    				finalQuestions.addAll(categoryQuestions);
 	    				break;
 	    			}
 	    			case "n": {
+	    				// Fill the song lyrics with a missing word
 	    				String songLyrics = strTokenizer2.nextToken();
 	    				String str = strTokenizer2.nextToken();
 	    				map.put("%FILLSONG%", songLyrics);
@@ -300,44 +467,78 @@ public class GenerateQuestions {
 	    				break;
 	    			}
 	    			case "o": {
+	    				// Special song
 	    				String artistType = strTokenizer2.nextToken();
 	    				String artistList = strTokenizer2.nextToken();
 	    				map.put("%SS_ARTIST%", artistType);
-	    				List<String> categoryQuestions = getFormedQuestions(true, artistList, "SSH", categoryStr);
+	    				String cinemaList = strTokenizer2.nextToken();
+	    				List<String> cinemaTokens = getStrTokens(cinemaList);
+	    				fillVarsValsMap("oc", cinemaTokens);
+	    				String isCelebrityStr = null;
+	    				if (strTokenizer2.hasMoreTokens()) {
+	    					isCelebrityStr = strTokenizer2.nextToken(); 
+	    				}
+	    				boolean isCelebrity = false; 
+	    				if ((isCelebrityStr != null) && (isCelebrityStr.equals("1"))) {
+	    					isCelebrity = true;
+	    				}
+	    				List<String> categoryQuestions = getFormedQuestions(isCelebrity, artistList, "SSH", categoryStr);
 	    				finalQuestions.addAll(categoryQuestions);
 	    				break;
 	    			}
 	    			case "p": {
+	    				// Song lyrics for which the special song performed by x
 	    				String artistName = strTokenizer2.nextToken();
 	    				String songList = strTokenizer2.nextToken();
 	    				map.put("%SS_ARTIST%", artistName);
+	    				
+	    				String isCelebrityStr = null;
+	    				if (strTokenizer2.hasMoreTokens()) {
+	    					isCelebrityStr = strTokenizer2.nextToken(); 
+	    				}
+	    				boolean isCelebrity = false; 
+	    				if ((isCelebrityStr != null) && (isCelebrityStr.equals("1"))) {
+	    					isCelebrity = true;
+	    				}
+	    				if (isCelebrity) {
+	    					formCelebrity(artistName);
+	    				}
+
 	    				List<String> categoryQuestions = getFormedQuestions(false, songList, "SS", categoryStr);
 	    				finalQuestions.addAll(categoryQuestions);
 	    				break;
 	    			}
 	    			case "q": {
+	    				// guest role done by artist
 	    				String artistType = strTokenizer2.nextToken();
 	    				String artistList = strTokenizer2.nextToken();
 	    				map.put("%SS_ARTIST%", artistType);
-	    				List<String> categoryQuestions = getFormedQuestions(true, artistList, "GR", categoryStr);
+	    				String cinemaList = strTokenizer2.nextToken();
+	    				List<String> cinemaTokens = getStrTokens(cinemaList);
+	    				fillVarsValsMap("qc", cinemaTokens);
+	    				String isCelebrityStr = null;
+	    				if (strTokenizer2.hasMoreTokens()) {
+	    					isCelebrityStr = strTokenizer2.nextToken(); 
+	    				}
+	    				boolean isCelebrity = false; 
+	    				if ((isCelebrityStr != null) && (isCelebrityStr.equals("1"))) {
+	    					isCelebrity = true;
+	    				}
+	
+	    				List<String> categoryQuestions = getFormedQuestions(isCelebrity, artistList, "GR", categoryStr);
+	    				finalQuestions.addAll(categoryQuestions);
+	    				break;
+	    			}
+	    			case "r": {
+	    				// movie caption
+	    				String caption = strTokenizer2.nextToken();
+	    				map.put("%MC%", caption);
+	    				List<String> categoryQuestions = getFormedQuestions(false, caption, "MC", categoryStr);
 	    				finalQuestions.addAll(categoryQuestions);
 	    				break;
 	    			}
 	    		}
 	    	}
-	    	
-	    	StringBuffer celebrityIdSet = new StringBuffer();
-	    	List<Integer> celebrityIds = new ArrayList<>();
-	    	for (String celebrityName : perMovieCelebrityNames) {
-    			int id = 1 + celebrityNames.indexOf(celebrityName);
-    			celebrityIds.add(id);
-    			celebrityIdSet.append(id);
-    			celebrityIdSet.append(",");
-    		}
-	    	String celebrityIdSetStr = celebrityIdSet.toString();
-	    	int pos = celebrityIdSetStr.lastIndexOf(",");
-	    	celebrityIdSetStr = celebrityIdSetStr.substring(0, pos);
-	    	celebrityIdSetStr = "('" + celebrityIdSetStr + "')";
 	    	
 	    	String sqlQry = "INSERT INTO QUIZQUESTIONS (NSTATEMENT,NOPTIONA,NOPTIONB,NOPTIONC,NOPTIOND,CORRECTOPTION,CATEGORY) VALUES('";
 	    	
@@ -345,11 +546,35 @@ public class GenerateQuestions {
 	    		
 	    		StringTokenizer finalQuestionStrTokenizer = new StringTokenizer(lineQuestion, ":");
 	    		String categoryNameStr = finalQuestionStrTokenizer.nextToken();
+	    		
+	    		boolean skip = false;
+	    		if (categoryNameStr.indexOf("1") > -1) {
+	    			skip = true;
+	    		}
+	    		
 	    		String questionTxt = finalQuestionStrTokenizer.nextToken();
 	    		String optionATxt = finalQuestionStrTokenizer.nextToken();
 	    		String optionBTxt = finalQuestionStrTokenizer.nextToken();
 	    		String optionCTxt = finalQuestionStrTokenizer.nextToken();
 	    		String optionDTxt = finalQuestionStrTokenizer.nextToken();
+	    		
+	    		StringBuffer celebrityIdSet = new StringBuffer();
+		    	for (String celebrityName : perMovieCelebrityNames) {
+		    		if (skip) {
+		    			if (optionATxt.equals(celebrityName)) {
+		    				continue;
+		    			}
+		    		}
+	    			int id = 1 + celebrityNames.indexOf(celebrityName);
+	    			celebrityIdSet.append(id);
+	    			celebrityIdSet.append(",");
+	    		}
+		    	String celebrityIdSetStr = celebrityIdSet.toString();
+		    	int pos = celebrityIdSetStr.lastIndexOf(",");
+		    	celebrityIdSetStr = celebrityIdSetStr.substring(0, pos);
+		    	celebrityIdSetStr = "('" + celebrityIdSetStr + "')";
+	    		
+	    		
 	    		
 	    		StringBuffer strBuffer = new StringBuffer(sqlQry);
 	    		strBuffer.append(questionTxt);

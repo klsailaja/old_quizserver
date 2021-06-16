@@ -340,13 +340,13 @@ public class UserMoneyHandler {
 		/*boolean result = handler.placeWithdrawMoneyRequest(wdInputs);
 		System.out.println("result is :" + result);*/
 		
-		boolean result = handler.cancelWithdrawRequest(70, "htheFhBQy1");
-		System.out.println("The WD Cancellation status is " + result);
+		/*boolean result = handler.cancelWithdrawRequest(70, "htheFhBQy1");
+		System.out.println("The WD Cancellation status is " + result);*/
 		
 		String filePath = "D:" + File.separator + "Projects" + File.separator + "Receipt.png";
 		
-		/*boolean result = handler.closeWithDrawRequest(filePath, "gpy7p7TKl1", "Paid in Phone");
-		System.out.println("The WD Closure result is " + result);*/
+		boolean result = handler.closeWithDrawRequest(filePath, "VrRzWzEjl3", "Paid in Phone");
+		System.out.println("The WD Closure result is " + result);
 		
 		/*WithdrawRequestsHolder holder = handler.getWithdrawDataSet(70, 0, -1);
 		System.out.println(holder);*/
