@@ -571,8 +571,10 @@ public class GenerateQuestions {
 	    		}
 		    	String celebrityIdSetStr = celebrityIdSet.toString();
 		    	int pos = celebrityIdSetStr.lastIndexOf(",");
-		    	celebrityIdSetStr = celebrityIdSetStr.substring(0, pos);
-		    	celebrityIdSetStr = "('" + celebrityIdSetStr + "')";
+		    	if (pos > -1) {
+		    		celebrityIdSetStr = celebrityIdSetStr.substring(0, pos);
+		    		celebrityIdSetStr = "('" + celebrityIdSetStr + "')";
+		    	}
 	    		
 	    		
 	    		

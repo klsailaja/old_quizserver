@@ -5,7 +5,18 @@ import java.util.List;
 
 public class NumberTest {
 	public static void main(String[] args) {
-		
+		char[] array = {'y','l','l','v', 'a', 'e'};
+		for (int i = 0; i < array.length; i ++) {
+			System.out.print(array[i]);
+			for (int j = 0; j < array.length; j ++) {
+				if (i == j) {
+					continue;
+				}
+				System.out.print(array[j]);
+			}
+			System.out.println();
+		}
+		/*
 		NumberTest test1 = new NumberTest();
 		List<Integer> primeNumbers = test1.getPrimeNums(2,100);
 		int primseNumsListSize = primeNumbers.size();
@@ -21,7 +32,7 @@ public class NumberTest {
 				divCount++;
 			}
 		}
-		System.out.println(divCount);
+		System.out.println(divCount);*/
 	}
 	
 	private List<Integer> getPrimeNums(int start, int end) {
