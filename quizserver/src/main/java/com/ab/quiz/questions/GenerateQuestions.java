@@ -76,14 +76,8 @@ public class GenerateQuestions {
 			String tokensList, String prefixStr, String categoryStr, String relation) {
 		
 		tokensList = tokensList.trim();
-		//System.out.println("tokensList :" + tokensList);
 		List<String> questions = new ArrayList<>();
 		List<String> tokens = getStrTokens(tokensList);
-		/*for (String pstr : tokens) {
-			System.out.println("pstr :" + pstr);
-		}
-		System.out.println(tokens.toString());*/
-		
 		
 		int totalTokensCt = 4;
 		if (categoryStr.equals("a")) {
@@ -101,9 +95,6 @@ public class GenerateQuestions {
 		
 		if (extraOptionsList != null) {
 			int size = extraOptionsList.size();
-			//System.out.println("categoryStr :" + categoryStr);
-			//System.out.println("size :" + size);
-			//System.out.println("tokens :" + tokens.size());
 			if ((size > 0) && (tokens.size() > 0)) {
 				for (int index = 1; index <= fillCt; index ++) {
 					int randomIndex = getRandomNumber(0, size);
