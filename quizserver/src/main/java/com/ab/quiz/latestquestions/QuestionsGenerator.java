@@ -114,6 +114,7 @@ public class QuestionsGenerator {
 		
 		Path filePath = Paths.get(fileName);
 		List<String> list = Files.readAllLines(filePath, StandardCharsets.UTF_8);
+		int uniqueId = 0;
 		
 		for (String line : list) {
         	line = line.trim();
@@ -126,6 +127,7 @@ public class QuestionsGenerator {
         	}
 
         	MovieInfo movieInfo = new MovieInfo();
+        	movieInfo.setId(++uniqueId);
         	
         	StringTokenizer strTokenizer1 = new StringTokenizer(line, ":");
         	while (strTokenizer1.hasMoreTokens()) {
@@ -217,6 +219,10 @@ public class QuestionsGenerator {
 	    				category = buildCategory(strTokenizer2, 1, categoryStr);
 	    				break;
 	    			}
+	    			case "s": {
+	    				category = buildCategory(strTokenizer2, 1, categoryStr);
+	    				break;
+	    			}
 	    		}
 	    		movieInfo.addCategory(category);
 	    		
@@ -239,59 +245,66 @@ public class QuestionsGenerator {
 						break;
 					}
 					case "b": {
-						fillupBCategory(categoryList);
+						fillupBCategory(movieInfo.getId(), categoryList);
 						break;
 					}
 					case "c": {
-						fillupCCategory(categoryList);
+						fillupCCategory(movieInfo.getId(), categoryList);
 						break;
 					}
 					case "e": {
-						fillupECategory(categoryList);
+						fillupECategory(movieInfo.getId(), categoryList);
 						break;
 					}
 					case "f": {
-						fillupFCategory(categoryList);
+						fillupFCategory(movieInfo.getId(), categoryList);
 						break;
 					}
 					case "g": {
-						fillupGCategory(categoryList);
+						fillupGCategory(movieInfo.getId(), categoryList);
 						break;
 					}
 					case "h": {
-						fillHCategory(categoryList);
+						fillHCategory(movieInfo.getId(), categoryList);
 						break;
 					}
 					case "j": {
-						fillJCategory(categoryList);
+						fillJCategory(movieInfo.getId(), categoryList);
 						break;
 					}
 					case "k": {
-						fillKCategory(categoryList);
+						fillKCategory(movieInfo.getId(), categoryList);
 						break;
 					}
 					case "l": {
-						fillLCategory(categoryList);
+						fillLCategory(movieInfo.getId(), categoryList);
 						break;
 					}
 					case "m": {
-						fillupMCategory(categoryList);
+						fillupMCategory(movieInfo.getId(), categoryList);
 						break;
 					}
 					case "n": {
-						fillupNCategory(categoryList);
+						fillupNCategory(movieInfo.getId(), categoryList);
 						break;
 					}
 					case "o": {
-						fillupOCategory(categoryList);
+						fillupOCategory(movieInfo.getId(), categoryList);
 						break;
 					}
 					case "p": {
-						fillPCategory(categoryList);
+						fillPCategory(movieInfo.getId(), categoryList);
 						break;
 					}
 					case "q": {
-						fillupQCategory(categoryList);
+						fillupQCategory(movieInfo.getId(), categoryList);
+						break;
+					}
+					case "r": {
+						break;
+					}
+					case "s": {
+						fillupSCategory(movieInfo.getId(), categoryList);
 						break;
 					}
 				}
@@ -299,7 +312,75 @@ public class QuestionsGenerator {
 		}
 	}
 	
-	private static void fillPCategory(List<Category> allCategoryList) {
+	private static void  fillupSCategory(int currentId, List<Category> allCategoryList) {
+		String movieCategoryName = "a";
+		String currentCategoryName = "s";
+		
+		List<Category> currentMovieList = getCategoryList(movieCategoryName, allCategoryList);
+		List<Category> currentValuesList = getCategoryList(currentCategoryName, allCategoryList);
+		
+		Category currentMovieObj = currentMovieList.get(0);
+		
+		for (Category currentValueObj : currentValuesList) {
+			List<String> answers1List = new ArrayList<>();
+			List<String> answers2List = new ArrayList<>();
+			
+			List<String> wrongAnswers1 = new ArrayList<>();
+			List<String> wrongAnswers2 = new ArrayList<>();
+			
+			answers1List.add(currentValueObj.getValue(0));
+			answers2List.add(currentMovieObj.getValue(0));
+			
+			for (MovieInfo movieInfo : moviesDataBase) {
+				List<Category> miMoviesList = movieInfo.getCategoryList(movieCategoryName);
+				List<Category> miCurrentNamesList = movieInfo.getCategoryList(currentCategoryName);
+				
+				Category miMovieObject = miMoviesList.get(0);
+				
+				if (currentMovieObj.getValue(0).equals(miMovieObject.getValue(0))) {
+					continue;
+				}
+		
+				for (Category miCurrentCategory : miCurrentNamesList) {
+					
+					String personName = miCurrentCategory.getValue(0);
+					String pani = miCurrentCategory.getValue(1);
+					
+					
+					if (personName.equals(currentValueObj.getValue(0))) {
+						if (pani.equals(currentValueObj.getValue(1))) {
+							continue;
+						}
+					}
+					
+					if (!wrongAnswers1.contains(personName)) {
+						wrongAnswers1.add(personName);
+						wrongAnswers2.add(miMovieObject.getValue(0));
+					}
+				}
+			}
+			String gender = "b";
+			if (currentValueObj.getCategoryFieldsSize() == 3) {
+				gender = "c";
+			}
+			List<Integer> finalWrongAnswerIndexes1 = fillupWrongAnswers(gender, wrongAnswers1);
+			for (int index = 0; index < finalWrongAnswerIndexes1.size(); index++) {
+				answers1List.add(wrongAnswers1.get(finalWrongAnswerIndexes1.get(index)));
+			}
+			wrongAnswers1.clear();
+			
+			List<Integer> finalWrongAnswerIndexes2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
+			for (int index = 0; index < finalWrongAnswerIndexes2.size(); index++) {
+				answers2List.add(wrongAnswers2.get(finalWrongAnswerIndexes2.get(index)));
+			}
+			wrongAnswers2.clear();
+			
+			currentValueObj.addAnswers(1, answers1List);
+			currentValueObj.addAnswers(2, answers2List);
+		}
+	}
+	
+	private static void fillPCategory(int currentId, List<Category> allCategoryList) {
 		
 		String currentCategoryName = "p";
 		List<Category> currentValuesList = getCategoryList(currentCategoryName, allCategoryList);
@@ -331,7 +412,7 @@ public class QuestionsGenerator {
 		}
 	}
 
-	private static void fillupQCategory(List<Category> allCategoryList) {
+	private static void fillupQCategory(int currentId, List<Category> allCategoryList) {
 		String movieCategoryName = "a";
 		String currentCategoryName = "q";
 		
@@ -397,7 +478,7 @@ public class QuestionsGenerator {
 
 	}
 	
-	private static void fillupOCategory(List<Category> allCategoryList) {
+	private static void fillupOCategory(int currentId, List<Category> allCategoryList) {
 		String movieCategoryName = "a";
 		String currentCategoryName = "o";
 		
@@ -453,7 +534,7 @@ public class QuestionsGenerator {
 		}
 	}
 	
-	private static void fillKCategory(List<Category> allCategoryList) {
+	private static void fillKCategory(int currentId, List<Category> allCategoryList) {
 		String movieCategoryName = "a";
 		String currentCategoryName = "k";
 		
@@ -473,6 +554,9 @@ public class QuestionsGenerator {
 			answers2List.add(currentMovieObj.getValue(0));
 			
 			for (MovieInfo movieInfo : moviesDataBase) {
+				if (movieInfo.getId() == currentId) {
+					continue;
+				}
 				List<Category> miMoviesList = movieInfo.getCategoryList(movieCategoryName);
 				List<Category> miCurrentNamesList = movieInfo.getCategoryList(currentCategoryName);
 				
@@ -511,7 +595,7 @@ public class QuestionsGenerator {
 		}
 	}
 	
-	private static void fillupNCategory(List<Category> allCategoryList) {
+	private static void fillupNCategory(int currentId, List<Category> allCategoryList) {
 		
 		String currentCategoryName = "n";
 		List<Category> currentValuesList = getCategoryList(currentCategoryName, allCategoryList);
@@ -523,7 +607,7 @@ public class QuestionsGenerator {
 	}
 	
 	
-	private static void fillupMCategory(List<Category> allCategoryList) {
+	private static void fillupMCategory(int currentId, List<Category> allCategoryList) {
 		String movieCategoryName = "a";
 		String currentCategoryName = "m";
 		
@@ -544,6 +628,9 @@ public class QuestionsGenerator {
 			answers2List.add(currentMovieObj.getValue(0));
 			
 			for (MovieInfo movieInfo : moviesDataBase) {
+				if (currentId == movieInfo.getId()) {
+					continue;
+				}
 				List<Category> miMoviesList = movieInfo.getCategoryList(movieCategoryName);
 				List<Category> miHeroList = movieInfo.getCategoryList("b");
 				
@@ -569,7 +656,7 @@ public class QuestionsGenerator {
 		}
 	}
 	
-	private static void fillLCategory(List<Category> allCategoryList) {
+	private static void fillLCategory(int currentId, List<Category> allCategoryList) {
 		String movieCategoryName = "a";
 		String currentCategoryName = "l";
 		
@@ -616,7 +703,7 @@ public class QuestionsGenerator {
 	
 	
 	
-	private static void fillJCategory(List<Category> allCategoryList) {
+	private static void fillJCategory(int currentId, List<Category> allCategoryList) {
 		String movieCategoryName = "a";
 		String currentCategoryName = "j";
 		
@@ -636,6 +723,9 @@ public class QuestionsGenerator {
 			answers2List.add(currentMovieObj.getValue(0));
 			
 			for (MovieInfo movieInfo : moviesDataBase) {
+				if (movieInfo.getId() == currentId) {
+					continue;
+				}
 				List<Category> miMoviesList = movieInfo.getCategoryList(movieCategoryName);
 				List<Category> miCurrentNamesList = movieInfo.getCategoryList(currentCategoryName);
 				
@@ -647,6 +737,10 @@ public class QuestionsGenerator {
 					
 					if ((artistName.equals(currentValueObj.getValue(0))) && 
 					   (characterName.equals(currentValueObj.getValue(1)))) {
+						continue;
+					}
+					if ((characterName.indexOf(currentValueObj.getValue(1)) > -1) || 
+					   (currentValueObj.getValue(1).indexOf(characterName) > -1)) {
 						continue;
 					}
 					if (artistName.equals(currentValueObj.getValue(0))) {
@@ -679,7 +773,7 @@ public class QuestionsGenerator {
 		}
 	}
 	
-	private static void fillHCategory(List<Category> allCategoryList) {
+	private static void fillHCategory(int currentId, List<Category> allCategoryList) {
 		String movieCategoryName = "a";
 		String currentCategoryName = "h";
 		
@@ -699,6 +793,9 @@ public class QuestionsGenerator {
 			answers2List.add(currentMovieObj.getValue(0));
 			
 			for (MovieInfo movieInfo : moviesDataBase) {
+				if (movieInfo.getId() == currentId) {
+					continue;
+				}
 				List<Category> miMoviesList = movieInfo.getCategoryList(movieCategoryName);
 				List<Category> miCurrentNamesList = movieInfo.getCategoryList(currentCategoryName);
 				
@@ -752,27 +849,27 @@ public class QuestionsGenerator {
 		
 	}
 	
-	private static void fillupGCategory(List<Category> allCategoryList) {
-		fillCategory("g", allCategoryList);
+	private static void fillupGCategory(int currentId, List<Category> allCategoryList) {
+		fillCategory("g", currentId, allCategoryList);
 	}
 	
-	private static void fillupFCategory(List<Category> allCategoryList) {
-		fillCategory("f", allCategoryList);
+	private static void fillupFCategory(int currentId, List<Category> allCategoryList) {
+		fillCategory("f", currentId, allCategoryList);
 	}
 	
-	private static void fillupECategory(List<Category> allCategoryList) {
-		fillCategory("e", allCategoryList);
+	private static void fillupECategory(int currentId, List<Category> allCategoryList) {
+		fillCategory("e", currentId, allCategoryList);
 	}
 	
-	private static void fillupCCategory(List<Category> allCategoryList) {
-		fillCategory("c", allCategoryList);
+	private static void fillupCCategory(int currentId, List<Category> allCategoryList) {
+		fillCategory("c", currentId, allCategoryList);
 	}
 	
-	private static void fillupBCategory(List<Category> allCategoryList) {
-		fillCategory("b", allCategoryList);
+	private static void fillupBCategory(int currentId, List<Category> allCategoryList) {
+		fillCategory("b", currentId, allCategoryList);
 	}
 	
-	private static void fillCategory(String categoryName, List<Category> allCategoryList) {
+	private static void fillCategory(String categoryName, int currentId, List<Category> allCategoryList) {
 		String movieCategoryName = "a";
 		String currentCategoryName = categoryName;
 		
@@ -796,6 +893,9 @@ public class QuestionsGenerator {
 			answers2List.add(currentMovieObj.getValue(0));
 			
 			for (MovieInfo movieInfo : moviesDataBase) {
+				if (movieInfo.getId() == currentId) {
+					continue;
+				}
 				List<Category> miMoviesList = movieInfo.getCategoryList(movieCategoryName);
 				List<Category> miCurrentNamesList = movieInfo.getCategoryList(currentCategoryName);
 				List<String> miCurrentValuesMergedList = Utils.getMergedList(0, miCurrentNamesList);
@@ -970,6 +1070,18 @@ public class QuestionsGenerator {
 	    				finalQuestions.addAll(categoryQuestions);
 						break;
 					}
+					case "r": {
+						break;
+					}
+					case "s": {
+						map.put("%S_ARTIST%", category.getValue(0));
+						map.put("%PANI%", category.getValue(1));
+						addToLocalCelebrityList(category.getValue(1));
+						List<String> categoryQuestions = getFormedQuestions("s", "GR", category.getType1Answers(), "sc", 
+	    						category.getType2Answers());
+	    				finalQuestions.addAll(categoryQuestions);
+						break;
+					}
 				}
 			}
 			
@@ -1020,7 +1132,7 @@ public class QuestionsGenerator {
 	    		}
 		    	String celebrityIdSetStr = celebrityIdSet.toString();
 		    	if (celebrityIdSetStr.length() == 0) {
-		    		celebrityIdSetStr = "()";
+		    		celebrityIdSetStr = "(64)";
 		    	}
 		    	int pos = celebrityIdSetStr.lastIndexOf(",");
 		    	if (pos > -1) {

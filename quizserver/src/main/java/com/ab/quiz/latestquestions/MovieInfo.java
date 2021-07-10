@@ -5,6 +5,7 @@ import java.util.List;
 
 public class MovieInfo {
 	private List<Category> categories = new ArrayList<>();
+	private int id;
 	
 	public MovieInfo() {
 	}
@@ -25,5 +26,12 @@ public class MovieInfo {
 	
 	public List<Category> getAllCategories() {
 		return categories;
+	}
+	
+	public void setId(int id) {
+		this.id = id;
+	}
+	public int getId() {
+		return id;
 	}
 }

@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -17,9 +15,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.exceptions.NotAllowedException;
-import com.ab.quiz.handlers.GameManager;
 import com.ab.quiz.pojo.CelebrityDetails;
-import com.ab.quiz.pojo.CelebrityFullDetails;
 import com.ab.quiz.pojo.UpcomingCelebrity;
 
 public class CelebritySpecialHandler {
@@ -184,11 +180,11 @@ public class CelebritySpecialHandler {
 			
 			details.add(celebDetail);
 		}
-		Collections.sort(details, new Comparator<CelebrityDetails>() {
+		/*Collections.sort(details, new Comparator<CelebrityDetails>() {
 			public int compare(final CelebrityDetails summary1, final CelebrityDetails summary2) {
 				return summary1.getName().compareTo(summary2.getName());
 			}
-		});
+		});*/
 		return details;
 	}
 	
@@ -196,18 +192,18 @@ public class CelebritySpecialHandler {
 		
 		CelebritySpecialHandler handler = CelebritySpecialHandler.getInstance();
 		
-		List<CelebrityDetails> details = handler.getCelebrityDetails(System.currentTimeMillis(), 21);
+		List<CelebrityDetails> details = handler.getCelebrityDetails(System.currentTimeMillis(), 10);
 		for (CelebrityDetails cd: details) {
 			System.out.println(cd);
 		}
 		
-		List<UpcomingCelebrity> upcomingEntries = handler.getUpcomingCelebrityDetails(3); 
+		/*List<UpcomingCelebrity> upcomingEntries = handler.getUpcomingCelebrityDetails(3); 
 		for (UpcomingCelebrity str : upcomingEntries) {
 			System.out.println(str);
 		}
 		
 		GameManager gameManager = GameManager.getInstance();
 		CelebrityFullDetails list = gameManager.getCelebrityFullDetails();
-		System.out.println(list);
+		System.out.println(list);*/
 	}
 }
