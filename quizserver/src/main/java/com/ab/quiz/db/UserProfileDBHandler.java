@@ -15,6 +15,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.helper.SendMailTask;
@@ -224,8 +225,11 @@ public class UserProfileDBHandler {
 				if (idRes.next()) {
 					long userProfileId = idRes.getLong(1);
 					userProfile.setId(userProfileId);
-					
-					UserMoney userMoneyObject = new UserMoney(userProfileId, 0, 0, 0, 0, 0, 0);
+					long initialLoadedMoney = 0;
+					if (QuizConstants.TESTMODE == 1) {
+						initialLoadedMoney = 50000;
+					}
+					UserMoney userMoneyObject = new UserMoney(userProfileId, initialLoadedMoney, 0, 0, 0, 0, 0);
 					UserMoneyDBHandler.getInstance().createUserMoney(userMoneyObject);
 				}
 			}
@@ -674,7 +678,7 @@ public class UserProfileDBHandler {
 		
 		UserMoneyDBHandler userMoneyDBHandler = UserMoneyDBHandler.getInstance();
 		int total = 3000;
-		boolean batchMode = true;
+		boolean batchMode = false;
 		
 		List<UserProfile> testProfiles = new ArrayList<>();
 		// System Users from 1 - 10
@@ -779,7 +783,7 @@ public class UserProfileDBHandler {
 			if (batchMode) {
 				userMoneys.add(userMoney);
 			} else {
-				userMoneyDBHandler.createUserMoney(userMoney);
+				//userMoneyDBHandler.createUserMoney(userMoney);
 			}
 		}
 		if (batchMode) {

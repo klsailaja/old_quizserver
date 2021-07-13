@@ -118,8 +118,6 @@ public class InMemUserMoneyManager implements Runnable {
 			cp = ConnectionPool.getInstance();
 			dbConn = cp.getDBConnection();
 			
-			dbConn.setAutoCommit(false);
-			
 			ps = dbConn.prepareStatement(sqlQry);
 			int index = 0;
 			
@@ -137,9 +135,9 @@ public class InMemUserMoneyManager implements Runnable {
 				
 				if (index == 50) {
 					int[] results = ps.executeBatch();
+					dbConn.setAutoCommit(false);
 					dbConn.commit();
 					dbConn.setAutoCommit(true);
-					dbConn.setAutoCommit(false);
 					for (int result : results) {
 						resultsList.add(result);
 					}
@@ -148,6 +146,7 @@ public class InMemUserMoneyManager implements Runnable {
 			}
 			if (index > 0) {
 				int [] results = ps.executeBatch();
+				dbConn.setAutoCommit(false);
 				dbConn.commit();
 				dbConn.setAutoCommit(true);
 				for (int result : results) {

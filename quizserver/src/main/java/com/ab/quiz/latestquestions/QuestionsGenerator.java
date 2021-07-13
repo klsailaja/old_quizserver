@@ -330,6 +330,8 @@ public class QuestionsGenerator {
 			
 			answers1List.add(currentValueObj.getValue(0));
 			answers2List.add(currentMovieObj.getValue(0));
+			wrongAnswers1.addAll(answers1List);
+			wrongAnswers2.addAll(answers2List);
 			
 			for (MovieInfo movieInfo : moviesDataBase) {
 				List<Category> miMoviesList = movieInfo.getCategoryList(movieCategoryName);
@@ -359,18 +361,24 @@ public class QuestionsGenerator {
 					}
 				}
 			}
+			
 			String gender = "b";
 			if (currentValueObj.getCategoryFieldsSize() == 3) {
 				gender = "c";
 			}
+			
+			wrongAnswers1.removeAll(answers1List);
 			List<Integer> finalWrongAnswerIndexes1 = fillupWrongAnswers(gender, wrongAnswers1);
-			for (int index = 0; index < finalWrongAnswerIndexes1.size(); index++) {
+			int fillGap = 4 - answers1List.size();
+			for (int index = 0; index < fillGap; index++) {
 				answers1List.add(wrongAnswers1.get(finalWrongAnswerIndexes1.get(index)));
 			}
 			wrongAnswers1.clear();
 			
+			wrongAnswers2.removeAll(answers2List);
 			List<Integer> finalWrongAnswerIndexes2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
-			for (int index = 0; index < finalWrongAnswerIndexes2.size(); index++) {
+			fillGap = 4 - answers2List.size();
+			for (int index = 0; index < fillGap; index++) {
 				answers2List.add(wrongAnswers2.get(finalWrongAnswerIndexes2.get(index)));
 			}
 			wrongAnswers2.clear();
@@ -391,6 +399,7 @@ public class QuestionsGenerator {
 			List<String> wrongAnswers1 = new ArrayList<>();
 			
 			answers1List.add(currentValueObj.getValue(1));
+			wrongAnswers1.addAll(answers1List);
 			
 			for (MovieInfo movieInfo : moviesDataBase) {
 				List<Category> miCurrentNamesList = movieInfo.getCategoryList(currentCategoryName);
@@ -402,8 +411,11 @@ public class QuestionsGenerator {
 					wrongAnswers1.add(miCurrentCategory.getValue(1));
 				}
 			}
+			
+			wrongAnswers1.removeAll(answers1List);
 			List<Integer> finalWrongAnswerIndexes1 = fillupWrongAnswers(currentCategoryName, wrongAnswers1);
-			for (int index = 0; index < finalWrongAnswerIndexes1.size(); index++) {
+			int fillGap = 4 - answers1List.size();
+			for (int index = 0; index < fillGap; index++) {
 				answers1List.add(wrongAnswers1.get(finalWrongAnswerIndexes1.get(index)));
 			}
 			wrongAnswers1.clear();
@@ -430,6 +442,8 @@ public class QuestionsGenerator {
 			
 			answers1List.add(currentValueObj.getValue(1));
 			answers2List.add(currentMovieObj.getValue(0));
+			wrongAnswers1.addAll(answers1List);
+			wrongAnswers2.addAll(answers2List);
 			
 			for (MovieInfo movieInfo : moviesDataBase) {
 				List<Category> miMoviesList = movieInfo.getCategoryList(movieCategoryName);
@@ -459,14 +473,19 @@ public class QuestionsGenerator {
 			if (currentValueObj.getCategoryFieldsSize() == 3) {
 				gender = "c";
 			}
+			
+			wrongAnswers1.removeAll(answers1List);
 			List<Integer> finalWrongAnswerIndexes1 = fillupWrongAnswers(gender, wrongAnswers1);
-			for (int index = 0; index < finalWrongAnswerIndexes1.size(); index++) {
+			int fillGap = 4 - answers1List.size();
+			for (int index = 0; index < fillGap; index++) {
 				answers1List.add(wrongAnswers1.get(finalWrongAnswerIndexes1.get(index)));
 			}
 			wrongAnswers1.clear();
 			
+			wrongAnswers2.removeAll(answers2List);
 			List<Integer> finalWrongAnswerIndexes2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
-			for (int index = 0; index < finalWrongAnswerIndexes2.size(); index++) {
+			fillGap = 4 - answers2List.size();
+			for (int index = 0; index < fillGap; index++) {
 				answers2List.add(wrongAnswers2.get(finalWrongAnswerIndexes2.get(index)));
 			}
 			wrongAnswers2.clear();
@@ -474,8 +493,6 @@ public class QuestionsGenerator {
 			currentValueObj.addAnswers(1, answers1List);
 			currentValueObj.addAnswers(2, answers2List);
 		}
-		
-
 	}
 	
 	private static void fillupOCategory(int currentId, List<Category> allCategoryList) {
@@ -496,6 +513,8 @@ public class QuestionsGenerator {
 			
 			answers1List.add(currentValueObj.getValue(1));
 			answers2List.add(currentMovieObj.getValue(0));
+			wrongAnswers1.addAll(answers1List);
+			wrongAnswers2.addAll(answers2List);
 			
 			for (MovieInfo movieInfo : moviesDataBase) {
 				List<Category> miMoviesList = movieInfo.getCategoryList(movieCategoryName);
@@ -517,14 +536,19 @@ public class QuestionsGenerator {
 					}
 				}
 			}
+			
+			wrongAnswers1.removeAll(answers1List);
 			List<Integer> finalWrongAnswerIndexes1 = fillupWrongAnswers(currentCategoryName, wrongAnswers1);
-			for (int index = 0; index < finalWrongAnswerIndexes1.size(); index++) {
+			int fillGap = 4 - answers1List.size();
+			for (int index = 0; index < fillGap; index++) {
 				answers1List.add(wrongAnswers1.get(finalWrongAnswerIndexes1.get(index)));
 			}
 			wrongAnswers1.clear();
 			
+			wrongAnswers2.removeAll(answers2List);
 			List<Integer> finalWrongAnswerIndexes2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
-			for (int index = 0; index < finalWrongAnswerIndexes2.size(); index++) {
+			fillGap = 4 - answers2List.size();
+			for (int index = 0; index < fillGap; index++) {
 				answers2List.add(wrongAnswers2.get(finalWrongAnswerIndexes2.get(index)));
 			}
 			wrongAnswers2.clear();
@@ -552,6 +576,8 @@ public class QuestionsGenerator {
 			
 			answers1List.add(currentValueObj.getValue(1));
 			answers2List.add(currentMovieObj.getValue(0));
+			wrongAnswers1.addAll(answers1List);
+			wrongAnswers2.addAll(answers2List);
 			
 			for (MovieInfo movieInfo : moviesDataBase) {
 				if (movieInfo.getId() == currentId) {
@@ -578,14 +604,18 @@ public class QuestionsGenerator {
 					}
 				}
 			}
+			wrongAnswers1.removeAll(answers1List);
 			List<Integer> finalWrongAnswerIndexes1 = fillupWrongAnswers(currentCategoryName, wrongAnswers1);
-			for (int index = 0; index < finalWrongAnswerIndexes1.size(); index++) {
+			int fillGap = 4 - answers1List.size();
+			for (int index = 0; index < fillGap; index++) {
 				answers1List.add(wrongAnswers1.get(finalWrongAnswerIndexes1.get(index)));
 			}
 			wrongAnswers1.clear();
 			
+			wrongAnswers2.removeAll(answers2List);
 			List<Integer> finalWrongAnswerIndexes2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
-			for (int index = 0; index < finalWrongAnswerIndexes2.size(); index++) {
+			fillGap = 4 - answers2List.size();
+			for (int index = 0; index < fillGap; index++) {				
 				answers2List.add(wrongAnswers2.get(finalWrongAnswerIndexes2.get(index)));
 			}
 			wrongAnswers2.clear();
@@ -626,6 +656,7 @@ public class QuestionsGenerator {
 			List<String> wrongAnswers2 = new ArrayList<>();
 			
 			answers2List.add(currentMovieObj.getValue(0));
+			wrongAnswers2.addAll(answers2List);
 			
 			for (MovieInfo movieInfo : moviesDataBase) {
 				if (currentId == movieInfo.getId()) {
@@ -646,8 +677,10 @@ public class QuestionsGenerator {
 				}
 			}
 			
+			wrongAnswers2.removeAll(answers2List);
 			List<Integer> finalWrongAnswerIndexes2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
-			for (int index = 0; index < finalWrongAnswerIndexes2.size(); index++) {
+			int fillGap = 4 - answers2List.size();
+			for (int index = 0; index < fillGap; index++) {
 				answers2List.add(wrongAnswers2.get(finalWrongAnswerIndexes2.get(index)));
 			}
 			wrongAnswers2.clear();
@@ -674,6 +707,7 @@ public class QuestionsGenerator {
 			List<String> wrongAnswers2 = new ArrayList<>();
 			
 			answers2List.add(currentMovieObj.getValue(0));
+			wrongAnswers2.addAll(answers2List);
 			
 			for (MovieInfo movieInfo : moviesDataBase) {
 				
@@ -690,8 +724,10 @@ public class QuestionsGenerator {
 					wrongAnswers2.add(miMovieObject.getValue(0));
 				}
 		
+				wrongAnswers2.removeAll(answers2List);
 				List<Integer> finalWrongAnswerIndexes2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
-				for (int index = 0; index < finalWrongAnswerIndexes2.size(); index++) {
+				int fillGap = 4 - answers2List.size();
+				for (int index = 0; index < fillGap; index++) {
 					answers2List.add(wrongAnswers2.get(finalWrongAnswerIndexes2.get(index)));
 				}
 				wrongAnswers2.clear();
@@ -721,6 +757,8 @@ public class QuestionsGenerator {
 			
 			answers1List.add(currentValueObj.getValue(1));
 			answers2List.add(currentMovieObj.getValue(0));
+			wrongAnswers1.addAll(answers1List);
+			wrongAnswers2.addAll(answers2List);
 			
 			for (MovieInfo movieInfo : moviesDataBase) {
 				if (movieInfo.getId() == currentId) {
@@ -756,14 +794,19 @@ public class QuestionsGenerator {
 			if (isFemale) {
 				nameCategory = "j1";
 			}
+			
+			wrongAnswers1.removeAll(answers1List);
 			List<Integer> finalWrongAnswerIndexes1 = fillupWrongAnswers(nameCategory, wrongAnswers1);
-			for (int index = 0; index < finalWrongAnswerIndexes1.size(); index++) {
+			int fillGap = 4 - answers1List.size();
+			for (int index = 0; index < fillGap; index++) {
 				answers1List.add(wrongAnswers1.get(finalWrongAnswerIndexes1.get(index)));
 			}
 			wrongAnswers1.clear();
 			
+			wrongAnswers2.removeAll(answers2List);
 			List<Integer> finalWrongAnswerIndexes2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
-			for (int index = 0; index < finalWrongAnswerIndexes2.size(); index++) {
+			fillGap = 4 - answers2List.size();
+			for (int index = 0; index < fillGap; index++) {
 				answers2List.add(wrongAnswers2.get(finalWrongAnswerIndexes2.get(index)));
 			}
 			wrongAnswers2.clear();
@@ -792,6 +835,9 @@ public class QuestionsGenerator {
 			answers1List.add(currentValueObj.getValue(2));
 			answers2List.add(currentMovieObj.getValue(0));
 			
+			wrongAnswers1.addAll(answers1List);
+			wrongAnswers2.addAll(answers2List);
+			
 			for (MovieInfo movieInfo : moviesDataBase) {
 				if (movieInfo.getId() == currentId) {
 					continue;
@@ -816,12 +862,12 @@ public class QuestionsGenerator {
 						String miCharName2 = miCurrentCategory.getValue(2);
 						if (relationName.equals(miCurrentCategory.getValue(1))) {
 							if (charName1.equals(miCurrentCategory.getValue(0))) {
-								if (!wrongAnswers1.contains(miCharName2)) {
+								if ((!wrongAnswers1.contains(miCharName2)) && (!wrongAnswers2.contains(miMovieObject.getValue(0)))) {
 									wrongAnswers1.add(miCharName2);
 									wrongAnswers2.add(miMovieObject.getValue(0));
 								}
 							} else if (charName2.equals(miCurrentCategory.getValue(2))) {
-								if (!wrongAnswers1.contains(miCharName2)) {
+								if ((!wrongAnswers1.contains(miCharName2)) && (!wrongAnswers2.contains(miMovieObject.getValue(0)))) {
 									wrongAnswers1.add(miCharName2);
 									wrongAnswers2.add(miMovieObject.getValue(0));
 								}
@@ -831,14 +877,18 @@ public class QuestionsGenerator {
 				}
 			}
 			
+			wrongAnswers1.removeAll(answers1List);
 			List<Integer> finalWrongAnswerIndexes1 = fillupWrongAnswers(currentValueObj.getValue(1), wrongAnswers1);
-			for (int index = 0; index < finalWrongAnswerIndexes1.size(); index++) {
+			int fillGap = 4 - answers1List.size();
+			for (int index = 0; index < fillGap; index++) {
 				answers1List.add(wrongAnswers1.get(finalWrongAnswerIndexes1.get(index)));
 			}
 			wrongAnswers1.clear();
 			
+			wrongAnswers2.removeAll(answers2List);
 			List<Integer> finalWrongAnswerIndexes2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
-			for (int index = 0; index < finalWrongAnswerIndexes2.size(); index++) {
+			fillGap = 4 - answers2List.size();
+			for (int index = 0; index < fillGap; index++) {
 				answers2List.add(wrongAnswers2.get(finalWrongAnswerIndexes2.get(index)));
 			}
 			wrongAnswers2.clear();
@@ -891,6 +941,8 @@ public class QuestionsGenerator {
 			
 			answers1List.add(currentValueObj.getValue(0));
 			answers2List.add(currentMovieObj.getValue(0));
+			wrongAnswers1.addAll(answers1List);
+			wrongAnswers2.addAll(answers2List);
 			
 			for (MovieInfo movieInfo : moviesDataBase) {
 				if (movieInfo.getId() == currentId) {
@@ -920,14 +972,18 @@ public class QuestionsGenerator {
 				}
 			}
 			
+			wrongAnswers1.removeAll(answers1List);
 			List<Integer> finalWrongAnswerIndexes1 = fillupWrongAnswers(currentCategoryName, wrongAnswers1);
-			for (int index = 0; index < finalWrongAnswerIndexes1.size(); index++) {
+			int fillGap = 4 - answers1List.size();
+			for (int index = 0; index < fillGap; index++) {
 				answers1List.add(wrongAnswers1.get(finalWrongAnswerIndexes1.get(index)));
 			}
 			wrongAnswers1.clear();
 			
+			wrongAnswers2.removeAll(answers2List);
 			List<Integer> finalWrongAnswerIndexes2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
-			for (int index = 0; index < finalWrongAnswerIndexes2.size(); index++) {
+			fillGap = 4 - answers2List.size();
+			for (int index = 0; index < fillGap; index++) {
 				answers2List.add(wrongAnswers2.get(finalWrongAnswerIndexes2.get(index)));
 			}
 			wrongAnswers2.clear();
@@ -941,7 +997,6 @@ public class QuestionsGenerator {
 		if (!perMovieCelebrityNames.contains(artistName)) {
 			perMovieCelebrityNames.add(artistName);
 		}
-		
 	}
 	
 	private static void formQuestions() throws Exception {
@@ -1218,7 +1273,22 @@ public class QuestionsGenerator {
 	private static List<Integer> fillupWrongAnswers(String categoryName, List<String> wrongAnswers) {
 		
 		if (wrongAnswers.size() < 4) {
-			fillFromExtraOptions(categoryName, wrongAnswers);
+			//fillFromExtraOptions(categoryName, wrongAnswers);
+			List<String> extraOptionsList = extraOptionsMap.get(categoryName);
+			int totalTokensCt = 3;
+			int fillCt = totalTokensCt - wrongAnswers.size();
+			if (extraOptionsList != null) {
+				int size = extraOptionsList.size();
+				if (size > 0) {
+					for (int index = 1; index <= fillCt; index ++) {
+						int randomIndex = getRandomNumber(0, size);
+						while (wrongAnswers.contains(extraOptionsList.get(randomIndex))) {
+							randomIndex = getRandomNumber(0, size);
+						}
+						wrongAnswers.add(extraOptionsList.get(randomIndex));
+					}
+				}
+			}
 			List<Integer> indices = new ArrayList<>();
 			indices.add(0);
 			indices.add(1);

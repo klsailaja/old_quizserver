@@ -114,7 +114,7 @@ public class PaymentProcessor {
 				
 				if (bossUserMoney == null) {
 					logger.info("*****************************************");
-					logger.info("User Money not found for userId : {}", userProfileId);
+					logger.info("Boss User Money not found for userId : {} with boss id : {}", userProfileId, bossUserProfileId);
 					logger.info("*****************************************");
 					continue;
 				}

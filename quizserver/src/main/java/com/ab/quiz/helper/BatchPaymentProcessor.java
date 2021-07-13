@@ -28,10 +28,11 @@ public class BatchPaymentProcessor implements Runnable {
 	public void addUserBossIds(Map<Long,Long> gameUserBossIds) {
 		userIdVsBossId.putAll(gameUserBossIds);
 	}
-	
+
+	/*
 	public void addUserMoneyEntries(Map<Long, UserMoney> gameUserMoneyEntries) {
 		userIdVsUserMoney.putAll(gameUserMoneyEntries);
-	}
+	}*/
 	
 	public void addPaymentProcessor(PaymentProcessor processor) {
 		paymentProcessors.add(processor);

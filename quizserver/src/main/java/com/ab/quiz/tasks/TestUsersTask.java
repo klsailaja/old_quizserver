@@ -88,6 +88,9 @@ public class TestUsersTask implements Runnable {
 				++index;
 				if ((index % QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED.length) == 0) {
 					testingUserIdMode1 = 1001;
+					
+				}
+				if ((index % QuizConstants.GAMES_RATES_IN_ONE_SLOT_SPECIAL.length) == 0) {
 					testingUserIdMode2 = 2001;
 				}
 			}
