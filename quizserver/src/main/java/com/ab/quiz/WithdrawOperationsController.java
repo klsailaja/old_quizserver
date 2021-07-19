@@ -93,7 +93,7 @@ public class WithdrawOperationsController extends BaseController {
 		logger.info("In getRecentWinWDMessages with userId {}", userId);
 		try {
 			List<String> combinedMsgs = WinMsgHandler.getInstance().getCombinedMessages();
-			if (userId != -1) {
+			if (userId > 0) {
 				List<String> gameWinMsgs = MyTransactionDBHandler.getInstance().getRecentWinRecords(userId);
 				List<String> withDrawMsgs = WithdrawDBHandler.getInstance().getRecentWinRecords(userId);
 				for (int index = withDrawMsgs.size() - 1; index >= 0; index--) {

@@ -3,6 +3,7 @@ package com.ab.quiz.helper;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -97,6 +98,8 @@ public class GamesGenerator implements Runnable {
 	}
 	
 	public void setupGames() {
+		
+		logger.info("The first game start time is :" + new Date(firstGameTime));
 		
 		long repeatedTaskInterval = QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS; 
 				

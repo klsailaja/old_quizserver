@@ -82,23 +82,16 @@ public class TestUsersTask implements Runnable {
 		try {
 			logger.info("Adding simulated user start for {} games", mode);
 			List<GameDetails> games = GameManager.getInstance().getFutureGames(mode);
-			int index = 0;
 			for (GameDetails gameDetails : games) {
 				addTestUsersToGame(gameDetails);
-				++index;
-				if ((index % QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED.length) == 0) {
-					testingUserIdMode1 = 1001;
-					
-				}
-				if ((index % QuizConstants.GAMES_RATES_IN_ONE_SLOT_SPECIAL.length) == 0) {
-					testingUserIdMode2 = 2001;
-				}
 			}
 			logger.info("Adding simulated user completed for {} games", mode);
 			if (mode == 1) {
 				mode = 2;
+				testingUserIdMode2 = 2001;
 			} else {
 				mode = 1;
+				testingUserIdMode1 = 1001;
 			}
 		} catch(Exception ex) {
 			logger.error("Exception in test users task", ex);

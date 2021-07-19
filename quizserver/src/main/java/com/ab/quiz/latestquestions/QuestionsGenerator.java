@@ -1154,7 +1154,12 @@ public class QuestionsGenerator {
 			}*/
 			
 			String sqlQry = "INSERT INTO QUIZQUESTIONS (NSTATEMENT,NOPTIONA,NOPTIONB,NOPTIONC,NOPTIOND,CORRECTOPTION,CATEGORY) VALUES('";
-	    	
+			List<String> mixedModeCategories = new ArrayList<>();
+			mixedModeCategories.add("b");
+			mixedModeCategories.add("c");
+			mixedModeCategories.add("e");
+			mixedModeCategories.add("f");
+			
 	    	for (String lineQuestion : finalQuestions) {
 	    		
 	    		StringTokenizer finalQuestionStrTokenizer = new StringTokenizer(lineQuestion, ":");
@@ -1188,6 +1193,17 @@ public class QuestionsGenerator {
 		    	String celebrityIdSetStr = celebrityIdSet.toString();
 		    	if (celebrityIdSetStr.length() == 0) {
 		    		celebrityIdSetStr = "(64)";
+		    	} else {
+		    		String categoryName = categoryNameStr;
+		    		int position = categoryName.indexOf("1");
+		    		if (position > -1) {
+		    			categoryName = categoryName.substring(0, position);
+		    		}
+		    		if (mixedModeCategories.contains(categoryName)) {
+		    			celebrityIdSet.append(64);
+		    			celebrityIdSet.append(",");
+		    			celebrityIdSetStr = celebrityIdSet.toString();
+		    		}
 		    	}
 		    	int pos = celebrityIdSetStr.lastIndexOf(",");
 		    	if (pos > -1) {

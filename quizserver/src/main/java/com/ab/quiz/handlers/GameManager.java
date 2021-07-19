@@ -301,6 +301,7 @@ public class GameManager {
 			}
 			Integer enrolledGameId = startTimeToGameId.get(currentGameStartTime);
 			if (enrolledGameId != null) {
+				logger.info("Trying to join the game " + gameId + " Temp Id is " + gameHandler.getGameDetails().getTempGameId());	
 				throw new NotAllowedException("Not Allowed as Already enrolled for game starting at same time with GameId#: " + enrolledGameId);
 			}
 			
