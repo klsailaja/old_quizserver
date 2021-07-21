@@ -82,16 +82,27 @@ public class TestUsersTask implements Runnable {
 		try {
 			logger.info("Adding simulated user start for {} games", mode);
 			List<GameDetails> games = GameManager.getInstance().getFutureGames(mode);
+			int index = 0;
 			for (GameDetails gameDetails : games) {
 				addTestUsersToGame(gameDetails);
+				index ++;
+				if (mode == 1) {
+					if ((index % QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED.length) == 0) {
+						index = 0;
+						testingUserIdMode1 = 1001;
+					}
+				} else {
+					if ((index % QuizConstants.GAMES_RATES_IN_ONE_SLOT_SPECIAL.length) == 0) {
+						index = 0;
+						testingUserIdMode2 = 2001;
+					}
+				}
 			}
 			logger.info("Adding simulated user completed for {} games", mode);
 			if (mode == 1) {
 				mode = 2;
-				testingUserIdMode2 = 2001;
 			} else {
 				mode = 1;
-				testingUserIdMode1 = 1001;
 			}
 		} catch(Exception ex) {
 			logger.error("Exception in test users task", ex);
@@ -99,9 +110,9 @@ public class TestUsersTask implements Runnable {
 	}
 	
 	private void addTestUsersToGame(GameDetails gameDetails) {
-		if (gameDetails.getTicketRate() == 0) {
+		/*if (gameDetails.getTicketRate() == 0) {
 			return;
-		}
+		}*/
 		if (gameDetails.getCurrentCount() > 0) {
 			return;
 		}
@@ -112,11 +123,9 @@ public class TestUsersTask implements Runnable {
 		int randomPlayerCount = 8;
 		
 		for (int index = 1; index <= randomPlayerCount; index ++) {
-			
 			try {
-				
 				long predefinedUserProfileId = -1;
-				if (gameDetails.getGameType() == 1) {
+				if (mode == 1) {
 					predefinedUserProfileId = testingUserIdMode1++; 
 				} else {
 					predefinedUserProfileId = testingUserIdMode2++;

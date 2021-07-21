@@ -3,6 +3,8 @@ package com.ab.quiz.helper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,6 +18,7 @@ public class WinMsgHandler implements Runnable {
 	private static WinMsgHandler instance = null;
 	
 	private List<String> combinedMessages = new ArrayList<>();
+	private ReadWriteLock lock = new ReentrantReadWriteLock();
 	
 	private WinMsgHandler() {
 	}
@@ -36,15 +39,20 @@ public class WinMsgHandler implements Runnable {
 
 	@Override
 	public void run() {
+		
+		lock.writeLock().lock();
+		
 		try {
-			List<String> gameWinMsgs = MyTransactionDBHandler.getInstance().getRecentWinRecords(-1);
-			List<String> withDrawMsgs = WithdrawDBHandler.getInstance().getRecentWinRecords(-1);
+			
+			combinedMessages.clear();
+			List<String> gameWinMsgs = MyTransactionDBHandler.getInstance().getRecentWinRecords(-1, false, null);
+			List<String> withDrawMsgs = WithdrawDBHandler.getInstance().getRecentWinRecords(-1, false, null);
 			List<String> remainingMsgs = gameWinMsgs;
 			
 			int size1 = gameWinMsgs.size();
 			int size2 = withDrawMsgs.size();
 			
-			logger.debug("In the run method {} : {}", size1, size2);
+			logger.info("In the run method {} : {}", size1, size2);
 			
 			int smallSize = size2;
 			if (size1 < smallSize) {
@@ -60,9 +68,13 @@ public class WinMsgHandler implements Runnable {
 		} catch(Exception ex) {
 			logger.error("Exception seen ", ex);
 		}
+		lock.writeLock().unlock();
 	}
 	
 	public List<String> getCombinedMessages() {
-		return combinedMessages;
+		lock.readLock().lock();
+		List<String> retValue = combinedMessages;
+		lock.readLock().unlock();
+		return retValue;
 	}
 }

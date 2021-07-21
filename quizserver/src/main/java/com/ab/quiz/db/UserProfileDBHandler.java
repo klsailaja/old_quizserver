@@ -17,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.exceptions.NotAllowedException;
+import com.ab.quiz.handlers.UserProfileHandler;
 import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.helper.SendMailTask;
 import com.ab.quiz.pojo.Mail;
@@ -687,7 +688,7 @@ public class UserProfileDBHandler {
 			userProfile.setEmailAddress("systemuser" + index + "@gmail.com");
 			userProfile.setName("Systemuser" + index);
 			userProfile.setPasswordHash("5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5");
-			userProfile.setBossId(0);
+			userProfile.setBossId(-1);
 			userProfile.setBossName("");
 			userProfile.setForgotPasswdUsed(0);
 			userProfile.setLoggedIn(0);
@@ -707,6 +708,7 @@ public class UserProfileDBHandler {
 				testProfiles.add(userProfile);
 			} else {
 				dbHandler.createUserProfile(userProfile);
+				//UserProfileHandler.getInstance().createUserProfile();
 			}
 		}
 		
@@ -715,7 +717,7 @@ public class UserProfileDBHandler {
 		userProfile.setName("Rajasekhar");
 		userProfile.setPasswordHash("5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5");
 		userProfile.setBossReferredId("NoOne");
-		userProfile.setBossId(0);
+		userProfile.setBossId(-1);
 		userProfile.setBossName("");
 		userProfile.setForgotPasswdUsed(0);
 		userProfile.setLoggedIn(0);
@@ -739,11 +741,11 @@ public class UserProfileDBHandler {
 		for (int index = 22; index <= total; index ++) {
 			userProfile = new UserProfile();
 			userProfile.setEmailAddress("testuser" + index + "@gmail.com");
-			userProfile.setName("Testuser" + index);
+			userProfile.setName("testuser" + index);
 			userProfile.setPasswordHash("5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5");
-			userProfile.setBossReferredId("NoOne");
-			userProfile.setBossId(index + 1);
-			userProfile.setBossName("Raj" + String.valueOf(userProfile.getBossId()));
+			userProfile.setBossReferredId("RAJASE21");
+			//userProfile.setBossId(index + 1);
+			//userProfile.setBossName("Raj" + String.valueOf(userProfile.getBossId()));
 			userProfile.setForgotPasswdUsed(0);
 			userProfile.setLoggedIn(0);
 			userProfile.setCreatedDate(1609861020944L);
@@ -761,7 +763,8 @@ public class UserProfileDBHandler {
 			if (batchMode) {
 				testProfiles.add(userProfile);
 			} else {
-				dbHandler.createUserProfile(userProfile);
+				//dbHandler.createUserProfile(userProfile);
+				UserProfileHandler.getInstance().createUserProfile(userProfile);
 			}
 		}
 		if (batchMode) {

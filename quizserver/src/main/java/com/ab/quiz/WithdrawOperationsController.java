@@ -13,11 +13,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ab.quiz.db.MyTransactionDBHandler;
+import com.ab.quiz.db.UserProfileDBHandler;
 import com.ab.quiz.db.WithdrawDBHandler;
 import com.ab.quiz.exceptions.InternalException;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.UserMoneyHandler;
 import com.ab.quiz.helper.WinMsgHandler;
+import com.ab.quiz.pojo.UserProfile;
 import com.ab.quiz.pojo.WithdrawRequestInput;
 import com.ab.quiz.pojo.WithdrawRequestsHolder;
 
@@ -93,9 +95,15 @@ public class WithdrawOperationsController extends BaseController {
 		logger.info("In getRecentWinWDMessages with userId {}", userId);
 		try {
 			List<String> combinedMsgs = WinMsgHandler.getInstance().getCombinedMessages();
-			if (userId > 0) {
-				List<String> gameWinMsgs = MyTransactionDBHandler.getInstance().getRecentWinRecords(userId);
-				List<String> withDrawMsgs = WithdrawDBHandler.getInstance().getRecentWinRecords(userId);
+			if (userId == -1) {
+				return combinedMsgs;
+			}
+			UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userId);
+			if (userProfile.getBossId() > 0) {
+				List<String> gameWinMsgs = MyTransactionDBHandler.
+						getInstance().getRecentWinRecords(userProfile.getBossId(), true, userProfile.getBossName());
+				List<String> withDrawMsgs = WithdrawDBHandler.
+						getInstance().getRecentWinRecords(userProfile.getBossId(), true, userProfile.getBossName());
 				for (int index = withDrawMsgs.size() - 1; index >= 0; index--) {
 					combinedMsgs.add(0, withDrawMsgs.get(index));
 				}

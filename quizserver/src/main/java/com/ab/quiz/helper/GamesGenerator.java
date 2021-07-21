@@ -121,8 +121,15 @@ public class GamesGenerator implements Runnable {
 		logger.info("Running Repeated Task for mode {}", mode);
 		try {
 			
+			int[] numberOfGamesInOneSlot = QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED;
+			int noOfGamesInOneSlot = numberOfGamesInOneSlot.length;
+			if (mode == 2) {
+				numberOfGamesInOneSlot = QuizConstants.GAMES_RATES_IN_ONE_SLOT_SPECIAL;
+				noOfGamesInOneSlot = numberOfGamesInOneSlot.length;
+			}
+			
 			List<GameHandler> newGames = new ArrayList<>();
-			for (int index = 1; index <= QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED.length; index ++) {
+			for (int index = 1; index <= noOfGamesInOneSlot; index ++) {
 				newGames.add(nextGameSet.remove(0));
 			}
 			GameManager.getInstance().addNewGames(newGames);

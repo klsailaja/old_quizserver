@@ -72,9 +72,9 @@ public class MyTransactionDBHandler {
 			+ USERID + " = ? AND " + ACCOUNT_TYPE + " = ?";
 	
 	private static final String LATEST_WIN_RECORDS = "SELECT " + USERID + "," + AMOUNT + "," + DATE + " FROM " + TABLE_NAME 
-			+ " WHERE " + ISWIN + " = 1 ORDER BY " + ID + " DESC LIMIT 0,120";
+			+ " WHERE " + ISWIN + " = 1 AND " + ACCOUNT_TYPE + " = 2 ORDER BY " + ID + " DESC LIMIT 0,120";
 	private static final String LATEST_BOSS_WIN_RECORDS = "SELECT " + USERID + "," + AMOUNT + "," + DATE + " FROM " + TABLE_NAME 
-			+ " WHERE " + USERID + " = ? AND " + ISWIN + " = 1 ORDER BY " + ID + " DESC LIMIT 0,10";
+			+ " WHERE " + USERID + " = ? AND " + ACCOUNT_TYPE + " = 2 AND " + ISWIN + " = 1 ORDER BY " + ID + " DESC LIMIT 0,10";
 	private static final String REMOVE_OLD_RECORDS = "DELETE FROM " + TABLE_NAME 
 			+ " WHERE (" + DATE + " < ? AND ID <> 0)";
 	
@@ -254,20 +254,19 @@ public class MyTransactionDBHandler {
 		}
 	}
 	
-	public List<String> getRecentWinRecords(long userProfileId) throws SQLException {
+	public List<String> getRecentWinRecords(long userProfileId, boolean isBoss, String bossUserName) throws SQLException {
 		
 		ConnectionPool cp = ConnectionPool.getInstance();
 		Connection dbConn = cp.getDBConnection();
 		ResultSet rs = null;
 		
 		String sql = LATEST_WIN_RECORDS;
-		if (userProfileId != -1) {
+		if (isBoss) {
 			sql = LATEST_BOSS_WIN_RECORDS;
 		}
 		
 		PreparedStatement ps = dbConn.prepareStatement(sql);
-		
-		if (userProfileId != -1) {
+		if (isBoss) {
 			ps.setLong(1, userProfileId);
 		}
 		
@@ -282,12 +281,14 @@ public class MyTransactionDBHandler {
 					int amt = rs.getInt(AMOUNT);
 					//long dateTime = rs.getLong(DATE);
 					
-					UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userId);
-					String userName = userProfile.getName();
+					String userName = null;
 					String str = msg1;
-					if (userProfileId != -1) {
-						userName = userProfile.getBossName();
+					if (isBoss) {
+						userName = bossUserName;
 						str = msg2;
+					} else {
+						UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userId);
+						userName = userProfile.getName();
 					}
 					
 					str = str.replace("$NAME", userName);

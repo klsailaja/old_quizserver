@@ -81,7 +81,12 @@ public class Test {
 		
 		String str1 = getUserNotionTimeStr(time1, true);
 		System.out.println("str1 :" + str1);*/
-		IterationDemo.main(new String[]{"test"});
+		//IterationDemo.main(new String[]{"test"});
+		int total = 0;
+		for (int i = 3; i <= 199; i+=2) {
+			total = total + i;
+		}
+		System.out.println("Total " + total);
 	}
 	
 	private int getRandomNumber(int min, int max) {

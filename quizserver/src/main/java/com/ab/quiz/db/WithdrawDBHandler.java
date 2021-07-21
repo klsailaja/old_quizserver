@@ -630,20 +630,19 @@ public class WithdrawDBHandler {
 		return sb.toString();
 	}
 	
-	public List<String> getRecentWinRecords(long userProfileId) throws SQLException {
+	public List<String> getRecentWinRecords(long userProfileId, boolean isBoss, String bossUserName) throws SQLException {
 		
 		ConnectionPool cp = ConnectionPool.getInstance();
 		Connection dbConn = cp.getDBConnection();
 		ResultSet rs = null;
 		
 		String sql = LATEST_WD_RECORDS;
-		if (userProfileId != -1) {
+		if (isBoss) {
 			sql = LATEST_BOSS_WD_RECORDS;
 		}
-		
 		PreparedStatement ps = dbConn.prepareStatement(sql);
 		
-		if (userProfileId != -1) {
+		if (isBoss) {
 			ps.setLong(1, userProfileId);
 			ps.setInt(2, WithdrawReqState.CLOSED.getId());
 		} else {
@@ -661,13 +660,17 @@ public class WithdrawDBHandler {
 					int amt = rs.getInt(AMOUNT);
 					//long dateTime = rs.getLong(DATE);
 					
-					UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userId);
+					String userName = null;
 					String str = msg1;
-					if (userProfileId != -1) {
+					if (isBoss) {
+						userName = bossUserName;
 						str = msg2;
+					} else {
+						UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userId);
+						userName = userProfile.getName();
 					}
 					
-					str = str.replace("$NAME", userProfile.getName());
+					str = str.replace("$NAME", userName);
 					str = str.replace("$AMT", String.valueOf(amt));
 					
 					winMessages.add(str);
@@ -691,7 +694,7 @@ public class WithdrawDBHandler {
 	
 	public static void main(String[] args) throws SQLException {
 		WithdrawDBHandler instance = WithdrawDBHandler.getInstance();
-		List<String> msgs = instance.getRecentWinRecords(70);
+		List<String> msgs = instance.getRecentWinRecords(24, true, "Raj24");
 		for (String str : msgs) {
 			System.out.println(str);
 		}
