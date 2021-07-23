@@ -169,6 +169,8 @@ public class GameHistoryDBHandler {
 				if (index == batchSize) {
 					index = 0;
 					int results[] = psPlayer.executeBatch();
+					dbConn.setAutoCommit(false);
+					dbConn.commit();
 					for (int result : results) {
 						if (result >= 1) {
 							++totalSuccessCount;
@@ -176,13 +178,12 @@ public class GameHistoryDBHandler {
 							++totalFailureCount;
 						}
 					}
-					dbConn.commit();
-					dbConn.setAutoCommit(true);
-					dbConn.setAutoCommit(false);
 				}
 			}
 			if (index > 0) {
 				int results[] = psPlayer.executeBatch();
+				dbConn.setAutoCommit(false);
+				dbConn.commit();
 				for (int result : results) {
 					if (result >= 1) {
 						++totalSuccessCount;
@@ -190,8 +191,6 @@ public class GameHistoryDBHandler {
 						++totalFailureCount;
 					}
 				}
-				dbConn.commit();
-				dbConn.setAutoCommit(true);
 			}
 			logger.info("Bulk deleted Game Player records with success row count {} : failure row count {}", 
 					totalSuccessCount, totalFailureCount);
@@ -243,6 +242,8 @@ public class GameHistoryDBHandler {
 				if (index == batchSize) {
 					index = 0;
 					int results[] = psPlayer.executeBatch();
+					dbConn.setAutoCommit(false);
+					dbConn.commit();
 					for (int result : results) {
 						if (result == 1) {
 							++totalSuccessCount;
@@ -250,13 +251,12 @@ public class GameHistoryDBHandler {
 							++totalFailureCount;
 						}
 					}
-					dbConn.commit();
-					dbConn.setAutoCommit(true);
-					dbConn.setAutoCommit(false);
 				}
 			}
 			if (index > 0) {
 				int results[] = psPlayer.executeBatch();
+				dbConn.setAutoCommit(false);
+				dbConn.commit();
 				for (int result : results) {
 					if (result == 1) {
 						++totalSuccessCount;
@@ -264,8 +264,6 @@ public class GameHistoryDBHandler {
 						++totalFailureCount;
 					}
 				}
-				dbConn.commit();
-				dbConn.setAutoCommit(true);
 			}
 			logger.info("Bulk inserted Game Player records with success row count {} : failure row count {}", 
 					totalSuccessCount, totalFailureCount);
@@ -319,9 +317,8 @@ public class GameHistoryDBHandler {
 				
 				if (index == batchSize1) {
 					int results[] = ps.executeBatch();
-					dbConn.commit();
-					dbConn.setAutoCommit(true);
 					dbConn.setAutoCommit(false);
+					dbConn.commit();
 					index = 0;
 					for (int result : results) {
 						if (result == 1) {
@@ -335,8 +332,8 @@ public class GameHistoryDBHandler {
 			
 			if (index > 0) {
 				int results[] = ps.executeBatch();
+				dbConn.setAutoCommit(false);
 				dbConn.commit();
-				dbConn.setAutoCommit(true);
 				for (int result : results) {
 					if (result == 1) {
 						++totalSuccessCount;

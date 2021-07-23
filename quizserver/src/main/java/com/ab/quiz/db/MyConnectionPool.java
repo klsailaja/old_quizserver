@@ -156,6 +156,7 @@ public class MyConnectionPool {
 						}
 
 						if (isHealthy) {
+							pc.setAutoCommit(true);
 							return pc;
 						} else {
 							try {

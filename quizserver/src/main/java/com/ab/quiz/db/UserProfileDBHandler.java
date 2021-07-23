@@ -144,8 +144,8 @@ public class UserProfileDBHandler {
 				
 				if (index % batchSize == 0) {
 					int results[] = ps.executeBatch();
-					dbConn.setAutoCommit(true);
 					dbConn.setAutoCommit(false);
+					dbConn.commit();
 					for (int result : results) {
 						if (result == 1) {
 							++totalSuccessCount;
@@ -157,7 +157,8 @@ public class UserProfileDBHandler {
 			}
 			if (index > 0) {
 				int results[] = ps.executeBatch();
-				dbConn.setAutoCommit(true);
+				dbConn.setAutoCommit(false);
+				dbConn.commit();
 				for (int result : results) {
 					if (result == 1) {
 						++totalSuccessCount;
@@ -607,8 +608,8 @@ public class UserProfileDBHandler {
 				if (index == batchSize) {
 					index = 0;
 					int[] results = ps.executeBatch();
-					dbConn.setAutoCommit(true);
 					dbConn.setAutoCommit(false);
+					dbConn.commit();
 					for (int result : results) {
 						if (result == 1) {
 							++totalSuccessCount;
@@ -620,7 +621,8 @@ public class UserProfileDBHandler {
 			}
 			if (index > 0) {
 				int[] results = ps.executeBatch();
-				dbConn.setAutoCommit(true);
+				dbConn.setAutoCommit(false);
+				dbConn.commit();
 				for (int result : results) {
 					if (result == 1) {
 						++totalSuccessCount;

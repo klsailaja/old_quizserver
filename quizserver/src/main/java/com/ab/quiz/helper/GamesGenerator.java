@@ -34,6 +34,9 @@ public class GamesGenerator implements Runnable {
 	private long firstGameTime;
 	
 	private int mode = 1; // 1 - public, 2 - celebrities
+	private Thread resultProcessor;
+	private boolean firstTime = true;
+	private boolean _mustStop = false;
 	
 	public GamesGenerator(int mode) {
 		this.mode = mode;
@@ -103,11 +106,15 @@ public class GamesGenerator implements Runnable {
 		
 		long repeatedTaskInterval = QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS; 
 				
-		long initailDelay = firstGameTime - System.currentTimeMillis() + QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS
-				- QuizConstants.START_PAYMENTS_BEFORE_COMPLETION_TIME_OFFSET;
+		//long initailDelay = firstGameTime - System.currentTimeMillis() + QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS
+		//		- QuizConstants.START_PAYMENTS_BEFORE_COMPLETION_TIME_OFFSET;
 		
-		LazyScheduler.getInstance().submitRepeatedTask(this, initailDelay, 
-					repeatedTaskInterval, TimeUnit.MILLISECONDS);
+		resultProcessor = new Thread(this);
+		resultProcessor.setDaemon(true);
+		resultProcessor.start();
+		
+		/*LazyScheduler.getInstance().submitRepeatedTask(this, initailDelay, 
+					repeatedTaskInterval, TimeUnit.MILLISECONDS);*/
 		
 		long gameCancellerTaskDelay = firstGameTime - System.currentTimeMillis()
 				- QuizConstants.GAME_BEFORE_LOCK_PERIOD_IN_MILLIS + 1 * 1000;
@@ -116,31 +123,54 @@ public class GamesGenerator implements Runnable {
 				repeatedTaskInterval, TimeUnit.MILLISECONDS);
 		
 	}
+	
+	public void halt() {
+		_mustStop = true;
+		resultProcessor.interrupt();
+	}
 
 	public void run() {
-		logger.info("Running Repeated Task for mode {}", mode);
-		try {
-			
-			int[] numberOfGamesInOneSlot = QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED;
-			int noOfGamesInOneSlot = numberOfGamesInOneSlot.length;
-			if (mode == 2) {
-				numberOfGamesInOneSlot = QuizConstants.GAMES_RATES_IN_ONE_SLOT_SPECIAL;
-				noOfGamesInOneSlot = numberOfGamesInOneSlot.length;
+		while (!_mustStop) {
+			long repeatedTaskInterval = QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS;
+			long delay = repeatedTaskInterval;
+			if (firstTime) {
+				firstTime = false;
+				long initailDelay = firstGameTime - System.currentTimeMillis() + QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS
+						- QuizConstants.START_PAYMENTS_BEFORE_COMPLETION_TIME_OFFSET;
+				delay = initailDelay;
+			}
+			try {
+				Thread.sleep(delay + 1000);
+				logger.info("Running Repeated Task for mode {}", mode);
+			} catch (InterruptedException ignore) {
+			}
+			if (_mustStop) {
+				break;
 			}
 			
-			List<GameHandler> newGames = new ArrayList<>();
-			for (int index = 1; index <= noOfGamesInOneSlot; index ++) {
-				newGames.add(nextGameSet.remove(0));
+			try {
+				
+				int[] numberOfGamesInOneSlot = QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED;
+				int noOfGamesInOneSlot = numberOfGamesInOneSlot.length;
+				if (mode == 2) {
+					numberOfGamesInOneSlot = QuizConstants.GAMES_RATES_IN_ONE_SLOT_SPECIAL;
+					noOfGamesInOneSlot = numberOfGamesInOneSlot.length;
+				}
+				
+				List<GameHandler> newGames = new ArrayList<>();
+				for (int index = 1; index <= noOfGamesInOneSlot; index ++) {
+					newGames.add(nextGameSet.remove(0));
+				}
+				GameManager.getInstance().addNewGames(newGames);
+				
+				List<GameHandler> completedGames = GameManager.getInstance().getCompletedGameHandlers(mode);
+				SingleThreadScheduler.getInstance().submit(new PaymentTask(completedGames));
+				
+				LazyScheduler.getInstance().submit(new InMemGameGeneratorTask(this));
 			}
-			GameManager.getInstance().addNewGames(newGames);
-			
-			List<GameHandler> completedGames = GameManager.getInstance().getCompletedGameHandlers(mode);
-			SingleThreadScheduler.getInstance().submit(new PaymentTask(completedGames));
-			
-			LazyScheduler.getInstance().submit(new InMemGameGeneratorTask(this));
-		}
-		catch (Exception ex) {
-			logger.error("Exception in the periodic task execution", ex);
+			catch (Exception ex) {
+				logger.error("Exception in the periodic task execution", ex);
+			}
 		}
 	}
 	

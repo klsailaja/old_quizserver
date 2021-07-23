@@ -104,8 +104,8 @@ public class QuestionDBHandler {
 				
 				if (index % batchSize == 0) {
 					int results[] = ps.executeBatch();
-					dbConn.setAutoCommit(true);
 					dbConn.setAutoCommit(false);
+					dbConn.commit();
 					index = 0;
 					for (int result : results) {
 						if (result == 1) {
@@ -118,7 +118,8 @@ public class QuestionDBHandler {
 			}
 			if (index > 0) {
 				int results[] = ps.executeBatch();
-				dbConn.setAutoCommit(true);
+				dbConn.setAutoCommit(false);
+				dbConn.commit();
 				for (int result : results) {
 					if (result == 1) {
 						++totalSuccessCount;

@@ -136,8 +136,8 @@ public class UserMoneyDBHandler {
 				
 				if (index % batchSize == 0) {
 					int results[] = ps.executeBatch();
-					dbConn.setAutoCommit(true);
 					dbConn.setAutoCommit(false);
+					dbConn.commit();
 					for (int result : results) {
 						if (result == 1) {
 							++totalSuccessCount;
@@ -149,7 +149,8 @@ public class UserMoneyDBHandler {
 			}
 			if (index > 0) {
 				int results[] = ps.executeBatch();
-				dbConn.setAutoCommit(true);
+				dbConn.setAutoCommit(false);
+				dbConn.commit();
 				for (int result : results) {
 					if (result == 1) {
 						++totalSuccessCount;
@@ -509,74 +510,6 @@ public class UserMoneyDBHandler {
 		}
 		return true;
 	}
-
-	
-	/*
-	public boolean payToBoss(long userProfileId, long bossUserProfileId, int amt, 
-			MyTransaction transaction1, MyTransaction transaction2) throws SQLException {
-		// - amt from winning and to referal category
-		logger.debug("In payBoss with {} {} {}", userProfileId, bossUserProfileId, amt);
-		ConnectionPool cp = ConnectionPool.getInstance();
-		Connection dbConn = cp.getDBConnection();
-		PreparedStatement ps1 = null;
-		PreparedStatement ps2 = null;
-		
-		int firstQryRes = 0;
-		int secondQryRes = 0;
-		
-		try {
-			dbConn.setAutoCommit(false);
-			
-			ps1 = dbConn.prepareStatement(UPDATE_WINNING_AMOUNT_BY_USER_ID);
-			ps1.setInt(1, amt * -1);
-			ps1.setLong(2, userProfileId);
-		
-			int resultCount1 = ps1.executeUpdate();
-		
-			ps2 = dbConn.prepareStatement(UPDATE_REFERAL_AMOUNT_BY_USER_ID);
-			ps2.setInt(1, amt);
-			ps2.setLong(2, bossUserProfileId);
-		
-			int resultCount2 = ps2.executeUpdate();
-		
-			dbConn.commit();
-		
-			dbConn.setAutoCommit(true);
-			
-			if (resultCount1 > 0) {
-				firstQryRes = 1;
-			}
-			
-			if (resultCount2 > 0) {
-				secondQryRes = 1;
-			}
-			
-			if ((resultCount1 > 0) && (resultCount2 > 0)) {
-				return true;
-			}
-		} catch (SQLException ex) {
-			logger.error("Error creating user money", ex);
-		} finally {
-			if (ps1 != null) {
-				ps1.close();
-			}
-			if (ps2 != null) {
-				ps2.close();
-			}
-			if (dbConn != null) {
-				dbConn.close();
-			}
-			
-			transaction1.setOperResult(firstQryRes);
-			CreateTransactionTask cTask = new CreateTransactionTask(transaction1);
-			LazyScheduler.getInstance().submit(cTask);
-			
-			transaction2.setOperResult(secondQryRes);
-			cTask = new CreateTransactionTask(transaction2);
-			LazyScheduler.getInstance().submit(cTask);
-		}
-		return false;
-	} */
 	
 	public static void main(String[] args) throws SQLException {
 		

@@ -45,7 +45,7 @@ public class PaymentProcessor {
 			Map<Long, Long> userIdVsBossId) {
 		
 		logger.info("*******************************************************");
-		logger.info("Batching payments for GameId#:" + gameDetails.getGameId());
+		logger.info("Batching payments for GameId#:" + gameDetails.getGameId() + ": client GameId#" + gameDetails.getTempGameId());
 		for (PlayerSummary ps : summaryList) {
 			logger.info(ps);
 		}
