@@ -57,14 +57,14 @@ public class GameHistoryDBHandler {
 			+ WINNERS_LIST + ") VALUES"
 			+ "(?,?,?,?,?)";
 	private static final String GET_GAME_HISTORY_ENTRY_BY_GAMEID = "SELECT * FROM " + TABLE_NAME 
-			+ " WHERE " + GAMEID + " = ? ";
+			+ " WHERE " + GAMEID + " = ?";
 	
 	private static final String CREATE_PLAYER_HISTORY = "INSERT INTO " + PLAYER_HISTORY_TABLE_NAME   
 			+ "(" + PLAYER_GAMEID + "," + PLAYER_USERID + ") VALUES"
 			+ "(?,?)";
 	
 	private static final String GET_GAMEID_SET_BY_USERID = "SELECT " + PLAYER_GAMEID + " FROM " + PLAYER_HISTORY_TABLE_NAME 
-			+ " WHERE " + PLAYER_USERID + " = ? " + "ORDER BY " + PLAYER_ID + " LIMIT ?,10";
+			+ " WHERE " + PLAYER_USERID + " = ? " + "ORDER BY " + PLAYER_ID + " DESC LIMIT ?,10";
 	private static final String GET_TOTAL_COUNT = "SELECT COUNT(*) FROM " +  PLAYER_HISTORY_TABLE_NAME + " WHERE "
 			+ PLAYER_USERID + " = ? ";
 	private static final String REMOVE_OLD_RECORDS = "DELETE FROM " + TABLE_NAME 
