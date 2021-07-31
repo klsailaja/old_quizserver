@@ -71,7 +71,7 @@ public class UserProfileDBHandler {
 	private static final String GET_USER_PROFILE_BY_REFERAL_CODE = "SELECT * FROM USERPROFILE WHERE " 
 			+ MYREFERAL_ID + " = ?";
 	private static final String GET_MY_REFERALS = "SELECT * FROM USERPROFILE WHERE " 
-			+ REFERED_ID + " = ? ORDER BY " + ID + " LIMIT ?, 10";
+			+ REFERED_ID + " = ? ORDER BY " + ID + " DESC LIMIT ?, 10";
 	private static final String GET_TOTAL_COUNT = "SELECT COUNT(*) FROM USERPROFILE WHERE "
 			+ REFERED_ID + " = ?";
 	  
@@ -393,6 +393,8 @@ public class UserProfileDBHandler {
 				if (totalRs.next()) {
 					
 					int total = totalRs.getInt("COUNT(*)");
+					
+					referalDetails.setTotal(total);
 					
 					int lowerRange = startRowNumber + 1;
 					int higherRange = startRowNumber + 10;

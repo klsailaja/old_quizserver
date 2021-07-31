@@ -16,14 +16,6 @@ public class WithdrawRequest {
 	private int sNo;
 	private WithdrawReqByPhone byPhone;
 	private WithdrawReqByBank byBank;
-	private byte[] receiptContents;
-	
-	public byte[] getReceiptContents() {
-		return receiptContents;
-	}
-	public void setReceiptContents(byte[] receiptContents) {
-		this.receiptContents = receiptContents;
-	}
 	
 	public void setByBank(WithdrawReqByBank byBank) {
 		this.byBank = byBank;

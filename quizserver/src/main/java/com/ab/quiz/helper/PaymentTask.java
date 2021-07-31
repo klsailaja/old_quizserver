@@ -46,7 +46,8 @@ public class PaymentTask implements Runnable {
 		
 		for (GameHandler completedGame : completedGames) {
 			
-			logger.info("Making payments for Game# {}", completedGame.getGameDetails().getGameId());
+			logger.info("Making payments for Game server id# {} and client id# {}", 
+					completedGame.getGameDetails().getGameId(), completedGame.getGameDetails().getTempGameId());
 		
 			// Bulk processing changes start
 			PaymentProcessor pp = completedGame.getPaymentHandler();

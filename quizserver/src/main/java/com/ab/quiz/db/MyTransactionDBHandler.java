@@ -61,10 +61,10 @@ public class MyTransactionDBHandler {
 			+ COMMENTS + ") VALUES"
 			+ "(?,?,?,?,?,?,?,?,?,?)";
 	private static final String GET_TRANSACTIONS_BY_USER_ID_ACC_TYPE = "SELECT * FROM " + TABLE_NAME 
-			+ " WHERE " + USERID + " = ? AND " + ACCOUNT_TYPE + " = ? ORDER BY " + ID + " ASC LIMIT ?, " + MAX_ROWS;
+			+ " WHERE " + USERID + " = ? AND " + ACCOUNT_TYPE + " = ? ORDER BY " + ID + " DESC LIMIT ?, " + MAX_ROWS;
 	
 	private static final String GET_TRANSACTIONS_BY_USER_ID = "SELECT * FROM " + TABLE_NAME 
-			+ " WHERE " + USERID + " = ? ORDER BY " + ID + " ASC LIMIT ?, " + MAX_ROWS;
+			+ " WHERE " + USERID + " = ? ORDER BY " + ID + " DESC LIMIT ?, " + MAX_ROWS;
 		
 	private static final String GET_TOTAL_COUNT = "SELECT COUNT(*) FROM " + TABLE_NAME + " WHERE "
 			+ USERID + " = ?";

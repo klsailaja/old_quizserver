@@ -87,6 +87,9 @@ public class Test {
 			total = total + i;
 		}
 		System.out.println("Total " + total);
+		int a = (2 * 3) + 5 - 1 + 9;
+		System.out.println("Answer =" + a);
+		
 	}
 	
 	private int getRandomNumber(int min, int max) {

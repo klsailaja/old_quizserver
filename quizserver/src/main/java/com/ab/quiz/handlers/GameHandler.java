@@ -189,14 +189,13 @@ public class GameHandler {
 	}
 	
 	public List<PlayerSummary> getLeaderBoardPositions(int qNo) {
-		return getLeaderBoardPositions(qNo, true);
+		return getLeaderBoardPositions(qNo, false);
 	}
 	
 	public List<PlayerSummary> getLeaderBoardPositions(int qNo, boolean print) {
-
 		if (print) {
 			logger.info("**************************************************************");
-			logger.info("GameId#: " + gameDetails.getGameId());
+			logger.info("Server GameId#: {} and Client GameId#: {}" + gameDetails.getGameId(), gameDetails.getTempGameId());
 			logger.info("In getLeaderBoardPositions " + qNo);
 		}
 		
