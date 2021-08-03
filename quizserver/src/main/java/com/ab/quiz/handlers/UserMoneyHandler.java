@@ -56,7 +56,7 @@ public class UserMoneyHandler {
 	}
 	
 	public boolean updateUserMoney (long userProfileId, int amt) throws SQLException {
-		
+		logger.info("This is in updateUserMoney {} : {}", userProfileId, amt);
 		UserMoneyAccountType accountType = UserMoneyAccountType.LOADED_MONEY;
 		UserMoneyOperType operType = UserMoneyOperType.ADD;
 		long longAmt = amt;

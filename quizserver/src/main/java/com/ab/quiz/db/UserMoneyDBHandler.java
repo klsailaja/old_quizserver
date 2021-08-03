@@ -264,7 +264,7 @@ public class UserMoneyDBHandler {
 	public boolean updateUserMoney(UserMoneyAccountType accountType, UserMoneyOperType operType, 
 			long id, long amt, MyTransaction transaction)
 			throws SQLException {
-		
+		logger.info("In updateUserMoney");
 		String qry = null;
 		switch (accountType) {
 			case LOADED_MONEY: {

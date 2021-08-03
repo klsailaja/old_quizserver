@@ -229,7 +229,7 @@ public class UserProfileDBHandler {
 					userProfile.setId(userProfileId);
 					long initialLoadedMoney = 0;
 					if (QuizConstants.TESTMODE == 1) {
-						initialLoadedMoney = 50000;
+						initialLoadedMoney = 100000;
 					}
 					UserMoney userMoneyObject = new UserMoney(userProfileId, initialLoadedMoney, 0, 0, 0, 0, 0);
 					UserMoneyDBHandler.getInstance().createUserMoney(userMoneyObject);

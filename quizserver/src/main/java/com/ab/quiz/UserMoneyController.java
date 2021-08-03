@@ -39,7 +39,8 @@ public class UserMoneyController extends BaseController {
 	}
 	
 	@RequestMapping(value = "/money/{userProfileId}/load/{amt}", method = RequestMethod.POST, produces = "application/json")
-	public @ResponseBody boolean loadMoney(@PathVariable("userProfileId") long userProfileId, @PathVariable("amt") int amt) 
+	public @ResponseBody boolean loadMoney(@PathVariable("userProfileId") long userProfileId, @PathVariable("amt") int amt,
+			@RequestBody TransferRequest transferReq)
 			throws InternalException {
 		try {
 			return UserMoneyHandler.getInstance().updateUserMoney(userProfileId, amt);
