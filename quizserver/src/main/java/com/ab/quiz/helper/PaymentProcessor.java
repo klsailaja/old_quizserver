@@ -1,6 +1,8 @@
 package com.ab.quiz.helper;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +46,8 @@ public class PaymentProcessor {
 	public void processPayments(Map<Long, UserMoney> userIdVsUserMoney, 
 			Map<Long, Long> userIdVsBossId) {
 		
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat();
+		String timePattern = "dd:MMM:yy:HH:mm";
 		logger.info("*******************************************************");
 		logger.info("Batching payments for GameId#:" + gameDetails.getGameId() + ": client GameId#" + gameDetails.getTempGameId());
 		for (PlayerSummary ps : summaryList) {
@@ -126,9 +130,12 @@ public class PaymentProcessor {
 				
 				gameStartTime = gameDetails.getStartTime();
 				
-				comments = "Paying Your Referrer share for GameId# " + gameDetails.getGameId();
-				String bossCmts = "For Referring " + userName 
-					+ ". Winning money share for GameId#:" + gameDetails.getGameId();
+		        simpleDateFormat.applyPattern(timePattern);
+		        String timeStr = simpleDateFormat.format(new Date(gameDetails.getStartTime()));
+		        
+				comments = "Referrer share for GameId#" + gameDetails.getTempGameId() + " on " + timeStr; 
+				String bossCmts = "For Referring, share from " + userName 
+					+ " for GameId#" + gameDetails.getGameId() + " on " + timeStr;
 				userCB = userOB - bossShare;
 				long bossCB = bossOB + bossShare;
 				

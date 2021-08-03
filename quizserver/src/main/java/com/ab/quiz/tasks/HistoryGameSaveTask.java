@@ -41,7 +41,7 @@ public class HistoryGameSaveTask implements Runnable {
 			}
 			
 			ticketRate = gameHandler.getGameDetails().getTicketRate();
-			gameId = gameHandler.getGameDetails().getGameId();
+			gameId = gameHandler.getGameDetails().getTempGameId();
 			startTime = gameHandler.getGameDetails().getStartTime();
 			
 			GameResults gameResult = new GameResults();
