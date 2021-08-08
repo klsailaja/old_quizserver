@@ -162,4 +162,20 @@ public class UserProfileController extends BaseController {
 			throw new InternalException("Server Error in getTransactionsList");
 		}
 	}
+	
+	@RequestMapping(value = "/user/time/{clientTime}", method = RequestMethod.GET, produces = "application/json") 
+	public @ResponseBody String checkTimes(@PathVariable("clientTime") long clientTime) throws InternalException, NotAllowedException {
+		long currentTime = System.currentTimeMillis();
+		logger.info("Server Time Value is {} : and Client Time Value is {}", currentTime, clientTime);
+		long diff = currentTime - clientTime;
+		if (diff < -1) {
+			diff = diff * -1;
+		}
+		logger.info("Time difference is {}", diff);
+		if (diff <= 15000) {
+			return "true";
+		}
+		return "false";
+	}
+	
 }
