@@ -34,4 +34,10 @@ public class ChatController extends BaseController {
 		logger.info("chat post returned with {}", result);
 		return result;
 	}
+	
+	@RequestMapping(value = "/count/{start}/{end}", method = RequestMethod.GET, produces = "application/json")
+	public @ResponseBody Integer getChatMessagesCount(@PathVariable("start") long startTime, @PathVariable("end") long endTime) {
+		List<Chat> msgsList = ChatServiceHandler.getInstance().getMessages(startTime, endTime);
+		return msgsList.size();
+	}
 }

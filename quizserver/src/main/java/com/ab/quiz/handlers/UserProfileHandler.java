@@ -20,6 +20,8 @@ public class UserProfileHandler {
 	
 	private static final String EMPTY_MESSAGE = "Value is empty for : %s";
     private static final String MAX_LENGTH = "Value exceeds %d for : %s";
+    private static final long MAX_USERS_COUNT = 150000;
+    private static final String NEXT_APP_INSTANCE_NAME = "champs";
 	
 	private UserProfileHandler() {
 	}
@@ -70,6 +72,10 @@ public class UserProfileHandler {
 		// Get with mail and check if not exists
 		// Check if referral id is correct
 		// Set the other fields
+		long maxUserId = UserProfileDBHandler.getInstance().getMaxUserId();
+		if (maxUserId > MAX_USERS_COUNT) {
+			throw new NotAllowedException("Maximum users limit reached. Download another instance with name " + NEXT_APP_INSTANCE_NAME);
+		}
 		
 		String str = userProfile.getEmailAddress().trim();
 		userProfile.setEmailAddress(str);
