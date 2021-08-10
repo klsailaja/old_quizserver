@@ -58,6 +58,30 @@ public class CelebritySpecialHandler {
 	    }
 	}
 	
+	public List<String> getUniqueCelebrityNames(int hour, int maxSize) throws NotAllowedException {
+		List<String> celebrityList = new ArrayList<>();
+		String hourStr = String.valueOf(hour);
+		
+		String celebrityStr = props.getProperty(hourStr, null);
+		if (celebrityStr == null) {
+			throw new NotAllowedException("No entry found for :" + celebrityStr);
+		}
+		List<CelebrityDetails> fullDetails = convertStrToList(celebrityStr);
+		if (fullDetails.size() < maxSize) {
+			throw new NotAllowedException("Configured size is less than asked size : " + fullDetails.size() + ":" + maxSize);
+		}
+		List<CelebrityDetails> details = new ArrayList<>();
+		for (int index = 0; index < maxSize; index ++) {
+			details.add(fullDetails.get(index));
+		}
+		for (CelebrityDetails cd : details) {
+			if (!celebrityList.contains(cd.getName())) {
+				celebrityList.add(cd.getName());
+			}
+		}
+		return celebrityList;
+	}
+	
 	public List<CelebrityDetails> getCelebrityDetails(long gameStartTime, int maxSize) throws NotAllowedException {
 		List<CelebrityDetails> details = new ArrayList<>();
 		String hour = getHourIn24HrsFormat(gameStartTime);
@@ -196,6 +220,9 @@ public class CelebritySpecialHandler {
 		for (CelebrityDetails cd: details) {
 			System.out.println(cd);
 		}
+		
+		List<String> names = handler.getUniqueCelebrityNames(11, 10);
+		System.out.println(names);
 		
 		/*List<UpcomingCelebrity> upcomingEntries = handler.getUpcomingCelebrityDetails(3); 
 		for (UpcomingCelebrity str : upcomingEntries) {

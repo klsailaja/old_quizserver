@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.exceptions.InternalException;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.GameManager;
+import com.ab.quiz.helper.CelebritySpecialHandler;
 import com.ab.quiz.pojo.CelebrityFullDetails;
 import com.ab.quiz.pojo.ChatGameDetails;
 import com.ab.quiz.pojo.GameDetails;
@@ -154,6 +156,51 @@ public class GamesController extends BaseController {
 	public @ResponseBody CelebrityFullDetails getCelebrityFullDetails() {
 		return GameManager.getInstance().getCelebrityFullDetails();
 	}
+	
+	@RequestMapping(value = "/upcoming/{timeHour}", method = RequestMethod.GET, produces = "application/json") 
+	public @ResponseBody List<String> getUpcomingCelebrityNames(@PathVariable("timeHour") int hour) {
+		
+		int hour1 = hour + 1;
+		int hour2 = hour + 2;
+		
+		List<String> firstSet = CelebritySpecialHandler.getInstance().
+				getUniqueCelebrityNames(hour1, QuizConstants.GAMES_RATES_IN_ONE_SLOT_SPECIAL.length);
+		
+		StringBuilder firstStrBuilder = new StringBuilder(); 
+		for (String li : firstSet) {
+			firstStrBuilder.append(li);
+			firstStrBuilder.append(",");
+		}
+		String firstStr = firstStrBuilder.toString(); 
+		int lastPos = firstStr.lastIndexOf(",");
+		if (lastPos > -1) {
+			firstStr = firstStr.substring(0, lastPos);
+		}
+		firstStr = firstStr + " games coming at: " + hour1;
+		
+		List<String> secondSet = CelebritySpecialHandler.getInstance().
+				getUniqueCelebrityNames(hour2, QuizConstants.GAMES_RATES_IN_ONE_SLOT_SPECIAL.length);
+		StringBuilder secondStrBuilder = new StringBuilder(); 
+		for (String li : secondSet) {
+			secondStrBuilder.append(li);
+			secondStrBuilder.append(",");
+		}
+		String secondStr = secondStrBuilder.toString();
+		
+		lastPos = secondStr.lastIndexOf(",");
+		if (lastPos > -1) {
+			secondStr = secondStr.substring(0, lastPos);
+		}
+		secondStr = secondStr + " games coming at: " + hour2;
+		
+		List<String> results = new ArrayList<>(2);
+		results.add(firstStr);
+		results.add(secondStr);
+		
+		System.out.println(results);
+		return results;
+	}
+	
 	
 	@RequestMapping(value = "/chat/{gametype}", method = RequestMethod.GET, produces = "application/json")
 	public @ResponseBody List<ChatGameDetails> getBasicGameDetails(@PathVariable("gametype") int gametype) {
