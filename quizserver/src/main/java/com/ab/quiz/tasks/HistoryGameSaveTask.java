@@ -81,7 +81,8 @@ public class HistoryGameSaveTask implements Runnable {
 			List<GamePlayers> playersList = gameHandler.getPlayerDetails();
 			allGamePlayers.addAll(playersList);
 		}
-		
+
+		logger.info("Inserting completed games of size {}", allGameResults.size());
 		try {
 			GameHistoryDBHandler.getInstance().bulkInsertGameResults(allGameResults, 20);
 			GameHistoryDBHandler.getInstance().bulkInsertGamePlayers(allGamePlayers, 50);

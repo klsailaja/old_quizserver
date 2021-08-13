@@ -63,6 +63,11 @@ public class PaymentProcessor {
 			String userName = ps.getUserName();
 			int amountWon = ps.getAmountWon();
 			int profit = amountWon - gameDetails.getTicketRate();
+			
+			if (profit < 0) {
+				logger.info("****************** profit is negative: " + (profit));
+				profit = 0;
+			}
 			long userProfileId = ps.getUserProfileId();
 			
 			try {

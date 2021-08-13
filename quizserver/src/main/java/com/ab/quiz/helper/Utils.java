@@ -103,6 +103,8 @@ public class Utils {
 	
 	public static void main(String[] args) {
 		
+		System.out.println(getBossMoney(55));
+		System.out.println(getBossMoney(102));
 		//int[] rates = {10,20,50,100,150,200};
 		int[] rates = {10,20,50,75,100,50,100,150,200,250};
 		int[] players = {3,4,5,6,7,8,9,10};

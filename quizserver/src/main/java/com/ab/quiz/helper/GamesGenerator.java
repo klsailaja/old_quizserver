@@ -135,9 +135,10 @@ public class GamesGenerator implements Runnable {
 			long delay = repeatedTaskInterval;
 			if (firstTime) {
 				firstTime = false;
-				long initailDelay = firstGameTime - System.currentTimeMillis() + QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS
+				long initailDelay = firstGameTime + QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS
 						- QuizConstants.START_PAYMENTS_BEFORE_COMPLETION_TIME_OFFSET;
 				delay = initailDelay;
+				delay = delay - System.currentTimeMillis();
 			}
 			try {
 				Thread.sleep(delay + 1000);
