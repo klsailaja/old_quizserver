@@ -137,7 +137,9 @@ public class CelebritySpecialHandler {
 			
 			List<String> finalCelebNames = new ArrayList<>();
 			for (int i = 0; i < maxSize; i ++) {
-				finalCelebNames.add(celebNames.get(i));
+				if (!finalCelebNames.contains(celebNames.get(i))) {
+					finalCelebNames.add(celebNames.get(i));
+				}
 			}
 			List<String> sortedNames = finalCelebNames.stream().sorted().collect(Collectors.toList());
 			scheduledCeleb.setCelebrityNames(sortedNames);
@@ -147,7 +149,7 @@ public class CelebritySpecialHandler {
 			details.add(scheduledCeleb);
 		}
 		
-		for (int index = 0; index < hourInt; index ++) {
+		for (int index = 0; index <= hourInt; index ++) {
 			nextStartTime = nextStartTime + (60 * 60 * 1000);
 			
 			UpcomingCelebrity scheduledCeleb = new UpcomingCelebrity();
@@ -168,7 +170,9 @@ public class CelebritySpecialHandler {
 			
 			List<String> finalCelebNames = new ArrayList<>();
 			for (int i = 0; i < maxSize; i ++) {
-				finalCelebNames.add(celebNames.get(i));
+				if (!finalCelebNames.contains(celebNames.get(i))) {
+					finalCelebNames.add(celebNames.get(i));
+				}
 			}
 			List<String> sortedNames = finalCelebNames.stream().sorted().collect(Collectors.toList());
 			scheduledCeleb.setCelebrityNames(sortedNames);

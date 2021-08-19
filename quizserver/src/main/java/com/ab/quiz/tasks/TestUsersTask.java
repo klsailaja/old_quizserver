@@ -44,7 +44,7 @@ public class TestUsersTask implements Runnable {
 			mode = 2;
 		}
 		
-		long initailDelay = startTaskTime - System.currentTimeMillis() + 1 * 1000;
+		//long initailDelay = startTaskTime - System.currentTimeMillis() + 1 * 1000;
 		
 		submitRepeatedTask(this, 0, 5 * 60 * 1000, TimeUnit.MILLISECONDS);
 	}
