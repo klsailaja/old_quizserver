@@ -143,56 +143,56 @@ public class LeaderBoard {
 		playerSumary1.setUserProfileId(12);
 		playerSumary1.setUserName("Rajasekhar");
 		playerSumary1.setTotalTime(90000);
-		playerSumary1.setCorrectCount(10);
+		playerSumary1.setCorrectCount(2);
 		playerSumaryList.add(playerSumary1);
 		
 		PlayerSummary playerSumary2 = new PlayerSummary();
 		playerSumary2.setUserProfileId(6);
 		playerSumary2.setUserName("User2");
 		playerSumary2.setTotalTime(90000);
-		playerSumary2.setCorrectCount(10);
+		playerSumary2.setCorrectCount(0);
 		playerSumaryList.add(playerSumary2);
 		
 		PlayerSummary playerSumary3 = new PlayerSummary();
 		playerSumary3.setUserProfileId(2);
 		playerSumary3.setUserName("User3");
 		playerSumary3.setTotalTime(90000);
-		playerSumary3.setCorrectCount(10);
+		playerSumary3.setCorrectCount(0);
 		playerSumaryList.add(playerSumary3);
 		
 		PlayerSummary playerSumary4 = new PlayerSummary();
 		playerSumary4.setUserProfileId(3);
 		playerSumary4.setUserName("User4");
 		playerSumary4.setTotalTime(90000);
-		playerSumary4.setCorrectCount(10);
+		playerSumary4.setCorrectCount(0);
 		playerSumaryList.add(playerSumary4);
 		
 		PlayerSummary playerSumary5 = new PlayerSummary();
 		playerSumary5.setUserProfileId(7);
 		playerSumary5.setUserName("User5");
 		playerSumary5.setTotalTime(90 * 1000);
-		playerSumary5.setCorrectCount(10);
+		playerSumary5.setCorrectCount(0);
 		playerSumaryList.add(playerSumary5);
 		
 		PlayerSummary playerSumary6 = new PlayerSummary();
 		playerSumary6.setUserProfileId(4);
 		playerSumary6.setUserName("User6");
 		playerSumary6.setTotalTime(90 * 1000);
-		playerSumary6.setCorrectCount(10);
+		playerSumary6.setCorrectCount(0);
 		playerSumaryList.add(playerSumary6);
 		
 		PlayerSummary playerSumary7 = new PlayerSummary();
 		playerSumary7.setUserProfileId(5);
 		playerSumary7.setUserName("User7");
 		playerSumary7.setTotalTime(90 * 1000);
-		playerSumary7.setCorrectCount(10);
+		playerSumary7.setCorrectCount(0);
 		playerSumaryList.add(playerSumary7);
 		
 		PlayerSummary playerSumary8 = new PlayerSummary();
 		playerSumary8.setUserProfileId(1);
 		playerSumary8.setUserName("User8");
 		playerSumary8.setTotalTime(90 * 1000);
-		playerSumary8.setCorrectCount(10);
+		playerSumary8.setCorrectCount(1);
 		playerSumaryList.add(playerSumary8);
 		
 		/*PlayerSummary playerSumary9 = new PlayerSummary();

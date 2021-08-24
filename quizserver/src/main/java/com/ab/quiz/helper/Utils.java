@@ -11,7 +11,7 @@ public class Utils {
 	private static double[] twoWinners = {65.0, 35.0};
 	private static double[] threeWinners = {60.0, 25.0, 15.0};
 	private static double[] fourWinners = {50.0, 25.0, 15.0, 10.0};
-	private static double[] fiveWinners = {45.0, 25.0, 13.0, 10.0, 7.0};
+	private static double[] fiveWinners = {45.0, 23.0, 15.0, 10.0, 7.0};
 	
 	public static List<PrizeDetail> getPrizeDetails(int ticketRate, int playerCount) {
 		
@@ -25,7 +25,7 @@ public class Utils {
 			{
 				winners = twoWinners;
 				winnerCount = 2;
-				addedBrainsShare = 5.0;
+				addedBrainsShare = 4.0;
 				break;
 			}
 			case 5: {
@@ -46,7 +46,7 @@ public class Utils {
 			case 10: {
 				winners = fiveWinners;
 				winnerCount = 5;
-				addedBrainsShare = 10.0;
+				addedBrainsShare = 12.0;
 				break;
 			}
 		}
@@ -102,10 +102,36 @@ public class Utils {
 	}
 	
 	public static void main(String[] args) {
+		int[] rates = {10, 20, 50, 75, 100, 50, 75, 100, 150, 200};
+		int[] players = {3,4,5,6,7,8,9,10};
+		int totalOurShare = 0;
+		int avgShare = 0;
+		for (int i = 0; i < rates.length; i++) {
+			avgShare = 0;
+			for (int j = 0; j < players.length; j++) {
+				System.out.println("For Rate : " + rates[i] + " Player Count :" + players[j]);
+				int total = rates[i] * players[j];
+				System.out.println("Total budget :" + total);
+				List<PrizeDetail> details = Utils.getPrizeDetails(rates[i], players[j]);
+				System.out.println(details);
+				int playerMoney = 0;
+				for (PrizeDetail pd : details) {
+					playerMoney = playerMoney + pd.getPrizeMoney();
+				}
+				int ourSharePerGame = (total - playerMoney);
+				avgShare = avgShare + ourSharePerGame;
+				System.out.println("Our share :" + (total - playerMoney));
+			}
+			avgShare = avgShare / players.length;
+			totalOurShare = totalOurShare + avgShare;
+		}
+		System.out.println("Total share is " + (totalOurShare));
+		long totalAmt = (totalOurShare * 2 * 120);
+		System.out.println("totalAmt :" + totalAmt);
 		
-		System.out.println(getBossMoney(55));
+		/*System.out.println(getBossMoney(55));
 		System.out.println(getBossMoney(102));
-		//int[] rates = {10,20,50,100,150,200};
+		//
 		int[] rates = {10,20,50,75,100,50,100,150,200,250};
 		int[] players = {3,4,5,6,7,8,9,10};
 		int totalOurShare = 0;
@@ -129,6 +155,6 @@ public class Utils {
 		}
 		System.out.println("Total share is " + (totalOurShare));
 		long totalAmt = (totalOurShare * 2 * 144);
-		System.out.println("totalAmt :" + totalAmt);
+		System.out.println("totalAmt :" + totalAmt);*/
 	}
 }
