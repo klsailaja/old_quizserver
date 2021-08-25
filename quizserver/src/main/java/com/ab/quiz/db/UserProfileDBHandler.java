@@ -721,7 +721,7 @@ public class UserProfileDBHandler {
 		userProfile.setName("Rajasekhar");
 		userProfile.setPasswordHash("5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5");
 		userProfile.setBossReferredId("NoOne");
-		userProfile.setBossId(-1);
+		userProfile.setBossId(0);
 		userProfile.setBossName("");
 		userProfile.setForgotPasswdUsed(0);
 		userProfile.setLoggedIn(0);
