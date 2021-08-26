@@ -113,6 +113,7 @@ public class Utils {
 				int total = rates[i] * players[j];
 				System.out.println("Total budget :" + total);
 				List<PrizeDetail> details = Utils.getPrizeDetails(rates[i], players[j]);
+				System.out.println("Total Winners :" + details.size());
 				System.out.println(details);
 				int playerMoney = 0;
 				for (PrizeDetail pd : details) {
@@ -121,13 +122,14 @@ public class Utils {
 				int ourSharePerGame = (total - playerMoney);
 				avgShare = avgShare + ourSharePerGame;
 				System.out.println("Our share :" + (total - playerMoney));
+				System.out.println();
 			}
 			avgShare = avgShare / players.length;
 			totalOurShare = totalOurShare + avgShare;
 		}
-		System.out.println("Total share is " + (totalOurShare));
+		//System.out.println("Total share is " + (totalOurShare));
 		long totalAmt = (totalOurShare * 2 * 120);
-		System.out.println("totalAmt :" + totalAmt);
+		//System.out.println("totalAmt :" + totalAmt);
 		
 		/*System.out.println(getBossMoney(55));
 		System.out.println(getBossMoney(102));

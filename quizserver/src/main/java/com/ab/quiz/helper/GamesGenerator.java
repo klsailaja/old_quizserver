@@ -117,7 +117,7 @@ public class GamesGenerator implements Runnable {
 					repeatedTaskInterval, TimeUnit.MILLISECONDS);*/
 		
 		long gameCancellerTaskDelay = firstGameTime - System.currentTimeMillis()
-				- QuizConstants.GAME_BEFORE_LOCK_PERIOD_IN_MILLIS + 2 * 1000;
+				- QuizConstants.GAME_BEFORE_LOCK_PERIOD_IN_MILLIS + 1 * 1000;
 		
 		LazyScheduler.getInstance().submitRepeatedTask(new CheckCancellerTask(mode), gameCancellerTaskDelay, 
 				repeatedTaskInterval, TimeUnit.MILLISECONDS);

@@ -1,30 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
-		<item key="selection" value="getFormedQuestions"/>
-		<item key="wrap" value="true"/>
+		<item key="selection" value="userIdVsBossId"/>
+		<item key="wrap" value="false"/>
 		<item key="casesensitive" value="false"/>
 		<item key="wholeword" value="false"/>
 		<item key="incremental" value="false"/>
 		<item key="isRegEx" value="false"/>
 		<list key="findhistory">
-			<item value="getFormedQuestions"/>
-			<item value="extraOptionsMap"/>
-			<item value="getStrTokens"/>
-			<item value="extraOptionsList"/>
-			<item value="fillVarsValsMap"/>
-			<item value="alreadyExistsOne"/>
-			<item value="updateUserProfile"/>
-			<item value="104"/>
-			<item value="GET_QUESTIONS_RANDOM_CELEBRITY"/>
-			<item value="getRandomNumber"/>
-			<item value="userProfile.setId"/>
-			<item value="getProfileByBossRefaralCode"/>
-			<item value="GET_USER_PROFILE_BY_REFERAL_CODE"/>
-			<item value="MYREFERAL_"/>
-			<item value="getRandomPasswd"/>
+			<item value="userIdVsBossId"/>
+			<item value="Boss User Money not found "/>
+			<item value="Boss User Money not found for userId : 21 with boss id"/>
+			<item value="main("/>
+			<item value="main"/>
+			<item value="allArtistNames"/>
+			<item value="System.ou"/>
+			<item value="categoryNameStr"/>
+			<item value="addToLocalCelebrityList"/>
+			<item value="perMovieCelebrityNames"/>
+			<item value="celebrityNames"/>
+			<item value="111111"/>
+			<item value="11111111"/>
+			<item value="fillPca"/>
+			<item value="System.out"/>
 		</list>
 		<list key="replacehistory">
+			<item value="miMergedCurrentValuesList"/>
+			<item value="USERPROFILE"/>
+			<item value="USERMONEY"/>
+			<item value="winnersMoneyTransactions"/>
 			<item value="2"/>
 		</list>
 	</section>

@@ -18,6 +18,6 @@ public class PrizeDetail {
 	}
 	@Override
 	public String toString() {
-		return "PrizeDetail [rank=" + rank + ", prizeMoney=" + prizeMoney + "]";
+		return "[rank=" + rank + ", prizeMoney=" + prizeMoney + "]";
 	}
 }
