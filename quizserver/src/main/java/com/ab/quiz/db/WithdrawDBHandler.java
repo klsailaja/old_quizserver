@@ -13,6 +13,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.constants.ReceiptType;
 import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.WithdrawReqState;
@@ -116,7 +117,9 @@ public class WithdrawDBHandler {
 			+ " WHERE " + USER_PROFILE_ID + " = ? AND " + STATUS + " =? ORDER BY " + ID + " DESC LIMIT 0,10";
 	
 	private static final String REMOVE_OLD_RECORDS = "DELETE FROM " + TABLE_NAME 
-			+ " WHERE (" + REQUEST_CLOSED_TIME + " < ? AND ID <> 0)";
+			+ " WHERE (" + REQUEST_CLOSED_TIME + " < ? AND ID <> 0 AND STATUS =" + WithdrawReqState.CLOSED.getId() + ")";
+	private static final String GET_WITHDRAW_TYPE_RECEIPT_IDS = "SELECT " + TRANSACTION_RECEIPT_ID + " FROM " + TABLE_NAME + " WHERE " + 
+			REQUEST_CLOSED_TIME + " < ?";
 	
 	private WithdrawDBHandler() {
 	}
@@ -132,6 +135,8 @@ public class WithdrawDBHandler {
 	public int deleteRecords(long timePeriod) throws SQLException {
 		logger.info("In deleteRecords method");
 		
+		List<Long> oldWDReceiptIds = getOldWithdrawReceiptIds(timePeriod);
+		
 		ConnectionPool cp = null;
 		Connection dbConn = null;
 		PreparedStatement ps = null;
@@ -146,6 +151,8 @@ public class WithdrawDBHandler {
 			int result = ps.executeUpdate();
 			logger.debug("In deleteRecords create op result : {}", result);
 			
+			WithdrawReceiptDBHandler.getInstance().bulkDeleteReceiptRecords(oldWDReceiptIds, 50);
+			
 			return result;
 		} catch (SQLException ex) {
 			logger.error("Error in deleteRecords ", ex);
@@ -158,6 +165,7 @@ public class WithdrawDBHandler {
 				dbConn.close();
 			}
 		}
+		
 	}
 	
 	public long getMaxWithdrawReqId() throws SQLException {
@@ -197,6 +205,40 @@ public class WithdrawDBHandler {
 		}
 		logger.debug("Returning from getMaxWithdrawReqId() {}", maxId);
 		return maxId;
+	}
+	
+	private List<Long> getOldWithdrawReceiptIds(long timePeriod) throws SQLException {
+		
+		ConnectionPool cp = ConnectionPool.getInstance();
+		Connection dbConn = cp.getDBConnection();
+		PreparedStatement ps = dbConn.prepareStatement(GET_WITHDRAW_TYPE_RECEIPT_IDS);
+		ps.setLong(1, timePeriod);
+		
+		ResultSet rs = null;
+		List<Long> oldWDReceiptIds = new ArrayList<>();
+		try {
+			rs = ps.executeQuery();
+			if (rs != null) {
+				while (rs.next()) {
+					oldWDReceiptIds.add(rs.getLong(TRANSACTION_RECEIPT_ID));
+				}
+			}
+		} catch (SQLException ex) {
+			logger.error("SQLException in getOldWithdrawReceiptIds()", ex);
+			throw ex;
+		} finally {
+			if (rs != null) {
+				rs.close();
+			}
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
+		logger.info("Old Withdraw Receipt Records to be deleted size is {}", oldWDReceiptIds.size());
+		return oldWDReceiptIds;
 	}
 	
 	public WithdrawRequest getWithdrawReqByRefId(String refId) throws SQLException {
@@ -271,7 +313,7 @@ public class WithdrawDBHandler {
 		
 		try {
 			
-			long receiptId = WithdrawReceiptDBHandler.getInstance().createWDReceipt(receiptFileName);
+			long receiptId = WithdrawReceiptDBHandler.getInstance().createWDReceipt(ReceiptType.WITHDRAW.getId(), receiptFileName);
 			logger.info("The receipt file contents DB Entry id is {}", receiptId);
 			if (receiptId == -1) {
 				logger.error("Could not insert the receipt file contents to DB");

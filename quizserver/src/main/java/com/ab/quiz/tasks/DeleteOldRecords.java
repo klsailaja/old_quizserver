@@ -20,10 +20,10 @@ public class DeleteOldRecords implements Runnable {
 	@Override
 	public void run() {
 		try {
-			int lastFewDays = 0;
+			int lastFewDays = -30;
 			
 			Calendar calendar = Calendar.getInstance();
-			calendar.add(Calendar.DATE, -1 * lastFewDays);
+			calendar.add(Calendar.DATE, lastFewDays);
 			long time = calendar.getTimeInMillis();
 			
 			logger.info("Time is {}", time);

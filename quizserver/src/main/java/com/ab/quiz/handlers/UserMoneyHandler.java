@@ -345,7 +345,7 @@ public class UserMoneyHandler {
 		
 		String filePath = "D:" + File.separator + "Projects" + File.separator + "Receipt.png";
 		
-		boolean result = handler.closeWithDrawRequest(filePath, "VrRzWzEjl3", "Paid in Phone");
+		boolean result = handler.closeWithDrawRequest(filePath, "hwhqjS6BE5", "Paid in Phone3");
 		System.out.println("The WD Closure result is " + result);
 		
 		/*WithdrawRequestsHolder holder = handler.getWithdrawDataSet(70, 0, -1);
