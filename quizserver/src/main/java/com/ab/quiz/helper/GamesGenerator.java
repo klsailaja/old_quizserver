@@ -255,6 +255,7 @@ public class GamesGenerator implements Runnable {
 		int min = 3;
 		int max = QuizConstants.MAX_PLAYERS_PER_GAME;
 		int randomPlayerCount = min + (int) (Math.random() * (max - min));
+		randomPlayerCount = 3;
 		
 		int userIdOffset = 0;
 		if (mode == 2) {
