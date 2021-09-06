@@ -485,7 +485,7 @@ public class UserProfileDBHandler {
 		}
 		
 		String userName;
-		String passwd = getRandomPasswd(4);;
+		String passwd = getRandomPasswd(8);
 		String passwdHash;
 		int forgotPasswordUsed = 0;
 		
@@ -534,7 +534,7 @@ public class UserProfileDBHandler {
 			
 			Mail mail = new Mail();
         
-			mail.setMailFrom("ggram.pec@gmail.com");
+			mail.setMailFrom("ggraj.pec@gmail.com");
 			mail.setMailTo(userProfile.getEmailAddress().trim());
 			mail.setMailSubject("Password Reset");
         
@@ -592,8 +592,6 @@ public class UserProfileDBHandler {
 		int totalSuccessCount = 0;
 		
 		try {
-			cp = ConnectionPool.getInstance();
-			dbConn = cp.getDBConnection();
 			dbConn.setAutoCommit(false);
 			
 			ps = dbConn.prepareStatement(UPDATE_TIME_BY_ID);
@@ -691,7 +689,7 @@ public class UserProfileDBHandler {
 			UserProfile userProfile = new UserProfile();
 			userProfile.setEmailAddress("systemuser" + index + "@gmail.com");
 			userProfile.setName("Systemuser" + index);
-			userProfile.setPasswordHash("5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5");
+			userProfile.setPasswordHash("25d19baaef913d50b6a8e302909507b8059c6410a1c8d7e1a844d6069732202e");
 			userProfile.setBossId(-1);
 			userProfile.setBossName("");
 			userProfile.setForgotPasswdUsed(0);
@@ -719,7 +717,7 @@ public class UserProfileDBHandler {
 		UserProfile userProfile = new UserProfile();
 		userProfile.setEmailAddress("ggraj.pec@gmail.com");
 		userProfile.setName("Rajasekhar");
-		userProfile.setPasswordHash("5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5");
+		userProfile.setPasswordHash("25d19baaef913d50b6a8e302909507b8059c6410a1c8d7e1a844d6069732202e");
 		userProfile.setBossReferredId("NoOne");
 		userProfile.setBossId(0);
 		userProfile.setBossName("");
@@ -746,7 +744,7 @@ public class UserProfileDBHandler {
 			userProfile = new UserProfile();
 			userProfile.setEmailAddress("testuser" + index + "@gmail.com");
 			userProfile.setName("testuser" + index);
-			userProfile.setPasswordHash("5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5");
+			userProfile.setPasswordHash("25d19baaef913d50b6a8e302909507b8059c6410a1c8d7e1a844d6069732202e");
 			userProfile.setBossReferredId("RAJASE21");
 			//userProfile.setBossId(index + 1);
 			//userProfile.setBossName("Raj" + String.valueOf(userProfile.getBossId()));

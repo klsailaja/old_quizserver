@@ -223,7 +223,6 @@ public class GameHistoryDBHandler {
 		try {
 			cp = ConnectionPool.getInstance();
 			dbConn = cp.getDBConnection();
-			logger.info("In bulkInsertGamePlayers " + dbConn.hashCode());
 			
 			dbConn.setAutoCommit(false);
 			
@@ -293,9 +292,7 @@ public class GameHistoryDBHandler {
 		
 		try {
 			cp = ConnectionPool.getInstance();
-			//dbConn = cp.getDBConnection();
-			dbConn = cp.getConnectionNotFromPool();
-			logger.info("In BulkInsertGameResults " + dbConn.hashCode());
+			dbConn = cp.getDBConnection();
 			
 			dbConn.setAutoCommit(false);
 			
@@ -356,7 +353,6 @@ public class GameHistoryDBHandler {
 				ps.close();
 			}
 			if (dbConn != null) {
-				logger.info("In BulkInsertGameResults close" + dbConn.hashCode());
 				dbConn.close();
 			}
 		}

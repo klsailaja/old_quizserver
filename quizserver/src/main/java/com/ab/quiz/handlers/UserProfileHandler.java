@@ -5,7 +5,9 @@ import java.sql.SQLException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.db.MyTransactionDBHandler;
+import com.ab.quiz.db.ReferalDBHandler;
 import com.ab.quiz.db.UserProfileDBHandler;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.pojo.LoginData;
@@ -104,16 +106,27 @@ public class UserProfileHandler {
 		if ((bossReferalId == null) || (bossReferalId.length() == 0)) {
 			throw new NotAllowedException("Valid Referral code Compulsory");
 		}
-		if ((bossReferalId != null) && (bossReferalId.length() > 0)) {
-			checkByMailId = dbInstance.getProfileByBossRefaralCode(bossReferalId);
-			if (checkByMailId.getId() == 0) {
-				logger.debug("Invalid Referral code. No User exists with this code");
-				throw new NotAllowedException("Invalid Referral code. No User exists with this code");
+		if (bossReferalId.equals("SPECIAL")) {
+			int usedCount = ReferalDBHandler.getInstance().getSpecialCodeUsedCount();
+			logger.info("Special count number {}", usedCount);
+			if (usedCount >= QuizConstants.SPECIAL_CODE_MAX_COUNT) {
+				throw new NotAllowedException("Special Code usage invalid now");
 			}
-			userProfile.setBossId(checkByMailId.getId());
-			userProfile.setBossName(checkByMailId.getName());
-		} 
-		
+			boolean incrementResult = ReferalDBHandler.getInstance().incrementCount();
+			logger.info("Special count increment result is {}", incrementResult);
+			userProfile.setBossId(0);
+			userProfile.setBossName("NA");
+		} else {
+			if ((bossReferalId != null) && (bossReferalId.length() > 0)) {
+				checkByMailId = dbInstance.getProfileByBossRefaralCode(bossReferalId);
+				if (checkByMailId.getId() == 0) {
+					logger.debug("Invalid Referral code. No User exists with this code");
+					throw new NotAllowedException("Invalid Referral code. No User exists with this code");
+				}
+				userProfile.setBossId(checkByMailId.getId());
+				userProfile.setBossName(checkByMailId.getName());
+			} 
+		}
 		long currentTime = System.currentTimeMillis();
 		userProfile.setCreatedDate(currentTime);
 		userProfile.setLastLoggedDate(currentTime);
