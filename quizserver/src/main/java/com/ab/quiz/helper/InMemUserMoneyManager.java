@@ -65,7 +65,7 @@ public class InMemUserMoneyManager implements Runnable {
 			fullPendingTransactions.addAll(userWiseTrans);
 		}
 		
-		List<MoneyTransaction> loadedTransactions = new ArrayList<>();
+		/*List<MoneyTransaction> loadedTransactions = new ArrayList<>();
 		List<MoneyTransaction> winningTransactions = new ArrayList<>();
 		List<MoneyTransaction> referralTransactions = new ArrayList<>();
 		
@@ -86,20 +86,20 @@ public class InMemUserMoneyManager implements Runnable {
 					break;
 				}
 			}
-		}
+		}*/
 		try {
-			if (loadedTransactions.size() > 0) {
-				logger.info("Loaded money related transactions size {}", loadedTransactions.size());
-				bulkUpdate(loadedTransactions, UserMoneyDBHandler.UPDATE_LOADED_AMOUNT_BY_USER_ID);	
+			if (fullPendingTransactions.size() > 0) {
+				logger.info("All money related transactions size {}", fullPendingTransactions.size());
+				bulkUpdate(fullPendingTransactions, UserMoneyDBHandler.UPDATE_BALANCE_AMOUNT_BY_USER_ID);	
 			}
-			if (winningTransactions.size() > 0) {
+			/*if (winningTransactions.size() > 0) {
 				logger.info("Winning money related transactions size {}", winningTransactions.size());
-				bulkUpdate(winningTransactions, UserMoneyDBHandler.UPDATE_WINNING_AMOUNT_BY_USER_ID);
+				bulkUpdate(winningTransactions, UserMoneyDBHandler.UPDATE_BALANCE_AMOUNT_BY_USER_ID);
 			}
 			if (referralTransactions.size() > 0) {
 				logger.info("Referal money related transactions size {}", referralTransactions.size());
-				bulkUpdate(referralTransactions, UserMoneyDBHandler.UPDATE_REFERAL_AMOUNT_BY_USER_ID);
-			}
+				bulkUpdate(referralTransactions, UserMoneyDBHandler.UPDATE_BALANCE_AMOUNT_BY_USER_ID);
+			}*/
 		} catch(SQLException ex) {
 			logger.error("Error processing buld update for user money objects", ex);
 			throw ex;
@@ -239,9 +239,7 @@ public class InMemUserMoneyManager implements Runnable {
 					continue;
 				}
 
-				long userLoadedAmount = userMoney.getLoadedAmount();
-				long userWinningAmount = userMoney.getWinningAmount();
-				long userReferralAmount = userMoney.getReferalAmount();
+				long userLoadedAmount = userMoney.getAmount();
 
 				List<MoneyTransaction> userCuurentTrans = userIdVsCurrentTransactions.get(userId);
 
@@ -259,26 +257,24 @@ public class InMemUserMoneyManager implements Runnable {
 					}
 					case WINNING_MONEY: {
 						if (moneyTran.getOperType() == UserMoneyOperType.ADD) {
-							userWinningAmount = userWinningAmount + moneyTran.getAmount();
+							userLoadedAmount = userLoadedAmount + moneyTran.getAmount();
 						} else {
-							userWinningAmount = userWinningAmount - moneyTran.getAmount();
+							userLoadedAmount = userLoadedAmount - moneyTran.getAmount();
 						}
 						break;
 					}
 					case REFERAL_MONEY: {
 						if (moneyTran.getOperType() == UserMoneyOperType.ADD) {
-							userReferralAmount = userReferralAmount + moneyTran.getAmount();
+							userLoadedAmount = userLoadedAmount + moneyTran.getAmount();
 						} else {
-							userReferralAmount = userReferralAmount - moneyTran.getAmount();
+							userLoadedAmount = userLoadedAmount - moneyTran.getAmount();
 						}
 						break;
 					}
 					}
 				}
 
-				userMoney.setLoadedAmount(userLoadedAmount);
-				userMoney.setWinningAmount(userWinningAmount);
-				userMoney.setReferalAmount(userReferralAmount);
+				userMoney.setAmount(userLoadedAmount);
 				postUserIdVsMoney.put(userId, userMoney);
 			}
 		}
@@ -301,7 +297,7 @@ public class InMemUserMoneyManager implements Runnable {
 	}
 	
 	public void run() {
-		logger.info("This is in In Mem User Money Module in periodic run");
+		//logger.info("This is in In Mem User Money Module in periodic run");
 		try {
 			commitNow();
 		} catch (Exception ex) {

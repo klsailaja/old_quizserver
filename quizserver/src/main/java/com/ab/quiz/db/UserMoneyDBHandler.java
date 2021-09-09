@@ -13,7 +13,6 @@ import org.apache.logging.log4j.Logger;
 import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
-import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.helper.InMemUserMoneyManager;
 import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.helper.Utils;
@@ -26,12 +25,8 @@ import com.ab.quiz.tasks.AddTransactionsTask;
 
 /*
 CREATE TABLE USERMONEY (ID BIGINT UNSIGNED NOT NULL, 
-		LOADEDAMOUNT BIGINT, 
-		WINNINGAMOUNT BIGINT, 
-		REFERALAMOUNT BIGINT, 
-		LOADEDAMTLOCKED BIGINT,
-		WINNINGAMTLOCKED BIGINT,
-		REFERALAMTLOCKED BIGINT, PRIMARY KEY (ID)) ENGINE = INNODB;
+		BALANCE BIGINT, 
+		BALANCELOCKED BIGINT, PRIMARY KEY (ID)) ENGINE = INNODB;
 */
 
 public class UserMoneyDBHandler {
@@ -40,47 +35,25 @@ public class UserMoneyDBHandler {
 	// get the record
 	// update 
 	public static String ID = "id";
-	public static String LOADED_AMOUNT = "LOADEDAMOUNT";
-	public static String WINNING_AMOUNT = "WINNINGAMOUNT";
-	public static String REFERAL_AMOUNT = "REFERALAMOUNT";
-	public static String LOADED_AMOUNT_LOCKED = "LOADEDAMTLOCKED";
-	public static String WINNING_AMOUNT_LOCKED = "WINNINGAMTLOCKED";
-	public static String REFERAL_AMOUNT_LOCKED = "REFERALAMTLOCKED";
-	
+	public static String BALANCE = "BALANCE";
+	public static String BALANCE_LOCKED = "BALANCELOCKED";
+	public static String TABLE_NAME = "USERMONEY"; 
 	
 	private static UserMoneyDBHandler instance = null;
 	
-	private static final String CREATE_MONEY_ENTRY = "INSERT INTO USERMONEY " 
-			+ "(" + ID + "," + LOADED_AMOUNT + "," + WINNING_AMOUNT + ","
-			+ REFERAL_AMOUNT + "," + LOADED_AMOUNT_LOCKED + "," 
-			+ WINNING_AMOUNT_LOCKED + "," + REFERAL_AMOUNT_LOCKED
-			+ ") VALUES" + "(?,?,?,?,?,?,?)";
+	private static final String CREATE_MONEY_ENTRY = "INSERT INTO " + TABLE_NAME 
+			+ "(" + ID + "," + BALANCE + "," + BALANCE_LOCKED 
+			+ ") VALUES" + "(?,?,?)";
 	
-	public static final String GET_MONEY_ENTRY_BY_USER_ID = "SELECT * FROM USERMONEY WHERE " 
+	public static final String GET_MONEY_ENTRY_BY_USER_ID = "SELECT * FROM " + TABLE_NAME + " WHERE " 
 			+ ID + " = ?";
 	
-	public static final String UPDATE_LOADED_AMOUNT_BY_USER_ID = "UPDATE USERMONEY SET " 
-			+ LOADED_AMOUNT + " = " + LOADED_AMOUNT + " + ? WHERE " + ID + " = ? ";
+	public static final String UPDATE_BALANCE_AMOUNT_BY_USER_ID = "UPDATE " + TABLE_NAME + " SET " 
+			+ BALANCE + " = " + BALANCE  + " + ? WHERE " + ID + " = ? ";
 	
-	public static final String UPDATE_WINNING_AMOUNT_BY_USER_ID = "UPDATE USERMONEY SET " 
-			+ WINNING_AMOUNT + " = " + WINNING_AMOUNT + " + ? WHERE " + ID + " = ? ";
-	
-	public static final String UPDATE_REFERAL_AMOUNT_BY_USER_ID = "UPDATE USERMONEY SET " 
-			+ REFERAL_AMOUNT + " = " + REFERAL_AMOUNT + " + ? WHERE " + ID + " = ? ";
-	
-	public static final String WITHDRAW_LOADED_MONEY_BY_USER_ID = "UPDATE USERMONEY SET " 
-			+ LOADED_AMOUNT + " = " + LOADED_AMOUNT + " + ? , "
-			+ LOADED_AMOUNT_LOCKED + " = " + LOADED_AMOUNT_LOCKED + " + ? "
-			+ "WHERE " + ID + " = ? ";
-	
-	public static final String WITHDRAW_WINNING_MONEY_BY_USER_ID = "UPDATE USERMONEY SET " 
-			+ WINNING_AMOUNT + " = " + WINNING_AMOUNT + " + ? , "
-			+ WINNING_AMOUNT_LOCKED + " = " + WINNING_AMOUNT_LOCKED + " + ? "
-			+ "WHERE " + ID + " = ? ";
-	
-	public static final String WITHDRAW_REFERAL_MONEY_BY_USER_ID = "UPDATE USERMONEY SET " 
-			+ REFERAL_AMOUNT + " = " + REFERAL_AMOUNT + " + ? , "
-			+ REFERAL_AMOUNT_LOCKED + " = " + REFERAL_AMOUNT_LOCKED + " + ? "
+	public static final String WITHDRAW_BALANCE_AMOUNT_BY_USER_ID = "UPDATE " + TABLE_NAME + " SET " 
+			+ BALANCE + " = " + BALANCE + " + ? , "
+			+ BALANCE_LOCKED + " = " + BALANCE_LOCKED + " + ? "
 			+ "WHERE " + ID + " = ? ";
 	
 	public static final String GET_FIFTY_ENTRY_SET = "SELECT * FROM USERMONEY "    
@@ -124,12 +97,8 @@ public class UserMoneyDBHandler {
 			for (UserMoney userMoney : userMoneyList) {
 				
 				ps.setLong(1, userMoney.getId());
-				ps.setLong(2, userMoney.getLoadedAmount());
-				ps.setLong(3, userMoney.getWinningAmount());
-				ps.setLong(4, userMoney.getReferalAmount());
-				ps.setLong(5, userMoney.getLoadedAmtLocked());
-				ps.setLong(6, userMoney.getWinningAmtLocked());
-				ps.setLong(7, userMoney.getReferalAmtLocked());
+				ps.setLong(2, userMoney.getAmount());
+				ps.setLong(3, userMoney.getAmtLocked());
 			
 				ps.addBatch();
 				index++;
@@ -189,14 +158,12 @@ public class UserMoneyDBHandler {
 			ps = dbConn.prepareStatement(CREATE_MONEY_ENTRY);
 			
 			ps.setLong(1, userMoney.getId());
-			ps.setLong(2, userMoney.getLoadedAmount());
-			ps.setLong(3, userMoney.getWinningAmount());
-			ps.setLong(4, userMoney.getReferalAmount());
-			ps.setLong(5, userMoney.getLoadedAmtLocked());
-			ps.setLong(6, userMoney.getWinningAmtLocked());
-			ps.setLong(7, userMoney.getReferalAmtLocked());
+			ps.setLong(2, userMoney.getAmount());
+			ps.setLong(3, userMoney.getAmtLocked());
+			
 			int result = ps.executeUpdate();
 			logger.info("createUserMoney with id {} result is {}", userMoney.getId(), (result > 0));
+			
 		} catch(SQLException ex) {
 			logger.error("******************************");
 			logger.error("Error creating user money for id {} ", userMoney.getId());
@@ -233,12 +200,8 @@ public class UserMoneyDBHandler {
 			if (rs != null) {
 				if (rs.next()) {
 					userMoney.setId(rs.getLong(ID));
-					userMoney.setLoadedAmount(rs.getLong(LOADED_AMOUNT));
-					userMoney.setWinningAmount(rs.getLong(WINNING_AMOUNT));
-					userMoney.setReferalAmount(rs.getLong(REFERAL_AMOUNT));
-					userMoney.setLoadedAmtLocked(rs.getLong(LOADED_AMOUNT_LOCKED));
-					userMoney.setWinningAmtLocked(rs.getLong(WINNING_AMOUNT_LOCKED));
-					userMoney.setReferalAmtLocked(rs.getLong(REFERAL_AMOUNT_LOCKED));
+					userMoney.setAmount(rs.getLong(BALANCE));
+					userMoney.setAmtLocked(rs.getLong(BALANCE_LOCKED));
 				}
 			}
 		} catch (SQLException ex) {
@@ -264,26 +227,10 @@ public class UserMoneyDBHandler {
 	public boolean updateUserMoney(UserMoneyAccountType accountType, UserMoneyOperType operType, 
 			long id, long amt, MyTransaction transaction)
 			throws SQLException {
-		logger.info("In updateUserMoney");
-		String qry = null;
-		switch (accountType) {
-			case LOADED_MONEY: {
-				qry = UPDATE_LOADED_AMOUNT_BY_USER_ID;
-				break;
-			}
-			case WINNING_MONEY: {
-				qry = UPDATE_WINNING_AMOUNT_BY_USER_ID;
-				break;
-			}
-			case REFERAL_MONEY: {
-				qry = UPDATE_REFERAL_AMOUNT_BY_USER_ID;
-				break;
-			}
-		}
 		
-		if (qry == null) {
-			throw new RuntimeException("No query defined to handle the account type " + accountType);
-		}
+		logger.info("In updateUserMoney");
+		
+		String qry = UPDATE_BALANCE_AMOUNT_BY_USER_ID;
 		
 		ConnectionPool cp = ConnectionPool.getInstance();
 		Connection dbConn = cp.getDBConnection();
@@ -332,13 +279,7 @@ public class UserMoneyDBHandler {
 				
 				UserMoneyAccountType accountType = accountTypeList.get(index); 
 				
-				long userOB = userMoney.getLoadedAmount();
-				if (accountType.getId() == UserMoneyAccountType.WINNING_MONEY.getId()) {
-					userOB = userMoney.getWinningAmount();
-				} else if (accountType.getId() == UserMoneyAccountType.REFERAL_MONEY.getId()) {
-					userOB = userMoney.getReferalAmount();
-				}
-				
+				long userOB = userMoney.getAmount();
 				long userCB = userOB - amount;
 				TransactionType transactionType = transactionTypes.get(index);
 				if (transactionType.getId() == TransactionType.CREDITED.getId()) {
@@ -455,28 +396,7 @@ public class UserMoneyDBHandler {
 		}
 		ConnectionPool cp = ConnectionPool.getInstance();
 		Connection dbConn = cp.getDBConnection();
-		String sqlQry = WITHDRAW_LOADED_MONEY_BY_USER_ID;
-		
-		int accountType = wdUserInput.getFromAccType();
-		UserMoneyAccountType userReqAccType = UserMoneyAccountType.findById(accountType);
-		if (userReqAccType == null) {
-			throw new NotAllowedException("Unknown Accont Type");
-		}
-		
-		switch (userReqAccType) {
-			case LOADED_MONEY: {
-				sqlQry = WITHDRAW_LOADED_MONEY_BY_USER_ID;
-				break;
-			}
-			case WINNING_MONEY: {
-				sqlQry = WITHDRAW_WINNING_MONEY_BY_USER_ID;
-				break;
-			}
-			case REFERAL_MONEY: {
-				sqlQry = WITHDRAW_REFERAL_MONEY_BY_USER_ID;
-				break;
-			}
-		}
+		String sqlQry = WITHDRAW_BALANCE_AMOUNT_BY_USER_ID;
 		
 		PreparedStatement ps = dbConn.prepareStatement(sqlQry);
 		

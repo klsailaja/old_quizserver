@@ -25,7 +25,6 @@ import com.ab.quiz.helper.InMemUserMoneyManager;
 import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.helper.Utils;
 import com.ab.quiz.pojo.MyTransaction;
-import com.ab.quiz.pojo.TransferRequest;
 import com.ab.quiz.pojo.UserMoney;
 import com.ab.quiz.pojo.WDUserInput;
 import com.ab.quiz.pojo.WithdrawReqByBank;
@@ -62,7 +61,7 @@ public class UserMoneyHandler {
 		long longAmt = amt;
 		
 		UserMoney userMoney = UserMoneyHandler.getInstance().getUserMoney(userProfileId);
-		long userOB = userMoney.getLoadedAmount();
+		long userOB = userMoney.getAmount();
 		long userCB = longAmt + userOB;
 		long currentTime = System.currentTimeMillis();
 		String comments = "Loaded Money";
@@ -74,7 +73,7 @@ public class UserMoneyHandler {
 				longAmt, transaction);
 	}
 
-	public boolean transferMoney(long userProfileId, TransferRequest transferReq) 
+	/*public boolean transferMoney(long userProfileId, TransferRequest transferReq) 
 			throws NotAllowedException, SQLException {
 		
 		UserMoneyAccountType accType = UserMoneyAccountType.findById(transferReq.getSourceAccType());
@@ -94,7 +93,7 @@ public class UserMoneyHandler {
 		}
 		return UserMoneyDBHandler.getInstance().transferAmount(userProfileId, transferReq); 
 				
-	}
+	}*/
 	
 	// Withdraw support methods
 	
@@ -116,27 +115,7 @@ public class UserMoneyHandler {
 		}
 		logger.info("The user money DB entry is {}", userMoneyDb);
 		
-		int accountType = wdUserInput.getFromAccType();
-		UserMoneyAccountType userReqAccType = UserMoneyAccountType.findById(accountType);
-		if (userReqAccType == null) {
-			throw new NotAllowedException("Unknown Accont Type");
-		}
-		
-		long accountMoney = 0;
-		switch (userReqAccType) {
-			case LOADED_MONEY: {
-				accountMoney = userMoneyDb.getLoadedAmount();
-				break;
-			}
-			case WINNING_MONEY: {
-				accountMoney = userMoneyDb.getWinningAmount();
-				break;
-			}
-			case REFERAL_MONEY: {
-				accountMoney = userMoneyDb.getReferalAmount();
-				break;
-			}
-		}
+		long accountMoney = userMoneyDb.getAmount();
 		
 		logger.info("Withdraw Amount and Account Money {} and {}", wdUserInput.getAmount(), accountMoney);
 		
@@ -177,22 +156,7 @@ public class UserMoneyHandler {
 	}
 	
 	public String getUserAccWithDrawSql(int accType) {
-		
-		String wdSqlQry = UserMoneyDBHandler.WITHDRAW_LOADED_MONEY_BY_USER_ID; 
-		UserMoneyAccountType userReqAccType = UserMoneyAccountType.findById(accType);
-		
-		switch (userReqAccType) {
-			case WINNING_MONEY: {
-				wdSqlQry = UserMoneyDBHandler.WITHDRAW_WINNING_MONEY_BY_USER_ID;
-				break;
-			}
-			case REFERAL_MONEY: {
-				wdSqlQry = UserMoneyDBHandler.WITHDRAW_REFERAL_MONEY_BY_USER_ID;
-				break;
-			}
-			default:
-				break;
-		}
+		String wdSqlQry = UserMoneyDBHandler.WITHDRAW_BALANCE_AMOUNT_BY_USER_ID; 
 		return wdSqlQry;
 	}
 	
@@ -228,18 +192,14 @@ public class UserMoneyHandler {
 			throw new NotAllowedException("Could not insert beneficiary details to DB");
 		}
 		
-		String wdSql = getUserAccWithDrawSql(wdUserInput.getFromAccType());
+		String wdSql = UserMoneyDBHandler.WITHDRAW_BALANCE_AMOUNT_BY_USER_ID;
 		ConnectionPool cp = null;
 		Connection dbConn = null;
 		PreparedStatement ps = null;
 		
 		long userProfileId = wdUserInput.getUserProfileId();
 		
-		int userAccountType = wdUserInput.getFromAccType();
-		UserMoneyAccountType accType = UserMoneyAccountType.findById(userAccountType);
-		if (accType == null) {
-			throw new NotAllowedException("Unknown Account Type: " + userAccountType);
-		}
+		UserMoneyAccountType accType = UserMoneyAccountType.LOADED_MONEY; 
 		
 		List<UserMoneyAccountType> accTypes = new ArrayList<>();
 		accTypes.add(accType);
@@ -322,7 +282,6 @@ public class UserMoneyHandler {
 		WDUserInput wdInput = new WDUserInput();
 		
 		wdInput.setUserProfileId(70);
-		wdInput.setFromAccType(UserMoneyAccountType.LOADED_MONEY.getId());
 		wdInput.setRequestType(WithdrawReqType.BY_PHONE.getId());
 		wdInput.setAmount(100);
 		wdInput.setOpenedTime(System.currentTimeMillis());

@@ -81,7 +81,7 @@ public class PaymentProcessor {
 					continue;
 				}
 				
-				long userOB = userMoney.getWinningAmount();
+				long userOB = userMoney.getAmount();
 				long gameStartTime = gameDetails.getStartTime();
 				String comments = "Winning Money for GameId#:" + gameDetails.getGameId();
 				long userCB = userOB + amountWon; 
@@ -130,8 +130,8 @@ public class PaymentProcessor {
 				
 				userMoney = InMemUserMoneyManager.getInstance().getUserMoneyById(userProfileId);
 				
-				userOB = userMoney.getWinningAmount();
-				long bossOB = bossUserMoney.getReferalAmount();
+				userOB = userMoney.getAmount();
+				long bossOB = bossUserMoney.getAmount();
 				
 				gameStartTime = gameDetails.getStartTime();
 				

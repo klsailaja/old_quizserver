@@ -38,7 +38,6 @@ import com.ab.quiz.tasks.AddTransactionsTask;
  CREATE TABLE WITHDRAWREQUESTS(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, 
 		REFID VARCHAR(10) NOT NULL,
 		USERID BIGINT NOT NULL,
-		FROMACCTYPE INT NOT NULL,
 		STATUS INT NOT NULL,
 		REQTYPE INT NOT NULL,
 		ACCOUNTDETAILSID BIGINT NOT NULL,
@@ -63,7 +62,6 @@ public class WithdrawDBHandler {
 	private static String ID = "ID";
 	private static String REFID = "REFID";
 	private static String USER_PROFILE_ID = "USERID";
-	private static String FROM_APP_BANK_ACC_NAME = "FROMACCTYPE";
 	private static String STATUS = "STATUS";
 	private static String REQUEST_TYPE = "REQTYPE";
 	private static String ACDETAILS_ID = "ACCOUNTDETAILSID";
@@ -94,7 +92,7 @@ public class WithdrawDBHandler {
 
 
 	private static final String CREATE_WITHDRAW_ENTRY = "INSERT INTO " + TABLE_NAME
-			+ "(" + REFID + "," + USER_PROFILE_ID + "," + FROM_APP_BANK_ACC_NAME + ","
+			+ "(" + REFID + "," + USER_PROFILE_ID + "," 
 			+ STATUS + "," + REQUEST_TYPE + "," + ACDETAILS_ID + ","  
 			+ AMOUNT + "," + REQUEST_OPENED_TIME + "," + REQUEST_CLOSED_TIME + ","
 			+ TRANSACTION_RECEIPT_ID + "," + CLOSED_CMTS + ") VALUES"
@@ -261,7 +259,6 @@ public class WithdrawDBHandler {
 					wdRequest.setId(rs.getLong(ID));
 					wdRequest.setRefId(rs.getString(REFID));
 					wdRequest.setUserProfileId(rs.getLong(USER_PROFILE_ID));
-					wdRequest.setFromAccType(rs.getInt(FROM_APP_BANK_ACC_NAME));
 					wdRequest.setReqStatus(rs.getInt(STATUS));
 					wdRequest.setRequestType(rs.getInt(REQUEST_TYPE));
 					wdRequest.setAccountDetailsId(rs.getInt(ACDETAILS_ID));
@@ -337,12 +334,7 @@ public class WithdrawDBHandler {
 			long userProfileId = wdRequest.getUserProfileId(); 
 			UserMoney userMoney = userMoneyHandler.getUserMoneyById(userProfileId);
 			
-			long userOB = userMoney.getLoadedAmount();
-			if (wdRequest.getFromAccType() == UserMoneyAccountType.WINNING_MONEY.getId()) {
-				userOB = userMoney.getWinningAmount();
-			} else if (wdRequest.getFromAccType() == UserMoneyAccountType.REFERAL_MONEY.getId()) {
-				userOB = userMoney.getReferalAmount();
-			}
+			long userOB = userMoney.getAmount();
 			long time = System.currentTimeMillis();
 			String comments = "Withdraw Request Processed. Receipt Attached for " + wdRequest.getRefId();
 			long userCB = userOB;
@@ -507,17 +499,16 @@ public class WithdrawDBHandler {
 			String refId = getReferenceNumber(remainingLen, maxReqId);
 			ps.setString(1, refId);
 			ps.setLong(2, wdUserInput.getUserProfileId());
-			ps.setInt(3, wdUserInput.getFromAccType());
-			ps.setInt(4, WithdrawReqState.OPEN.getId());
-			ps.setInt(5, wdUserInput.getRequestType());
-			ps.setLong(6, wdDetailsId);
-			ps.setInt(7, wdUserInput.getAmount());
+			ps.setInt(3, WithdrawReqState.OPEN.getId());
+			ps.setInt(4, wdUserInput.getRequestType());
+			ps.setLong(5, wdDetailsId);
+			ps.setInt(6, wdUserInput.getAmount());
 			
 			long currentTime = System.currentTimeMillis();
-			ps.setLong(8, currentTime);
+			ps.setLong(7, currentTime);
+			ps.setNull(8, Types.NULL);
 			ps.setNull(9, Types.NULL);
 			ps.setNull(10, Types.NULL);
-			ps.setNull(11, Types.NULL);
 			
 			int result = ps.executeUpdate();
 			logger.debug("In createWithDrawReq create op result : {}", result);
@@ -613,7 +604,6 @@ public class WithdrawDBHandler {
 					dataItem.setId(rs.getLong(ID));
 					dataItem.setRefId(rs.getString(REFID));
 					dataItem.setUserProfileId(rs.getLong(USER_PROFILE_ID));
-					dataItem.setFromAccType(rs.getInt(FROM_APP_BANK_ACC_NAME));
 					dataItem.setReqStatus(rs.getInt(STATUS));
 					dataItem.setRequestType(rs.getInt(REQUEST_TYPE));
 					dataItem.setAccountDetailsId(rs.getLong(ACDETAILS_ID));

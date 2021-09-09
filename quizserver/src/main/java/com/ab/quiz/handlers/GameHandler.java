@@ -130,12 +130,8 @@ public class GameHandler {
 	
 	private long getAccountBalance(UserMoney userMoney, int accountType) {
 		if (accountType == UserMoneyAccountType.LOADED_MONEY.getId()) {
-			return userMoney.getLoadedAmount();
-		} else if (accountType == UserMoneyAccountType.WINNING_MONEY.getId()) {
-			return userMoney.getWinningAmount();
-		} else if (accountType == UserMoneyAccountType.REFERAL_MONEY.getId()) {
-			return userMoney.getReferalAmount();
-		}
+			return userMoney.getAmount();
+		} 
 		return -1;
 	}
 	

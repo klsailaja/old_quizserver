@@ -352,30 +352,7 @@ public class GameManager {
 				throw new NotAllowedException("User Money details not found");
 			}
 			
-			long amt = 0;
-			
-			UserMoneyAccountType accType = UserMoneyAccountType.findById(gameOper.getUserAccountType());
-			if (accType == null) {
-				throw new NotAllowedException("Unknown User Account Type");
-			}
-			
-			switch (accType) {
-				case LOADED_MONEY: {
-					amt = userMoney.getLoadedAmount();
-					break;
-				}
-				case WINNING_MONEY: {
-					amt = userMoney.getWinningAmount();
-					break;
-				}
-				case REFERAL_MONEY: {
-					amt = userMoney.getReferalAmount();
-					break;
-				}
-				default:
-					amt = userMoney.getLoadedAmount();
-					break;
-			}
+			long amt = userMoney.getAmount();
 			
 			if (amt < gameHandler.getGameDetails().getTicketRate()) {
 				throw new NotAllowedException("No Enough Cash. Please add money");
@@ -387,40 +364,15 @@ public class GameManager {
 			
 			MyTransaction transaction = Utils.getTransactionPojo(gameOper.getUserProfileId(), 
 					currentGameStartTime, (int)tktRate, TransactionType.DEBITED.getId(), 
-					accType.getId(), userOB, userCB, "Played game#:" + gameId);
+					UserMoneyAccountType.LOADED_MONEY.getId(), userOB, userCB, "Played game#:" + gameId);
 			
-			/*boolean finalResult = UserMoneyDBHandler.getInstance().updateUserMoney(accType, 
-					UserMoneyOperType.SUBTRACT, gameOper.getUserProfileId(), tktRate, transaction);*/
-			
-			MoneyTransaction joinTransaction = new MoneyTransaction(accType, UserMoneyOperType.SUBTRACT, 
+			MoneyTransaction joinTransaction = new MoneyTransaction(UserMoneyAccountType.LOADED_MONEY, UserMoneyOperType.SUBTRACT, 
 					gameOper.getUserProfileId(), tktRate, transaction);
 			
 			List<MoneyTransaction> joinTransList = new ArrayList<>();
 			joinTransList.add(joinTransaction);
 			
 			InMemUserMoneyManager.getInstance().update(joinTransList, null);
-			
-			
-			/*if (!finalResult) {
-				throw new NotAllowedException("Could not update user money entry");
-			}*/
-			
-			/*switch (accType) {
-				case LOADED_MONEY: {
-					userMoney.setLoadedAmount(userCB);
-					break;
-				}
-				case WINNING_MONEY: {
-					userMoney.setWinningAmount(userCB);
-					break;
-				}
-				case REFERAL_MONEY: {
-					userMoney.setReferalAmount(userCB);
-					break;
-				}
-			}*/
-			
-			//gameHandler.userIdVsUserMoney.put(gameOper.getUserProfileId(), userMoney);
 			
 		} catch (SQLException e) {
 			logger.error("Exception while fetching User Money Details" , e);
@@ -463,12 +415,7 @@ public class GameManager {
 			}
 		}
 		
-		int accountTypeUsedEarlier = gameHandler.getAccountTypeUsed(gameOper.getUserProfileId());
-		if (accountTypeUsedEarlier == -1) {
-			throw new NotAllowedException("User Account not found " + accountTypeUsedEarlier);
-		}
-		
-		UserMoneyAccountType accType = UserMoneyAccountType.findById(accountTypeUsedEarlier);
+		UserMoneyAccountType accType = UserMoneyAccountType.LOADED_MONEY;
 		
 		try {
 			
@@ -477,14 +424,7 @@ public class GameManager {
 				return gameHandler.withdraw(gameOper.getUserProfileId());
 			}
 			UserMoney userMoney = InMemUserMoneyManager.getInstance().getUserMoneyById(gameOper.getUserProfileId());
-			long userOB = 0;
-			if (accType == UserMoneyAccountType.LOADED_MONEY) {
-				userOB = userMoney.getLoadedAmount(); 
-			} else if (accType == UserMoneyAccountType.WINNING_MONEY) {
-				userOB = userMoney.getWinningAmount();
-			} else if (accType == UserMoneyAccountType.REFERAL_MONEY) {
-				userOB = userMoney.getReferalAmount();
-			}
+			long userOB = userMoney.getAmount();
 			long userCB = userOB + tktRate;
 			
 			MyTransaction transaction = Utils.getTransactionPojo(gameOper.getUserProfileId(), 

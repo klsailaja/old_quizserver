@@ -231,7 +231,7 @@ public class UserProfileDBHandler {
 					if (QuizConstants.TESTMODE == 1) {
 						initialLoadedMoney = 100000;
 					}
-					UserMoney userMoneyObject = new UserMoney(userProfileId, initialLoadedMoney, 0, 0, 0, 0, 0);
+					UserMoney userMoneyObject = new UserMoney(userProfileId, initialLoadedMoney, 0);
 					UserMoneyDBHandler.getInstance().createUserMoney(userMoneyObject);
 				}
 			}
@@ -778,12 +778,8 @@ public class UserProfileDBHandler {
 		for (int index = 1; index <= total; index ++) {
 			UserMoney userMoney = new UserMoney();
 			userMoney.setId(index);
-			userMoney.setLoadedAmount(50000);
-			userMoney.setLoadedAmtLocked(0);
-			userMoney.setWinningAmount(0);
-			userMoney.setWinningAmtLocked(0);
-			userMoney.setReferalAmount(0);
-			userMoney.setReferalAmtLocked(0);
+			userMoney.setAmount(50000);
+			userMoney.setAmtLocked(0);
 			
 			if (batchMode) {
 				userMoneys.add(userMoney);

@@ -114,12 +114,8 @@ public class BatchPaymentProcessor implements Runnable {
 						UserMoney userMoney = new UserMoney();
 						
 						userMoney.setId(rs.getLong(UserMoneyDBHandler.ID));
-						userMoney.setLoadedAmount(rs.getLong(UserMoneyDBHandler.LOADED_AMOUNT));
-						userMoney.setWinningAmount(rs.getLong(UserMoneyDBHandler.WINNING_AMOUNT));
-						userMoney.setReferalAmount(rs.getLong(UserMoneyDBHandler.REFERAL_AMOUNT));
-						userMoney.setLoadedAmtLocked(rs.getLong(UserMoneyDBHandler.LOADED_AMOUNT_LOCKED));
-						userMoney.setWinningAmtLocked(rs.getLong(UserMoneyDBHandler.WINNING_AMOUNT_LOCKED));
-						userMoney.setReferalAmtLocked(rs.getLong(UserMoneyDBHandler.REFERAL_AMOUNT_LOCKED));
+						userMoney.setAmount(rs.getLong(UserMoneyDBHandler.BALANCE));
+						userMoney.setAmtLocked(rs.getLong(UserMoneyDBHandler.BALANCE_LOCKED));
 				
 						userIdVsUserMoney.put(userMoney.getId(), userMoney);
 					}
