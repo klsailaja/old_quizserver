@@ -4,15 +4,19 @@ public class UserMoney {
 	private long id;
 	private long amount;
 	private long amtLocked;
+	private long winAmount;
+	private long referAmount;
 	
 	public UserMoney() {
 	}
 	
-	public UserMoney(long id, long amount, long amtLocked) {
+	public UserMoney(long id, long amount, long amtLocked, long winAmount, long referAmount) {
 		super();
 		this.id = id;
 		this.amount = amount;
 		this.amtLocked = amtLocked;
+		this.winAmount = winAmount;
+		this.referAmount = referAmount;
 	}
 
 	public long getId() {
@@ -37,6 +41,22 @@ public class UserMoney {
 
 	public void setAmtLocked(long amtLocked) {
 		this.amtLocked = amtLocked;
+	}
+
+	public long getWinAmount() {
+		return winAmount;
+	}
+
+	public void setWinAmount(long winAmount) {
+		this.winAmount = winAmount;
+	}
+
+	public long getReferAmount() {
+		return referAmount;
+	}
+
+	public void setReferAmount(long referAmount) {
+		this.referAmount = referAmount;
 	}
 	
 }

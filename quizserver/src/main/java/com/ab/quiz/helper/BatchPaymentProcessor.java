@@ -21,6 +21,10 @@ public class BatchPaymentProcessor implements Runnable {
 	// This map maintains the UserId Vs Boss Id
 	private Map<Long, Long> userIdVsBossId = new HashMap<>();
 	private Map<Long, UserMoney> userIdVsUserMoney = new HashMap<>();
+	private Map<Long, Integer> userIdVsReferalAmount = new HashMap<>();
+	private Map<Long, Integer> userIdVsWinningAmount = new HashMap<>();
+	
+	
 	private List<PaymentProcessor> paymentProcessors = new ArrayList<>();
 	
 	private static final Logger logger = LogManager.getLogger(BatchPaymentProcessor.class);
@@ -150,7 +154,7 @@ public class BatchPaymentProcessor implements Runnable {
 
 				for (PaymentProcessor processor : paymentProcessors) {
 
-					processor.processPayments(userIdVsUserMoney, userIdVsBossId);
+					processor.processPayments(userIdVsUserMoney, userIdVsBossId, userIdVsReferalAmount, userIdVsWinningAmount);
 
 					Map<Long, UserMoney> inMemMap = InMemUserMoneyManager.getInstance().getInMemUserMoneyObjects();
 
@@ -164,6 +168,10 @@ public class BatchPaymentProcessor implements Runnable {
 					}
 				}
 				InMemUserMoneyManager.getInstance().commitNow();
+				UserMoneyDBHandler.getInstance().updateUsersMoneyEntriesInBatch(userIdVsReferalAmount, 50, 
+						UserMoneyDBHandler.UPDATE_REFERMONEY_BY_USER_ID, "REFER");
+				UserMoneyDBHandler.getInstance().updateUsersMoneyEntriesInBatch(userIdVsWinningAmount, 50, 
+						UserMoneyDBHandler.UPDATE_WINMONEY_BY_USER_ID, "WIN");
 				logger.info("Total Time in Run {}", (System.currentTimeMillis() - startTime));
 
 			} catch (Exception ex) {

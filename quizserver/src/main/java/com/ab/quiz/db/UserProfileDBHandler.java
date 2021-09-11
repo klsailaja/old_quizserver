@@ -231,7 +231,7 @@ public class UserProfileDBHandler {
 					if (QuizConstants.TESTMODE == 1) {
 						initialLoadedMoney = 100000;
 					}
-					UserMoney userMoneyObject = new UserMoney(userProfileId, initialLoadedMoney, 0);
+					UserMoney userMoneyObject = new UserMoney(userProfileId, initialLoadedMoney, 0, 0, 0);
 					UserMoneyDBHandler.getInstance().createUserMoney(userMoneyObject);
 				}
 			}
@@ -690,8 +690,7 @@ public class UserProfileDBHandler {
 			userProfile.setEmailAddress("systemuser" + index + "@gmail.com");
 			userProfile.setName("Systemuser" + index);
 			userProfile.setPasswordHash("25d19baaef913d50b6a8e302909507b8059c6410a1c8d7e1a844d6069732202e");
-			userProfile.setBossId(-1);
-			userProfile.setBossName("");
+			userProfile.setBossReferredId("SPECIAL");
 			userProfile.setForgotPasswdUsed(0);
 			userProfile.setLoggedIn(0);
 			userProfile.setCreatedDate(1609861020944L);
@@ -718,9 +717,7 @@ public class UserProfileDBHandler {
 		userProfile.setEmailAddress("ggraj.pec@gmail.com");
 		userProfile.setName("Rajasekhar");
 		userProfile.setPasswordHash("25d19baaef913d50b6a8e302909507b8059c6410a1c8d7e1a844d6069732202e");
-		userProfile.setBossReferredId("NoOne");
-		userProfile.setBossId(0);
-		userProfile.setBossName("");
+		userProfile.setBossReferredId("SPECIAL");
 		userProfile.setForgotPasswdUsed(0);
 		userProfile.setLoggedIn(0);
 		userProfile.setCreatedDate(1609861020944L);
@@ -746,8 +743,6 @@ public class UserProfileDBHandler {
 			userProfile.setName("testuser" + index);
 			userProfile.setPasswordHash("25d19baaef913d50b6a8e302909507b8059c6410a1c8d7e1a844d6069732202e");
 			userProfile.setBossReferredId("RAJASE21");
-			//userProfile.setBossId(index + 1);
-			//userProfile.setBossName("Raj" + String.valueOf(userProfile.getBossId()));
 			userProfile.setForgotPasswdUsed(0);
 			userProfile.setLoggedIn(0);
 			userProfile.setCreatedDate(1609861020944L);

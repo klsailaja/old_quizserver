@@ -43,8 +43,8 @@ public class PaymentProcessor {
 		return winUsersIds;
 	}
 	
-	public void processPayments(Map<Long, UserMoney> userIdVsUserMoney, 
-			Map<Long, Long> userIdVsBossId) {
+	public void processPayments(Map<Long, UserMoney> userIdVsUserMoney, Map<Long, Long> userIdVsBossId, 
+			Map<Long, Integer> userIdVsReferalAmount, Map<Long, Integer> userIdVsWinningAmount) {
 		
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat();
 		String timePattern = "dd:MMM:yy:HH:mm";
@@ -68,7 +68,9 @@ public class PaymentProcessor {
 				logger.info("****************** profit is negative: " + (profit));
 				profit = 0;
 			}
+			
 			long userProfileId = ps.getUserProfileId();
+			userIdVsWinningAmount.put(userProfileId, profit);
 			
 			try {
 				logger.info("Paying amount {} to id {} and userName {}", amountWon, userProfileId, userName);
@@ -175,6 +177,15 @@ public class PaymentProcessor {
 				winUserMap.put(bossUserProfileId, bossUserMoney);
 				
 				InMemUserMoneyManager.getInstance().update(winnersMoneyTransactions, winUserMap);
+				
+				userIdVsWinningAmount.put(userProfileId, (profit - bossShare));
+				Integer totalBossShare = userIdVsReferalAmount.get(bossProfileId);
+				if (totalBossShare == null) {
+					totalBossShare = new Integer(bossShare);
+				} else {
+					totalBossShare = totalBossShare + bossShare;
+				}
+				userIdVsReferalAmount.put(bossProfileId, totalBossShare);
 				
 			} catch (Exception ex) {
 				logger.error("For user profile id " + userProfileId);
