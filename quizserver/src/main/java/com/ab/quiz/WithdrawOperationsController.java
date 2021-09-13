@@ -1,6 +1,7 @@
 package com.ab.quiz;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -13,13 +14,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ab.quiz.db.MyTransactionDBHandler;
-import com.ab.quiz.db.UserProfileDBHandler;
 import com.ab.quiz.db.WithdrawDBHandler;
 import com.ab.quiz.exceptions.InternalException;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.UserMoneyHandler;
+import com.ab.quiz.helper.Utils;
 import com.ab.quiz.helper.WinMsgHandler;
-import com.ab.quiz.pojo.UserProfile;
 import com.ab.quiz.pojo.WithdrawRequestInput;
 import com.ab.quiz.pojo.WithdrawRequestsHolder;
 
@@ -89,28 +89,86 @@ public class WithdrawOperationsController extends BaseController {
 		}
 	}
 	
-	@RequestMapping(value = "/wd/messages/{userId}", method = RequestMethod.GET, produces = "application/json")
-	public @ResponseBody List<String> getRecentWinWDMessages(@PathVariable long userId) 
+	@RequestMapping(value = "/wd/messages/{userId}/{maxCount}", method = RequestMethod.GET, produces = "application/json")
+	public @ResponseBody List<String> getRecentWinWDMessages(@PathVariable long userId, @PathVariable int maxCount) 
 			throws NotAllowedException, InternalException {
-		logger.info("In getRecentWinWDMessages with userId {}", userId);
+		logger.info("In getRecentWinWDMessages with userId {} and {}", userId, maxCount);
 		try {
 			List<String> combinedMsgs = WinMsgHandler.getInstance().getCombinedMessages();
 			if (userId == -1) {
 				return combinedMsgs;
 			}
-			UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userId);
-			if (userProfile.getBossId() > 0) {
-				List<String> gameWinMsgs = MyTransactionDBHandler.
-						getInstance().getRecentWinRecords(userProfile.getBossId(), true, userProfile.getBossName());
-				List<String> withDrawMsgs = WithdrawDBHandler.
-						getInstance().getRecentWinRecords(userProfile.getBossId(), true, userProfile.getBossName());
-				for (int index = withDrawMsgs.size() - 1; index >= 0; index--) {
-					combinedMsgs.add(0, withDrawMsgs.get(index));
+			
+			List<Long> closedGroupMembersIds = new ArrayList<>();
+			List<String> closedGroupMembersNames = new ArrayList<>();
+			
+			Utils.getClosedCircleUserIds(userId, maxCount, closedGroupMembersIds, closedGroupMembersNames);
+			
+			logger.info(closedGroupMembersIds);
+			logger.info(closedGroupMembersNames);
+			
+			if (closedGroupMembersIds.size() > 0) {
+				
+				List<List<String>> totalUsersWinMsgs = new ArrayList<>();
+				List<List<String>> totalUsersWithDrawMsgs = new ArrayList<>();
+				
+				int winMsgsMaxSize = 0;
+				int wdMsgsMaxSize = 0;
+				
+				for (int userIndex = 0; userIndex < closedGroupMembersIds.size(); userIndex++) {
+					 
+					long closedGrpUserId = closedGroupMembersIds.get(userIndex);
+					String closedGrpUserName = closedGroupMembersNames.get(userIndex);
+					
+					List<String> gameWinMsgs = MyTransactionDBHandler.
+						getInstance().getRecentWinRecords(closedGrpUserId, true, closedGrpUserName);
+					List<String> withDrawMsgs = WithdrawDBHandler.
+						getInstance().getRecentWinRecords(closedGrpUserId, true, closedGrpUserName);
+					
+					totalUsersWinMsgs.add(gameWinMsgs);
+					totalUsersWithDrawMsgs.add(withDrawMsgs);
+					
+					if (winMsgsMaxSize < gameWinMsgs.size()) {
+						winMsgsMaxSize = gameWinMsgs.size();
+					}
+					
+					if (wdMsgsMaxSize < withDrawMsgs.size()) {
+						wdMsgsMaxSize = withDrawMsgs.size();
+					}
 				}
-				for (int index = gameWinMsgs.size() - 1; index >= 0; index--) {
-					combinedMsgs.add(0, gameWinMsgs.get(index));
+				
+				List<String> closedGrpUsersMsgs = new ArrayList<>();
+				
+				for (int winMsgIndex = 0; winMsgIndex < winMsgsMaxSize; winMsgIndex ++) {
+					for (int totalIndex = 0; totalIndex < totalUsersWinMsgs.size(); totalIndex ++) {
+						List<String> gameWinMsgs = totalUsersWinMsgs.get(totalIndex);
+						if (winMsgIndex < gameWinMsgs.size()) {
+							closedGrpUsersMsgs.add(gameWinMsgs.get(winMsgIndex));
+						}
+					}
 				}
+				
+				for (int wdMsgIndex = 0; wdMsgIndex < wdMsgsMaxSize; wdMsgIndex ++) {
+					for (int totalIndex = 0; totalIndex < totalUsersWithDrawMsgs.size(); totalIndex ++) {
+						List<String> gameWdMsgs = totalUsersWithDrawMsgs.get(totalIndex);
+						if (wdMsgIndex < gameWdMsgs.size()) {
+							closedGrpUsersMsgs.add(gameWdMsgs.get(wdMsgIndex));
+						}
+					}
+				}
+				closedGrpUsersMsgs.addAll(closedGrpUsersMsgs);
+				closedGrpUsersMsgs.addAll(closedGrpUsersMsgs);
+				
+				int totalClosedGrpMsgCount = 240 - closedGrpUsersMsgs.size();
+				for (int totalIndex = 0; totalIndex < totalClosedGrpMsgCount; totalIndex ++) {
+					if (totalIndex < combinedMsgs.size()) {
+						closedGrpUsersMsgs.add(combinedMsgs.get(totalIndex));
+					}
+				}
+				logger.info("closedGrpUsersMsgs size {}", closedGrpUsersMsgs.size());
+				return closedGrpUsersMsgs;
 			}
+			
 			logger.info("combinedMsgs {}", combinedMsgs.size());
 			return combinedMsgs;
 		} catch (SQLException ex) {

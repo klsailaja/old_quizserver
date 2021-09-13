@@ -186,6 +186,7 @@ public class PaymentProcessor {
 					totalBossShare = totalBossShare + bossShare;
 				}
 				userIdVsReferalAmount.put(bossProfileId, totalBossShare);
+				logger.info("userIdVsReferalAmount size {}", userIdVsReferalAmount);
 				
 			} catch (Exception ex) {
 				logger.error("For user profile id " + userProfileId);

@@ -742,7 +742,12 @@ public class UserProfileDBHandler {
 			userProfile.setEmailAddress("testuser" + index + "@gmail.com");
 			userProfile.setName("testuser" + index);
 			userProfile.setPasswordHash("25d19baaef913d50b6a8e302909507b8059c6410a1c8d7e1a844d6069732202e");
-			userProfile.setBossReferredId("RAJASE21");
+			
+			String bossReferId = "RAJASE21";
+			if (index > 1000) {
+				bossReferId = "TEST" + (index - 1);
+			}
+			userProfile.setBossReferredId(bossReferId);
 			userProfile.setForgotPasswdUsed(0);
 			userProfile.setLoggedIn(0);
 			userProfile.setCreatedDate(1609861020944L);

@@ -1,10 +1,13 @@
 package com.ab.quiz.helper;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ab.quiz.db.UserProfileDBHandler;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.PrizeDetail;
+import com.ab.quiz.pojo.UserProfile;
 
 public class Utils {
 	
@@ -99,6 +102,21 @@ public class Utils {
 	
 	public static int getBossMoney(int profit) {
 		return (profit/50);
+	}
+	
+	public static void getClosedCircleUserIds(long userId, int maxUsers, List<Long> closedGrpUserIds,
+			List<String> closedGrpUserNames) throws SQLException {
+		int index = 0;
+		UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userId);
+		long bossUserId = userProfile.getBossId();
+		
+		while ((index < maxUsers) && (bossUserId > 0)) {
+			closedGrpUserIds.add(bossUserId);
+			userProfile = UserProfileDBHandler.getInstance().getProfileById(bossUserId);
+			closedGrpUserNames.add(userProfile.getName());
+			index ++;
+			bossUserId = userProfile.getBossId();
+		}
 	}
 	
 	public static void main(String[] args) {

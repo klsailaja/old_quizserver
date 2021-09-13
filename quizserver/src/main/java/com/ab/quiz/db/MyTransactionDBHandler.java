@@ -270,8 +270,8 @@ public class MyTransactionDBHandler {
 		}
 		
 		List<String> winMessages = new ArrayList<>();
-		String msg1 = "$NAME WON Rs.$AMT RECENTLY";
-		String msg2 = "Your Referrer $NAME WON Rs.$AMT RECENTLY";
+		String msg1 = "$NAME won Rs.$AMT recently";
+		String msg2 = "Your network friend $NAME won Rs.$AMT recently";
 		try {
 			rs = ps.executeQuery();
 			if (rs != null) {
