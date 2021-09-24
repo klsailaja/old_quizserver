@@ -1,6 +1,7 @@
 package com.ab.quiz;
 
 import java.sql.SQLException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,10 +12,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ab.quiz.db.UserProfileDBHandler;
+import com.ab.quiz.db.VerifyUserProfile;
 import com.ab.quiz.exceptions.InternalException;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.UserProfileHandler;
+import com.ab.quiz.helper.LazyScheduler;
+import com.ab.quiz.helper.SendMailTask;
 import com.ab.quiz.pojo.LoginData;
+import com.ab.quiz.pojo.Mail;
+import com.ab.quiz.pojo.OTPDetails;
 import com.ab.quiz.pojo.ReferalDetails;
 import com.ab.quiz.pojo.TransactionsHolder;
 import com.ab.quiz.pojo.UserProfile;
@@ -178,4 +184,80 @@ public class UserProfileController extends BaseController {
 		return "false";
 	}
 	
+	@RequestMapping(value = "/user/verify", method = RequestMethod.POST, produces = "application/json")
+	public @ResponseBody String verifyOTP(@RequestBody OTPDetails otpDetails)
+			throws NotAllowedException, InternalException {
+		
+		String eMail = otpDetails.getMailId().trim();
+		String passwdHash = otpDetails.getOtp_hash().trim();
+		
+		try {
+			OTPDetails dbEntry = VerifyUserProfile.getInstance().getOTPDetailsByMailId(eMail);
+			if (dbEntry.getMailId() != null) {
+				if (dbEntry.getMailId().equals(eMail)) {
+					if (dbEntry.getOtp_hash().equals(passwdHash)) {
+						return String.valueOf(true);
+					}
+				}
+			}
+			return String.valueOf(false);
+		} catch (SQLException ex) {
+			logger.error("Error while OTP Verify process", ex);
+			throw new InternalException("Server Error while OTP Verify process");
+		}
+		
+	}
+	
+	@RequestMapping(value = "/user/sendcode", method = RequestMethod.POST, produces = "application/json")
+	public @ResponseBody String verifyUserIdGenerateOTP(@RequestBody String eMail) throws NotAllowedException,
+		InternalException {
+		
+		eMail = eMail.trim();
+		eMail = eMail.replace("\"", "");
+		logger.info("This is in verifyUserIdGenerateOTP {}", eMail);
+		try {
+			UserProfile userProfile = UserProfileHandler.getInstance().getUserProfileByMailId(eMail);
+			if (userProfile.getId() > 0) {
+				throw new NotAllowedException(eMail + " already registered. Use forgot password if required");
+			}
+			
+			 
+			OTPDetails otpDBEntry = VerifyUserProfile.getInstance().getOTPDetailsByMailId(eMail);
+			boolean exists = ((otpDBEntry.getMailId() != null) && otpDBEntry.getMailId().equals(eMail)); 
+			
+			String passwd = UserProfileDBHandler.getInstance().getRandomPasswd(4);
+			String passwdHash = UserProfileDBHandler.getPasswordHash(passwd);
+			
+			OTPDetails otpDetails = new OTPDetails();
+			otpDetails.setMailId(eMail);
+			otpDetails.setOtp_hash(passwdHash);
+			
+			boolean dbAddOrUpdate = false;
+			if (!exists) {
+				dbAddOrUpdate = VerifyUserProfile.getInstance().createUserProfileForVerify(otpDetails);
+			} else {
+				int updateRowCount = VerifyUserProfile.getInstance().updateRecordWithOTP(eMail, passwdHash);
+				dbAddOrUpdate = (updateRowCount > 0);
+			}
+			if (dbAddOrUpdate) {
+				
+				Mail mail = new Mail();
+		        
+				mail.setMailFrom("ggraj.pec@gmail.com");
+				mail.setMailTo(eMail);
+				mail.setMailSubject("4-digit Verification Code");
+	        
+				mail.setMailContent("Your 4-digit verification code :" + passwd 
+	        		+ "\n\nThanks\nTeluguQuiz");
+				
+				LazyScheduler.getInstance().submit(new SendMailTask(mail));
+			}
+			
+			return String.valueOf(true);
+		} catch(SQLException ex) {
+			logger.error("Error in verifyUserIdGenerateOTP for {}", eMail);
+			logger.error(ex);
+			throw new InternalException("Server Error in verifyUserIdGenerateOTP");
+		}
+	}
 }

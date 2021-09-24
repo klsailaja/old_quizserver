@@ -166,7 +166,7 @@ public class GameHandler {
 			String comments = "Refund for Cancelled game#:" + gameDetails.getGameId();
 			
 			MyTransaction transaction = Utils.getTransactionPojo(userProfileId, gameDetails.getStartTime(), 
-					gameDetails.getTicketRate(), TransactionType.CREDITED.getId(), accountUsed, userOB, userCB, comments); 
+					gameDetails.getTicketRate(), TransactionType.CREDITED.getId(), accountUsed, userOB, userCB, comments, null); 
 			
 			/*boolean res = UserMoneyDBHandler.getInstance().updateUserMoney(userAccType, 
 					UserMoneyOperType.ADD, userProfileId, amt, transaction);*/

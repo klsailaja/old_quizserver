@@ -96,7 +96,7 @@ public class WithdrawDBHandler {
 			+ STATUS + "," + REQUEST_TYPE + "," + ACDETAILS_ID + ","  
 			+ AMOUNT + "," + REQUEST_OPENED_TIME + "," + REQUEST_CLOSED_TIME + ","
 			+ TRANSACTION_RECEIPT_ID + "," + CLOSED_CMTS + ") VALUES"
-			+ "(?,?,?,?,?,?,?,?,?,?,?)";
+			+ "(?,?,?,?,?,?,?,?,?,?)";
 	
 	private static final String MAX_WITHDRAW_REQ_ID = "SELECT MAX(ID) FROM " + TABLE_NAME;
 	private static final String GET_WITHDRAW_ENTRY_BY_REF_ID = "SELECT * FROM " + TABLE_NAME + " WHERE " + REFID + " = ?";
@@ -147,7 +147,7 @@ public class WithdrawDBHandler {
 			ps.setLong(1, timePeriod);
 			
 			int result = ps.executeUpdate();
-			logger.debug("In deleteRecords create op result : {}", result);
+			logger.debug("In deleteRecords operation result : {}", result);
 			
 			WithdrawReceiptDBHandler.getInstance().bulkDeleteReceiptRecords(oldWDReceiptIds, 50);
 			
@@ -163,7 +163,6 @@ public class WithdrawDBHandler {
 				dbConn.close();
 			}
 		}
-		
 	}
 	
 	public long getMaxWithdrawReqId() throws SQLException {
@@ -341,7 +340,7 @@ public class WithdrawDBHandler {
 			
 			MyTransaction transaction = Utils.getTransactionPojo(userProfileId, time, 
 					wdRequest.getAmount(), TransactionType.CLOSED.getId(), 
-					wdRequest.getFromAccType(), userOB, userCB, comments);
+					wdRequest.getFromAccType(), userOB, userCB, comments, null);
 			
 			String revertMoneySql = UserMoneyHandler.getInstance().getUserAccWithDrawSql(wdRequest.getFromAccType());
 			

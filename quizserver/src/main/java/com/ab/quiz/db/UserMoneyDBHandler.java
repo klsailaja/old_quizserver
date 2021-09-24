@@ -377,7 +377,7 @@ public class UserMoneyDBHandler {
 				String comment = comments.get(index);
 				
 				MyTransaction transaction = Utils.getTransactionPojo(userId, System.currentTimeMillis(), 
-						amount, transactionType.getId(), accountType.getId(), userOB, userCB, comment);
+						amount, transactionType.getId(), accountType.getId(), userOB, userCB, comment, null);
 				transaction.setIsWin(0);
 				transactionList.add(transaction);
 			}

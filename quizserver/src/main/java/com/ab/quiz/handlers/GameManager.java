@@ -364,7 +364,7 @@ public class GameManager {
 			
 			MyTransaction transaction = Utils.getTransactionPojo(gameOper.getUserProfileId(), 
 					currentGameStartTime, (int)tktRate, TransactionType.DEBITED.getId(), 
-					UserMoneyAccountType.LOADED_MONEY.getId(), userOB, userCB, "Played game#:" + gameId);
+					UserMoneyAccountType.LOADED_MONEY.getId(), userOB, userCB, "Played game#:" + gameId, null);
 			
 			MoneyTransaction joinTransaction = new MoneyTransaction(UserMoneyAccountType.LOADED_MONEY, UserMoneyOperType.SUBTRACT, 
 					gameOper.getUserProfileId(), tktRate, transaction);
@@ -429,7 +429,7 @@ public class GameManager {
 			
 			MyTransaction transaction = Utils.getTransactionPojo(gameOper.getUserProfileId(), 
 					currentGameStartTime, (int)tktRate, TransactionType.CREDITED.getId(), 
-					accType.getId(), userOB, userCB, "Refund for left game# " + gameId);
+					accType.getId(), userOB, userCB, "Refund for left game# " + gameId, null);
 			
 			MoneyTransaction joinTransaction = new MoneyTransaction(accType, UserMoneyOperType.ADD, 
 					gameOper.getUserProfileId(), tktRate, transaction);

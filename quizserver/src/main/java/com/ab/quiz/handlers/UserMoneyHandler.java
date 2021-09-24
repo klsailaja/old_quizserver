@@ -68,7 +68,7 @@ public class UserMoneyHandler {
 		
 		MyTransaction transaction = Utils.getTransactionPojo(userProfileId,currentTime, 
 				amt, TransactionType.CREDITED.getId(), accountType.getId(), userOB, userCB,
-				comments);
+				comments, null);
 		return UserMoneyDBHandler.getInstance().updateUserMoney(accountType, operType, userProfileId, 
 				longAmt, transaction);
 	}

@@ -49,6 +49,7 @@ public class UserProfileDBHandler {
 	
 	private static final Logger logger = LogManager.getLogger(UserProfileDBHandler.class);
 
+	private static String TABLE_NAME = "USERPROFILE";
 	private static String ID = "ID";
 	private static String NAME = "NAME";
 	private static String PASSWD = "PASSWD";
@@ -64,31 +65,31 @@ public class UserProfileDBHandler {
 	
 	private static UserProfileDBHandler instance = null;
 	
-	private static final String GET_USER_PROFILE_BY_MAIL_ID = "SELECT * FROM USERPROFILE WHERE " 
+	private static final String GET_USER_PROFILE_BY_MAIL_ID = "SELECT * FROM " + TABLE_NAME + " WHERE " 
 			+ MAIL_ID + " = ?";
-	private static final String GET_USER_PROFILE_BY_ID = "SELECT * FROM USERPROFILE WHERE " 
+	private static final String GET_USER_PROFILE_BY_ID = "SELECT * FROM " + TABLE_NAME + " WHERE " 
 			+ ID + " = ?";
-	private static final String GET_USER_PROFILE_BY_REFERAL_CODE = "SELECT * FROM USERPROFILE WHERE " 
+	private static final String GET_USER_PROFILE_BY_REFERAL_CODE = "SELECT * FROM " + TABLE_NAME + " WHERE " 
 			+ MYREFERAL_ID + " = ?";
-	private static final String GET_MY_REFERALS = "SELECT * FROM USERPROFILE WHERE " 
+	private static final String GET_MY_REFERALS = "SELECT * FROM " + TABLE_NAME + " WHERE " 
 			+ REFERED_ID + " = ? ORDER BY " + ID + " DESC LIMIT ?, 10";
-	private static final String GET_TOTAL_COUNT = "SELECT COUNT(*) FROM USERPROFILE WHERE "
+	private static final String GET_TOTAL_COUNT = "SELECT COUNT(*) FROM " + TABLE_NAME + " WHERE "
 			+ REFERED_ID + " = ?";
 	  
 	
-	private static final String CREATE_USER_PROFILE = "INSERT INTO USERPROFILE " 
+	private static final String CREATE_USER_PROFILE = "INSERT INTO " + TABLE_NAME  
 			+ "(" + NAME + "," + MAIL_ID + "," + PASSWD + "," + MYREFERAL_ID + "," + REFERED_ID + ","
 			+ BOSS_USER_ID + "," + BOSS_NAME + "," + LOGGEDIN + "," + FORGOTPASSWD + ","
 			+ CREATEDDATE + "," + LASTLOGGEDDATE + ") VALUES"   
 			+ "(?,?,?,?,?,?,?,?,?,?,?)";
-	private static final String MAX_USER_PROFILE_ID = "SELECT MAX(ID) FROM USERPROFILE";
+	private static final String MAX_USER_PROFILE_ID = "SELECT MAX(ID) FROM " + TABLE_NAME;
 	
-	private static final String UPDATE_TIME_BY_ID = "UPDATE USERPROFILE SET " + LASTLOGGEDDATE + "= ? WHERE " + ID + " = ?";
-	private static final String UPDATE_PROFILE_BY_ID = "UPDATE USERPROFILE SET " + NAME + "= ? , " 
+	private static final String UPDATE_TIME_BY_ID = "UPDATE " + TABLE_NAME + " SET " + LASTLOGGEDDATE + "= ? WHERE " + ID + " = ?";
+	private static final String UPDATE_PROFILE_BY_ID = "UPDATE " + TABLE_NAME + " SET " + NAME + "= ? , " 
 			+ PASSWD + "= ? ," + FORGOTPASSWD + "= ? " 
 			+ "WHERE " + ID + " = ?";
 	
-	private static final String UPDATE_LOGGED_STATE_ID = "UPDATE USERPROFILE SET " + LOGGEDIN + "= ? WHERE " + ID + " = ?";
+	private static final String UPDATE_LOGGED_STATE_ID = "UPDATE " + TABLE_NAME + " SET " + LOGGEDIN + "= ? WHERE " + ID + " = ?";
 	
 	
 	private static final String SOURCE = "0123456789"; //ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz 
@@ -233,6 +234,7 @@ public class UserProfileDBHandler {
 					}
 					UserMoney userMoneyObject = new UserMoney(userProfileId, initialLoadedMoney, 0, 0, 0);
 					UserMoneyDBHandler.getInstance().createUserMoney(userMoneyObject);
+					VerifyUserProfile.getInstance().deleteOTPRecord(userProfile.getEmailAddress());
 				}
 			}
 		} catch(SQLException ex) {
@@ -668,7 +670,7 @@ public class UserProfileDBHandler {
         return sb.toString();
     }
 	
-	private String getRandomPasswd(int maxLen) {
+	public String getRandomPasswd(int maxLen) {
 		StringBuilder sb = new StringBuilder(maxLen); 
 		for (int i = 0; i < maxLen; i++) 
 			sb.append(SOURCE.charAt(secureRnd.nextInt(SOURCE.length())));

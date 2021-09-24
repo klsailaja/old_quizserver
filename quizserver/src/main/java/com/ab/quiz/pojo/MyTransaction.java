@@ -3,6 +3,7 @@ package com.ab.quiz.pojo;
 public class MyTransaction {
 	
 	private long id;
+	private String transactionId;
 	private long userId;
 	private long date;
 	private int amount;
@@ -15,6 +16,13 @@ public class MyTransaction {
 	private int isWin;
 	
 	private int sNo;
+	
+	public String getTransactionId() {
+		return transactionId;
+	}
+	public void setTransactionId(String transactionId) {
+		this.transactionId = transactionId;
+	}
 	
 	public int getIsWin() {
 		return isWin;

@@ -26,6 +26,7 @@ CREATE TABLE TRANSACTIONS(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 		RESULT INT NOT NULL,
 		OPENINGBALANCE BIGINT NOT NULL,
 		CLOSINGBALANCE BIGINT NOT NULL,
+		TRANACTIONID VARCHAR(5) NOT NULL,
 		COMMENTS VARCHAR(100) NULL, PRIMARY KEY (ID)) ENGINE = INNODB;
 		
 CREATE INDEX TRANSACTIONS_Inx ON TRANSACTIONS(USERID);		
@@ -52,14 +53,15 @@ public class MyTransactionDBHandler {
 	private static String OB = "OPENINGBALANCE";
 	private static String CB = "CLOSINGBALANCE";
 	private static String COMMENTS = "COMMENTS";
+	private static String TRANACTIONID = "TRANACTIONID"; 
 	
 	private static int MAX_ROWS = 5;
 	
 	private static final String CREATE_TRANSACTION_ENTRY = "INSERT INTO " + TABLE_NAME   
 			+ "(" + USERID + "," + DATE + "," + AMOUNT + "," + ACCOUNT_TYPE + ","
-			+ TRANSACTION_TYPE + "," + ISWIN + "," + RESULT + "," + OB + "," + CB + "," 
+			+ TRANSACTION_TYPE + "," + ISWIN + "," + RESULT + "," + OB + "," + CB + "," + TRANACTIONID + "," 
 			+ COMMENTS + ") VALUES"
-			+ "(?,?,?,?,?,?,?,?,?,?)";
+			+ "(?,?,?,?,?,?,?,?,?,?,?)";
 	private static final String GET_TRANSACTIONS_BY_USER_ID_ACC_TYPE = "SELECT * FROM " + TABLE_NAME 
 			+ " WHERE " + USERID + " = ? AND " + ACCOUNT_TYPE + " = ? ORDER BY " + ID + " DESC LIMIT ?, " + MAX_ROWS;
 	
@@ -155,11 +157,12 @@ public class MyTransactionDBHandler {
 				ps.setInt(7, myTransaction.getOperResult());
 				ps.setLong(8, myTransaction.getOpeningBalance());
 				ps.setLong(9, myTransaction.getClosingBalance());
+				ps.setString(10, myTransaction.getTransactionId());
 				String comment = myTransaction.getComment();
 				if (myTransaction.getOperResult() == 0) {
 					comment = comment + "." + "Backend issue while update. Will be resolved in 1-2 days.";
 				}
-				ps.setString(10, comment);
+				ps.setString(11, comment);
 				index++;
 				
 				ps.addBatch();
@@ -228,11 +231,12 @@ public class MyTransactionDBHandler {
 			ps.setInt(7, myTransaction.getOperResult());
 			ps.setLong(8, myTransaction.getOpeningBalance());
 			ps.setLong(9, myTransaction.getClosingBalance());
+			ps.setString(10, myTransaction.getTransactionId());
 			String comment = myTransaction.getComment();
 			if (myTransaction.getOperResult() == 0) {
 				comment = comment + "." + "Backend issue while update. Will be resolved in 1-2 days.";
 			}
-			ps.setString(10, comment);
+			ps.setString(11, comment);
 			
 			int createResult = ps.executeUpdate();
 			boolean recordCreationState = (createResult > 0);
@@ -396,6 +400,7 @@ public class MyTransactionDBHandler {
 					userTrans.setOpeningBalance(rs.getLong(OB));
 					userTrans.setClosingBalance(rs.getLong(CB));
 					userTrans.setComment(rs.getString(COMMENTS));
+					userTrans.setTransactionId(rs.getString(TRANACTIONID));
 					
 					myTransactions.add(userTrans);
 				}

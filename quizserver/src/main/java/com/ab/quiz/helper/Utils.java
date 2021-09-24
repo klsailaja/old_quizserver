@@ -1,5 +1,6 @@
 package com.ab.quiz.helper;
 
+import java.security.SecureRandom;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,10 @@ public class Utils {
 	private static double[] threeWinners = {60.0, 25.0, 15.0};
 	private static double[] fourWinners = {50.0, 25.0, 15.0, 10.0};
 	private static double[] fiveWinners = {45.0, 23.0, 15.0, 10.0, 7.0};
+	
+	private static final String SOURCE = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ" 
+			+ "abcdefghijklmnopqrstuvwxyz";
+	private static final SecureRandom secureRnd = new SecureRandom();
 	
 	public static List<PrizeDetail> getPrizeDetails(int ticketRate, int playerCount) {
 		
@@ -83,7 +88,7 @@ public class Utils {
 		return prizeDetails;
 	}
 	
-	public static MyTransaction getTransactionPojo(long userId, long date,  
+	/*public static MyTransaction getTransactionPojo(long userId, long date,  
 			int amount, int transactionType, int accountType, long ob, long cb, String comments) {
 		
 		MyTransaction transaction = new MyTransaction();
@@ -96,7 +101,30 @@ public class Utils {
 		transaction.setClosingBalance(cb);
 		transaction.setComment(comments);
 		transaction.setIsWin(0);
+		return transaction;
+	}*/
+	
+	public static MyTransaction getTransactionPojo(long userId, long date,  
+			int amount, int transactionType, int accountType, long ob, long cb, String comments, String transactionId) {
 		
+		MyTransaction transaction = new MyTransaction();
+		transaction.setUserId(userId);
+		transaction.setDate(date);
+		transaction.setAmount(amount);
+		transaction.setAccountType(accountType);
+		transaction.setTransactionType(transactionType);
+		transaction.setOpeningBalance(ob);
+		transaction.setClosingBalance(cb);
+		transaction.setComment(comments);
+		transaction.setIsWin(0);
+		if (transactionId == null) {
+			StringBuilder sb = new StringBuilder(5); 
+			for (int i = 0; i < 5; i++) { 
+				sb.append(SOURCE.charAt(secureRnd.nextInt(SOURCE.length())));
+			}
+			transactionId = sb.toString(); 
+		}
+		transaction.setTransactionId(transactionId);
 		return transaction;
 	}
 	
@@ -145,9 +173,9 @@ public class Utils {
 			avgShare = avgShare / players.length;
 			totalOurShare = totalOurShare + avgShare;
 		}
-		//System.out.println("Total share is " + (totalOurShare));
-		long totalAmt = (totalOurShare * 2 * 120);
-		//System.out.println("totalAmt :" + totalAmt);
+		System.out.println("Total share is " + (totalOurShare));
+		long totalAmt = (totalOurShare * 2 * 140);
+		System.out.println("totalAmt :" + totalAmt);
 		
 		/*System.out.println(getBossMoney(55));
 		System.out.println(getBossMoney(102));
