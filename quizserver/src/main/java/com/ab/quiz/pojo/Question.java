@@ -81,10 +81,4 @@ public class Question {
 	public void setQuestionStartTime(long questionStartTime) {
 		this.questionStartTime = questionStartTime;
 	}
-	@Override
-	public String toString() {
-		return "Question [category=" + category + ", timeLine=" + timeLine + ", nStatement=" + nStatement
-				+ ", nOptionA=" + nOptionA + ", nOptionB=" + nOptionB + ", nOptionC=" + nOptionC + ", nOptionD="
-				+ nOptionD + ", correctOption=" + correctOption + "]";
-	}
 }

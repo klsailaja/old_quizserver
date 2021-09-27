@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.TreeSet;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,13 +21,23 @@ import com.ab.quiz.pojo.Question;
 /*
 CREATE TABLE QUIZQUESTIONS(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, 
 		NSTATEMENT VARCHAR(200) NOT NULL,
-        CATEGORY SET('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20') NOT NULL,
-		TIMELINE INT NOT NULL,
 		NOPTIONA VARCHAR(100) NOT NULL,
 		NOPTIONB VARCHAR(100) NOT NULL,
 		NOPTIONC VARCHAR(100) NOT NULL,
-		NOPTIOND VARCHAR(100) NOT NULL, 
-		CORRECTOPTION INT, PRIMARY KEY (ID)) ENGINE = INNODB;
+		NOPTIOND VARCHAR(100) NOT NULL,
+		NOPTIONE VARCHAR(100) NOT NULL,
+		NOPTIONF VARCHAR(100) NOT NULL,
+		NOPTIONG VARCHAR(100) NOT NULL,
+		NOPTIONH VARCHAR(100) NOT NULL, 
+		CORRECTOPTION INT, 
+        CATEGORY SET('1','2','3','4','5','6','7','8','9','10',
+        '11','12','13','14','15','16','17','18','19','20',
+        '21','22','23','24','25','26','27','28','29','30',
+        '31','32','33','34','35','36','37','38','39','40', 
+        '41','42','43','44','45','46','47','48','49','50',
+        '51','52','53','54','55','56','57','58','59','60',
+        '61','62','63','64'
+        )NOT NULL, PRIMARY KEY (ID)) ENGINE = INNODB;
 */
 
 public class QuestionDBHandler {
@@ -40,11 +51,16 @@ public class QuestionDBHandler {
 	private static String NOPTION_B = "NOPTIONB";
 	private static String NOPTION_C = "NOPTIONC";
 	private static String NOPTION_D = "NOPTIOND";
+	private static String NOPTION_E = "NOPTIONE";
+	private static String NOPTION_F = "NOPTIONF";
+	private static String NOPTION_G = "NOPTIONG";
+	private static String NOPTION_H = "NOPTIONH";
 	private static String CORRECTOPTION = "CORRECTOPTION";
 	
 	private static final String CREATE_QUESTION_ENTRY = "INSERT INTO " + TABLE_NAME   
 			+ "(" + NSTATEMENT + "," + NOPTION_A + "," + NOPTION_B + "," + NOPTION_C + ","
-			+ NOPTION_D + "," + CORRECTOPTION + "," +
+			+ NOPTION_D + "," + NOPTION_E + "," + NOPTION_F + "," + NOPTION_G + "," + NOPTION_H + ","
+			+ CORRECTOPTION + "," +
 			CATEGORY + "," + TIMELINE + ") VALUES"
 			+ "(?,?,?,?,?,?,?,?)";
 	/*private static final String GET_QUESTION_ENTRY_SET = "SELECT * FROM " + TABLE_NAME 
@@ -169,11 +185,68 @@ public class QuestionDBHandler {
 					
 					question.setQuestionNumber(qNo++);
 					question.setnStatement(rs.getString(NSTATEMENT));
-					question.setnOptionA(rs.getString(NOPTION_A));
-					question.setnOptionB(rs.getString(NOPTION_B));
-					question.setnOptionC(rs.getString(NOPTION_C));
-					question.setnOptionD(rs.getString(NOPTION_D));
+					
+					
+					String optionA = rs.getString(NOPTION_A);
+					question.setnOptionA(optionA);
+					
+					String optionB = rs.getString(NOPTION_B);
+					String optionC = rs.getString(NOPTION_C);
+					String optionD = rs.getString(NOPTION_D);
+					String optionE = rs.getString(NOPTION_E);
+					String optionF = rs.getString(NOPTION_F);
+					String optionG = rs.getString(NOPTION_G);
+					String optionH = rs.getString(NOPTION_H);
 					question.setCorrectOption(rs.getInt(CORRECTOPTION));
+					
+					TreeSet<Integer> uniqueValues = new TreeSet<>();
+					
+					while (uniqueValues.size() < 3) {
+						int wrongOption = getRandomNumber(2,8);
+						while (uniqueValues.contains(wrongOption)) {
+							wrongOption = getRandomNumber(2,8);
+						}
+						uniqueValues.add(wrongOption);
+					}
+					
+					List<String> wrongOptions = new ArrayList<>();
+					for (Integer wrongVal : uniqueValues) {
+						switch(wrongVal) {
+							case 2: {
+								wrongOptions.add(optionB);
+								break;
+							}
+							case 3: {
+								wrongOptions.add(optionC);
+								break;
+							}
+							case 4: {
+								wrongOptions.add(optionD);
+								break;
+							}
+							case 5: {
+								wrongOptions.add(optionE);
+								break;
+							}
+							case 6: {
+								wrongOptions.add(optionF);
+								break;
+							}
+							case 7: {
+								wrongOptions.add(optionG);
+								break;
+							}
+							case 8: {
+								wrongOptions.add(optionH);
+								break;
+							}
+						}
+					}
+					
+					question.setnOptionB(wrongOptions.get(0));
+					question.setnOptionC(wrongOptions.get(1));
+					question.setnOptionD(wrongOptions.get(2));
+	
 					
 					int randomVal = getRandomNumber(1,5);
 					switch (randomVal) {

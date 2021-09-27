@@ -370,7 +370,6 @@ public class MyConnectionPool {
 		 * Once expired, a connection can no longer be used.
 		 **/
 		public void expire() throws SQLException {
-			logger.info("DB Conn expire here {}", _conn.hashCode());
 			_conn.close();
 			_conn = null;
 		}

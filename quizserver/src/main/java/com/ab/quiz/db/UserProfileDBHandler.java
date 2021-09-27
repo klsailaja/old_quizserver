@@ -91,6 +91,11 @@ public class UserProfileDBHandler {
 	
 	private static final String UPDATE_LOGGED_STATE_ID = "UPDATE " + TABLE_NAME + " SET " + LOGGEDIN + "= ? WHERE " + ID + " = ?";
 	
+	private static final int LAST_LOGGED_IN_TIME_DIFF = 15;
+	private static final long LAST_LOGGED_IN_TIME_DIFF_IN_MILLIS = LAST_LOGGED_IN_TIME_DIFF * 60 * 1000; 
+	private static final String GET_LOGGED_IN_USERS_COUNT = "SELECT COUNT(*) FROM " + TABLE_NAME + " WHERE (" + LASTLOGGEDDATE 
+			+ "- ?) < " + LAST_LOGGED_IN_TIME_DIFF_IN_MILLIS; 
+	
 	
 	private static final String SOURCE = "0123456789"; //ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz 
 			
@@ -364,6 +369,41 @@ public class UserProfileDBHandler {
 		} catch (SQLException ex) {
 			logger.error("SQL Exception in getProfileByReralCode", ex);
 			throw ex;
+		}
+	}
+	
+	public long getLoggedInUsersCount() throws SQLException {
+		
+		String totalSql = GET_LOGGED_IN_USERS_COUNT;
+		ConnectionPool cp = ConnectionPool.getInstance();
+		Connection dbConn = cp.getDBConnection();
+		
+		PreparedStatement totalPs = dbConn.prepareStatement(totalSql);
+		totalPs.setLong(1, System.currentTimeMillis());
+		
+		ResultSet totalRs = null;
+		long total = 0;
+		
+		try {
+			totalRs = totalPs.executeQuery();
+			if (totalRs != null) {
+				if (totalRs.next()) {
+					total = totalRs.getInt("COUNT(*)");
+				}
+			}
+			return total;
+		} catch (SQLException ex) {
+			throw ex;
+		} finally {
+			if (totalRs != null) {
+				totalRs.close();
+			}
+			if (totalPs != null) {
+				totalPs.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
 		}
 	}
 	

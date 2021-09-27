@@ -370,7 +370,7 @@ public class QuestionsGenerator {
 			
 			List<String> finalWongAnswer1 = fillupWrongAnswers(gender, wrongAnswers1);
 			finalWongAnswer1.removeAll(answers1List);
-			int fillGap = 4 - answers1List.size();
+			int fillGap = 8 - answers1List.size();
 			for (int index = 0; index < fillGap; index++) {
 				answers1List.add(finalWongAnswer1.get(index));
 			}
@@ -379,7 +379,7 @@ public class QuestionsGenerator {
 			
 			List<String> finalWongAnswer2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
 			finalWongAnswer2.removeAll(answers2List);
-			fillGap = 4 - answers2List.size();
+			fillGap = 8 - answers2List.size();
 			for (int index = 0; index < fillGap; index++) {
 				answers2List.add(finalWongAnswer2.get(index));
 			}
@@ -422,7 +422,7 @@ public class QuestionsGenerator {
 			
 			List<String> finalWongAnswer1 = fillupWrongAnswers(currentCategoryName, wrongAnswers1);
 			finalWongAnswer1.removeAll(answers1List);
-			int fillGap = 4 - answers1List.size();
+			int fillGap = 8 - answers1List.size();
 			for (int index = 0; index < fillGap; index++) {
 				answers1List.add(finalWongAnswer1.get(index));
 			}
@@ -487,7 +487,7 @@ public class QuestionsGenerator {
 			
 			List<String> finalWongAnswer1 = fillupWrongAnswers(gender, wrongAnswers1);
 			finalWongAnswer1.removeAll(answers1List);
-			int fillGap = 4 - answers1List.size();
+			int fillGap = 8 - answers1List.size();
 			for (int index = 0; index < fillGap; index++) {
 				answers1List.add(finalWongAnswer1.get(index));
 			}
@@ -496,7 +496,7 @@ public class QuestionsGenerator {
 			
 			List<String> finalWongAnswer2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
 			finalWongAnswer2.removeAll(answers2List);
-			fillGap = 4 - answers2List.size();
+			fillGap = 8 - answers2List.size();
 			for (int index = 0; index < fillGap; index++) {
 				answers2List.add(finalWongAnswer2.get(index));
 			}
@@ -558,7 +558,7 @@ public class QuestionsGenerator {
 			
 			List<String> finalWongAnswer1 = fillupWrongAnswers(currentCategoryName, wrongAnswers1);
 			finalWongAnswer1.removeAll(answers1List);
-			int fillGap = 4 - answers1List.size();
+			int fillGap = 8 - answers1List.size();
 			for (int index = 0; index < fillGap; index++) {
 				answers1List.add(finalWongAnswer1.get(index));
 			}
@@ -567,7 +567,7 @@ public class QuestionsGenerator {
 			
 			List<String> finalWongAnswer2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
 			finalWongAnswer2.removeAll(answers2List);
-			fillGap = 4 - answers2List.size();
+			fillGap = 8 - answers2List.size();
 			for (int index = 0; index < fillGap; index++) {
 				answers2List.add(finalWongAnswer2.get(index));
 			}
@@ -627,7 +627,7 @@ public class QuestionsGenerator {
 			}
 			List<String> finalWongAnswer1 = fillupWrongAnswers(currentCategoryName, wrongAnswers1);
 			finalWongAnswer1.removeAll(answers1List);
-			int fillGap = 4 - answers1List.size();
+			int fillGap = 8 - answers1List.size();
 			for (int index = 0; index < fillGap; index++) {
 				answers1List.add(finalWongAnswer1.get(index));
 			}
@@ -636,7 +636,7 @@ public class QuestionsGenerator {
 			
 			List<String> finalWongAnswer2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
 			finalWongAnswer2.removeAll(answers2List);
-			fillGap = 4 - answers2List.size();
+			fillGap = 8 - answers2List.size();
 			for (int index = 0; index < fillGap; index++) {
 				answers2List.add(finalWongAnswer2.get(index));
 			}
@@ -702,7 +702,7 @@ public class QuestionsGenerator {
 			
 			List<String> finalWongAnswer2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
 			finalWongAnswer2.removeAll(answers2List);
-			int fillGap = 4 - answers2List.size();
+			int fillGap = 8 - answers2List.size();
 			for (int index = 0; index < fillGap; index++) {
 				answers2List.add(finalWongAnswer2.get(index));
 			}
@@ -751,7 +751,7 @@ public class QuestionsGenerator {
 				
 				List<String> finalWongAnswer2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
 				finalWongAnswer2.removeAll(answers2List);
-				int fillGap = 4 - answers2List.size();
+				int fillGap = 8 - answers2List.size();
 				for (int index = 0; index < fillGap; index++) {
 					answers2List.add(finalWongAnswer2.get(index));
 				}
@@ -823,7 +823,7 @@ public class QuestionsGenerator {
 			
 			List<String> finalWongAnswer1 = fillupWrongAnswers(nameCategory, wrongAnswers1);
 			finalWongAnswer1.removeAll(answers1List);
-			int fillGap = 4 - answers1List.size();
+			int fillGap = 8 - answers1List.size();
 			for (int index = 0; index < fillGap; index++) {
 				answers1List.add(finalWongAnswer1.get(index));
 			}
@@ -833,7 +833,7 @@ public class QuestionsGenerator {
 			
 			List<String> finalWongAnswer2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
 			finalWongAnswer2.removeAll(answers2List);
-			fillGap = 4 - answers2List.size();
+			fillGap = 8 - answers2List.size();
 			for (int index = 0; index < fillGap; index++) {
 				answers2List.add(finalWongAnswer2.get(index));
 			}
@@ -887,7 +887,7 @@ public class QuestionsGenerator {
 						continue;
 					}
 					
-					if (wrongAnswers1.size() <= 3) {
+					if (wrongAnswers1.size() <= 8) {
 						String miCharName2 = miCurrentCategory.getValue(2);
 						if (relationName.equals(miCurrentCategory.getValue(1))) {
 							if (charName1.equals(miCurrentCategory.getValue(0))) {
@@ -908,7 +908,7 @@ public class QuestionsGenerator {
 			
 			List<String> finalWongAnswer1 = fillupWrongAnswers(currentValueObj.getValue(1), wrongAnswers1);
 			finalWongAnswer1.removeAll(answers1List);
-			int fillGap = 4 - answers1List.size();
+			int fillGap = 8 - answers1List.size();
 			for (int index = 0; index < fillGap; index++) {
 				answers1List.add(finalWongAnswer1.get(index));
 			}
@@ -918,7 +918,7 @@ public class QuestionsGenerator {
 			
 			List<String> finalWongAnswer2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
 			finalWongAnswer2.removeAll(answers2List);
-			fillGap = 4 - answers2List.size();
+			fillGap = 8 - answers2List.size();
 			for (int index = 0; index < fillGap; index++) {
 				answers2List.add(finalWongAnswer2.get(index));
 			}
@@ -1007,7 +1007,7 @@ public class QuestionsGenerator {
 			
 			List<String> finalWongAnswer1 = fillupWrongAnswers(currentCategoryName, wrongAnswers1);
 			finalWongAnswer1.removeAll(answers1List);
-			int fillGap = 4 - answers1List.size();
+			int fillGap = 8 - answers1List.size();
 			for (int index = 0; index < fillGap; index++) {
 				answers1List.add(finalWongAnswer1.get(index));
 			}
@@ -1017,7 +1017,7 @@ public class QuestionsGenerator {
 			
 			List<String> finalWongAnswer2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
 			finalWongAnswer2.removeAll(answers2List);
-			fillGap = 4 - answers2List.size();
+			fillGap = 8 - answers2List.size();
 			for (int index = 0; index < fillGap; index++) {
 				answers2List.add(finalWongAnswer2.get(index));
 			}
@@ -1189,7 +1189,7 @@ public class QuestionsGenerator {
 	    		}
 			}*/
 			
-			String sqlQry = "INSERT INTO QUIZQUESTIONS (NSTATEMENT,NOPTIONA,NOPTIONB,NOPTIONC,NOPTIOND,CORRECTOPTION,CATEGORY) VALUES('";
+			String sqlQry = "INSERT INTO QUIZQUESTIONS (NSTATEMENT,NOPTIONA,NOPTIONB,NOPTIONC,NOPTIOND,NOPTIONE,NOPTIONF,NOPTIONG,NOPTIONH,CORRECTOPTION,CATEGORY) VALUES('";
 			List<String> mixedModeCategories = new ArrayList<>();
 			mixedModeCategories.add("b");
 			mixedModeCategories.add("c");
@@ -1223,6 +1223,10 @@ public class QuestionsGenerator {
 	    		String optionBTxt = finalQuestionStrTokenizer.nextToken().trim();
 	    		String optionCTxt = finalQuestionStrTokenizer.nextToken().trim();
 	    		String optionDTxt = finalQuestionStrTokenizer.nextToken().trim();
+	    		String optionETxt = finalQuestionStrTokenizer.nextToken().trim();
+	    		String optionFTxt = finalQuestionStrTokenizer.nextToken().trim();
+	    		String optionGTxt = finalQuestionStrTokenizer.nextToken().trim();
+	    		String optionHTxt = finalQuestionStrTokenizer.nextToken().trim();
 	    		
 	    		if ((optionATxt.indexOf("%") > -1) || ((optionBTxt.indexOf("%") > -1)) || ((optionCTxt.indexOf("%") > -1))
 	    		 || (((optionDTxt.indexOf("%") > -1)))) {
@@ -1241,7 +1245,19 @@ public class QuestionsGenerator {
 	    		if (!uniqueValues.contains(optionDTxt)) {
 	    			uniqueValues.add(optionDTxt);
 	    		}
-	    		if (uniqueValues.size() != 4) {
+	    		if (!uniqueValues.contains(optionETxt)) {
+	    			uniqueValues.add(optionETxt);
+	    		}
+	    		if (!uniqueValues.contains(optionFTxt)) {
+	    			uniqueValues.add(optionFTxt);
+	    		}
+	    		if (!uniqueValues.contains(optionGTxt)) {
+	    			uniqueValues.add(optionGTxt);
+	    		}
+	    		if (!uniqueValues.contains(optionHTxt)) {
+	    			uniqueValues.add(optionHTxt);
+	    		}
+	    		if (uniqueValues.size() != 8) {
 	    			System.out.println(lineQuestion);
 	    		}
 	    		
@@ -1304,12 +1320,28 @@ public class QuestionsGenerator {
 	    		strBuffer.append(optionDTxt);
 	    		strBuffer.append("'");
 	    		strBuffer.append(",");
+	    		strBuffer.append("'");
+	    		strBuffer.append(optionETxt);
+	    		strBuffer.append("'");
+	    		strBuffer.append(",");
+	    		strBuffer.append("'");
+	    		strBuffer.append(optionFTxt);
+	    		strBuffer.append("'");
+	    		strBuffer.append(",");
+	    		strBuffer.append("'");
+	    		strBuffer.append(optionGTxt);
+	    		strBuffer.append("'");
+	    		strBuffer.append(",");
+	    		strBuffer.append("'");
+	    		strBuffer.append(optionHTxt);
+	    		strBuffer.append("'");
+	    		strBuffer.append(",");
 	    		strBuffer.append("1");
 	    		strBuffer.append(",");
 	    		strBuffer.append(celebrityIdSetStr);
 	    		strBuffer.append(");");
 	    		
-	    		//System.out.println(strBuffer.toString());
+	    		System.out.println(strBuffer.toString());
 	    		
 	    		//Use try-with-resource to get auto-closeable writer instance
 	    	    writer.append(strBuffer.toString());
@@ -1367,11 +1399,11 @@ public class QuestionsGenerator {
 		
 		List<String> fullWrongAnswers = new ArrayList<>();
 		
-		if (wrongAnswers.size() < 4) {
+		if (wrongAnswers.size() < 8) {
 			//fillFromExtraOptions(categoryName, wrongAnswers);
 			fullWrongAnswers.addAll(wrongAnswers);
 			List<String> extraOptionsList = extraOptionsMap.get(categoryName);
-			int totalTokensCt = 4;
+			int totalTokensCt = 8;
 			int fillCt = totalTokensCt - wrongAnswers.size();
 			if (extraOptionsList != null) {
 				int size = extraOptionsList.size();
@@ -1390,7 +1422,7 @@ public class QuestionsGenerator {
 		
 		List<Integer> wrongAnswerIndexes = new ArrayList<>();
 		int size = wrongAnswers.size();
-		for (int index = 1; index <= 4; index ++) {
+		for (int index = 1; index <= 8; index ++) {
 			int randomIndex = getRandomNumber(0, size);
 			while (wrongAnswerIndexes.contains(randomIndex)) {
 				randomIndex = getRandomNumber(0, size);

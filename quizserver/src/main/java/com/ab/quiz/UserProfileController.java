@@ -24,11 +24,19 @@ import com.ab.quiz.pojo.OTPDetails;
 import com.ab.quiz.pojo.ReferalDetails;
 import com.ab.quiz.pojo.TransactionsHolder;
 import com.ab.quiz.pojo.UserProfile;
+import com.ab.quiz.tasks.LoggedInUsersCountTask;
 
 @RestController
 public class UserProfileController extends BaseController {
 	
 	private static final Logger logger = LogManager.getLogger(UserProfileController.class);
+	
+	
+	@RequestMapping(value = "/loggedin/count", method = RequestMethod.GET, produces = "application/json") 
+	public @ResponseBody long getLoggedInUserCount() throws InternalException {  
+		return LoggedInUsersCountTask.getInstance().getUsersCount();
+	}
+	
 	
 	// Tested.
 	@RequestMapping(value = "/user/{email}", method = RequestMethod.GET, produces = "application/json")

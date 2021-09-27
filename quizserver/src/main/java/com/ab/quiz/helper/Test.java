@@ -139,6 +139,8 @@ class IterationDemo
 {
     public static void main(String[] arg)
     {
+    	System.out.println("CTime is " + System.currentTimeMillis());
+    	
         Map<String,String> gfg = new HashMap<String,String>();
      
         // enter name/url pair

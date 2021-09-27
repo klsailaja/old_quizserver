@@ -1,6 +1,8 @@
 package com.ab.quiz.handlers;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -59,6 +61,9 @@ public class UserProfileHandler {
 		}*/
 		if (passwdHash.equals(userProfile.getPasswordHash())) {
 			logger.info("Authentication is success for {}", mailId);
+			List<Long> updateLastLoggedIn = new ArrayList<>();
+			updateLastLoggedIn.add(userProfile.getId());
+			UserProfileDBHandler.getInstance().updateLastLoggedTimeInBulkMode(updateLastLoggedIn, 2);
 			return userProfile;
 		}
 		logger.info("Authentication is failure for {}", mailId);
