@@ -13,7 +13,11 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
+import com.ab.quiz.common.PostTask;
+import com.ab.quiz.common.Request;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
@@ -21,7 +25,6 @@ import com.ab.quiz.constants.UserMoneyOperType;
 import com.ab.quiz.db.GameHistoryDBHandler;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.helper.CelebritySpecialHandler;
-import com.ab.quiz.helper.InMemUserMoneyManager;
 import com.ab.quiz.helper.Utils;
 import com.ab.quiz.pojo.CelebrityFullDetails;
 import com.ab.quiz.pojo.GameDetails;
@@ -35,7 +38,7 @@ import com.ab.quiz.pojo.PlayerSummary;
 import com.ab.quiz.pojo.PrizeDetail;
 import com.ab.quiz.pojo.UpcomingCelebrity;
 import com.ab.quiz.pojo.UserHistoryGameDetails;
-import com.ab.quiz.pojo.UserMoney;
+import com.ab.quiz.pojo.UsersCompleteMoneyDetails;
 
 public class GameManager {
 
@@ -152,7 +155,7 @@ public class GameManager {
 		return gameHandler.getGameDetails();
 	}
 	
-	public GameStatus getGameStatus(long gameId) throws NotAllowedException, SQLException {
+	public GameStatus getGameStatus(long gameId) throws NotAllowedException, SQLException, Exception {
 		GameHandler gameHandler = gameIdToGameHandler.get(gameId);
 		if (gameHandler == null) {
 			throw new NotAllowedException("Game not found with id " + gameId);
@@ -179,7 +182,7 @@ public class GameManager {
 		return gameStatus;
 	}
 	
-	private GameStatusHolder getGamesStatus(int gameType, long userProfileId) throws SQLException {
+	private GameStatusHolder getGamesStatus(int gameType, long userProfileId) throws SQLException, Exception {
 		// Discard completed state games
 		// Include Locked, In-Progress, Future
 		HashMap <Long, GameStatus> gameIdToGameStatus = new HashMap<>();
@@ -252,11 +255,11 @@ public class GameManager {
 		return holder;
 	}
 	
-	public GameStatusHolder getUserEnrolledGamesStatus(int gameType,long userProfileId) throws SQLException {
+	public GameStatusHolder getUserEnrolledGamesStatus(int gameType,long userProfileId) throws SQLException, Exception {
 		return getGamesStatus(gameType,userProfileId);
 	}
 	
-	public GameStatusHolder getAllGamesStatus(int gameType) throws SQLException {
+	public GameStatusHolder getAllGamesStatus(int gameType) throws SQLException, Exception {
 		return getGamesStatus(gameType, -1);
 	}
 	
@@ -347,37 +350,53 @@ public class GameManager {
 		}
 		
 		try {
-			UserMoney userMoney = InMemUserMoneyManager.getInstance().getUserMoneyById(gameOper.getUserProfileId());
-			if (userMoney.getId() == 0) {
-				throw new NotAllowedException("User Money details not found");
-			}
+			logger.info("This is in game manager join");
+			UsersCompleteMoneyDetails completeDetails = new UsersCompleteMoneyDetails();
+			completeDetails.setCheckMoney(true);
 			
-			long amt = userMoney.getAmount();
+			List<MoneyTransaction> joinMoneyTransactions = new ArrayList<>();
 			
-			if (amt < gameHandler.getGameDetails().getTicketRate()) {
-				throw new NotAllowedException("No Enough Cash. Please add money");
-			}
+			MoneyTransaction joinTransaction = new MoneyTransaction();
+			joinTransaction.setUserProfileId(gameOper.getUserProfileId());
+			joinTransaction.setAccountType(UserMoneyAccountType.LOADED_MONEY);
+			joinTransaction.setOperType(UserMoneyOperType.SUBTRACT);
+			joinTransaction.setAmount(gameHandler.getGameDetails().getTicketRate());
 			
 			long tktRate = gameHandler.getGameDetails().getTicketRate();
-			long userOB = amt;
-			long userCB = amt - tktRate; 
 			
 			MyTransaction transaction = Utils.getTransactionPojo(gameOper.getUserProfileId(), 
 					currentGameStartTime, (int)tktRate, TransactionType.DEBITED.getId(), 
-					UserMoneyAccountType.LOADED_MONEY.getId(), userOB, userCB, "Played game#:" + gameId, null);
+					UserMoneyAccountType.LOADED_MONEY.getId(), -1, -1, "Played game#:" + gameId, null);
 			
-			MoneyTransaction joinTransaction = new MoneyTransaction(UserMoneyAccountType.LOADED_MONEY, UserMoneyOperType.SUBTRACT, 
-					gameOper.getUserProfileId(), tktRate, transaction);
+			joinTransaction.setTransaction(transaction);
 			
-			List<MoneyTransaction> joinTransList = new ArrayList<>();
-			joinTransList.add(joinTransaction);
+			joinMoneyTransactions.add(joinTransaction);
 			
-			InMemUserMoneyManager.getInstance().update(joinTransList, null);
+			completeDetails.setUsersMoneyTransactionList(joinMoneyTransactions);
 			
-		} catch (SQLException e) {
-			logger.error("Exception while fetching User Money Details" , e);
-			throw e;
+			PostTask<UsersCompleteMoneyDetails, Boolean> joinTask = Request.updateMoney();
+			joinTask.setPostObject(completeDetails);
+			logger.info("b4 post");
+			joinTask.execute();
+			logger.info("after post");
+			
+		} catch (Exception e) {
+			logger.error("Error while fetching User Money Details" , e);
+			String errMessage = "Check beckend connectvity";
+            boolean isAPIException = false;
+			if (e instanceof HttpClientErrorException) {
+                HttpClientErrorException clientExp = (HttpClientErrorException) e;
+                errMessage = clientExp.getResponseBodyAsString();
+                isAPIException = true;
+            } else if (e instanceof HttpServerErrorException) {
+                HttpServerErrorException serverExp = (HttpServerErrorException) e;
+                errMessage = serverExp.getResponseBodyAsString();
+                isAPIException = true;
+            }
+			logger.error("Error message is {} : apiexception is {}", errMessage, isAPIException);
+			throw new NotAllowedException(errMessage);
 		}
+		
 		try {
 			boolean res = gameHandler.join(gameOper.getUserProfileId(), gameOper.getUserAccountType());
 			return res;
@@ -418,29 +437,50 @@ public class GameManager {
 		UserMoneyAccountType accType = UserMoneyAccountType.LOADED_MONEY;
 		
 		try {
-			
 			long tktRate = gameHandler.getGameDetails().getTicketRate();
 			if (tktRate == 0) {
 				return gameHandler.withdraw(gameOper.getUserProfileId());
 			}
-			UserMoney userMoney = InMemUserMoneyManager.getInstance().getUserMoneyById(gameOper.getUserProfileId());
-			long userOB = userMoney.getAmount();
-			long userCB = userOB + tktRate;
+			
+			UsersCompleteMoneyDetails completeDetails = new UsersCompleteMoneyDetails();
+			List<MoneyTransaction> unjoinMoneyTransactions = new ArrayList<>();
+			
+			MoneyTransaction unjoinTransaction = new MoneyTransaction();
+			unjoinTransaction.setUserProfileId(gameOper.getUserProfileId());
+			unjoinTransaction.setAccountType(UserMoneyAccountType.LOADED_MONEY);
+			unjoinTransaction.setOperType(UserMoneyOperType.ADD);
+			unjoinTransaction.setAmount(tktRate);
 			
 			MyTransaction transaction = Utils.getTransactionPojo(gameOper.getUserProfileId(), 
 					currentGameStartTime, (int)tktRate, TransactionType.CREDITED.getId(), 
-					accType.getId(), userOB, userCB, "Refund for left game# " + gameId, null);
+					accType.getId(), -1, -1, "Refund for left game# " + gameId, null);
 			
-			MoneyTransaction joinTransaction = new MoneyTransaction(accType, UserMoneyOperType.ADD, 
-					gameOper.getUserProfileId(), tktRate, transaction);
-			List<MoneyTransaction> unjoinTransList = new ArrayList<>();
-			unjoinTransList.add(joinTransaction);
+			unjoinTransaction.setTransaction(transaction);
 			
-			InMemUserMoneyManager.getInstance().update(unjoinTransList, null);
+			unjoinMoneyTransactions.add(unjoinTransaction);
 			
-		} catch (SQLException e) {
-			logger.error("SQL Exception while updating user money",e);
-			throw e;
+			completeDetails.setUsersMoneyTransactionList(unjoinMoneyTransactions);
+			
+			PostTask<UsersCompleteMoneyDetails, Boolean> updateMoneyTask = Request.updateMoney();
+			updateMoneyTask.setPostObject(completeDetails);
+			updateMoneyTask.execute();
+			
+			
+		} catch (Exception e) {
+			logger.error("Error while fetching User Money Details" , e);
+			String errMessage = "Check beckend connectvity";
+            boolean isAPIException = false;
+			if (e instanceof HttpClientErrorException) {
+                HttpClientErrorException clientExp = (HttpClientErrorException) e;
+                errMessage = clientExp.getResponseBodyAsString();
+                isAPIException = true;
+            } else if (e instanceof HttpServerErrorException) {
+                HttpServerErrorException serverExp = (HttpServerErrorException) e;
+                errMessage = serverExp.getResponseBodyAsString();
+                isAPIException = true;
+            }
+			logger.error("Error message is {} : apiexception is {}", errMessage, isAPIException);
+			throw new NotAllowedException(errMessage);
 		}
 		return gameHandler.withdraw(gameOper.getUserProfileId());
 	}

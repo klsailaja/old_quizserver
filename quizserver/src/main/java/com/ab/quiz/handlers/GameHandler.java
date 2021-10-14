@@ -11,6 +11,8 @@ import java.util.TreeMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.common.PostTask;
+import com.ab.quiz.common.Request;
 import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
@@ -30,6 +32,7 @@ import com.ab.quiz.pojo.PrizeDetail;
 import com.ab.quiz.pojo.Question;
 import com.ab.quiz.pojo.UserMoney;
 import com.ab.quiz.pojo.UserProfile;
+import com.ab.quiz.pojo.UsersCompleteMoneyDetails;
 
 public class GameHandler {
 	
@@ -83,8 +86,8 @@ public class GameHandler {
 		PlayerSummary player = new PlayerSummary();
 		
 		player.setUserProfileId(userProfileId);
-		UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userProfileId);
-		player.setUserName(userProfile.getName());
+		//UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userProfileId);
+		player.setUserName("Test");
 		player.setAccountUsed(accountUsed);
 		
 		synchronized (lock) {
@@ -92,7 +95,7 @@ public class GameHandler {
 		}
 		
 		userProfileIdVsAnswers.put(userProfileId, new ArrayList<PlayerAnswer>());
-		userIdVsBossId.put(userProfileId, userProfile.getBossId());
+		userIdVsBossId.put(userProfileId, 0L);
 		//userIdVsName.put(userProfileId, userProfile.getName());
 		
 		return true;
@@ -139,46 +142,42 @@ public class GameHandler {
 		return userCreditedStatus;
 	}
 	
-	public Map<Long, Boolean> cancelGame() throws SQLException {
+	public Map<Long, Boolean> cancelGame() throws SQLException, Exception {
 		userCreditedStatus = new HashMap<>();
 		
 		Set<Map.Entry<Long, PlayerSummary>> setValues = userProfileIdVsSummary.entrySet();
 		long userProfileId = 0;
 		int accountUsed = 0;
-		List<MoneyTransaction> cancelTransList = new ArrayList<>();
+		
+		UsersCompleteMoneyDetails completeDetails = new UsersCompleteMoneyDetails();
+		List<MoneyTransaction> cancelMoneyTransactions = new ArrayList<>();
+		
 		for (Map.Entry<Long, PlayerSummary> eachEntry : setValues) {
 			PlayerSummary playerSummary = eachEntry.getValue();
 			userProfileId = playerSummary.getUserProfileId();
 			accountUsed = playerSummary.getAccountUsed();
-			UserMoneyAccountType userAccType = UserMoneyAccountType.findById(accountUsed);
 			long amt = getGameDetails().getTicketRate();
 			
-			//UserMoney userMoney = UserMoneyHandler.getInstance().getUserMoney(userProfileId);
-			UserMoney userMoney = InMemUserMoneyManager.getInstance().getUserMoneyById(userProfileId);
-			long userOB = getAccountBalance(userMoney, accountUsed);
-			if (userOB == -1) {
-				logger.info("******************************");
-				logger.info("Invalid user account type for {} with profileId {}", userAccType, userProfileId);
-				logger.info("******************************");
-				continue;
-			}
-			long userCB = userOB + amt;
 			String comments = "Refund for Cancelled game#:" + gameDetails.getGameId();
 			
 			MyTransaction transaction = Utils.getTransactionPojo(userProfileId, gameDetails.getStartTime(), 
-					gameDetails.getTicketRate(), TransactionType.CREDITED.getId(), accountUsed, userOB, userCB, comments, null); 
+					gameDetails.getTicketRate(), TransactionType.CREDITED.getId(), accountUsed, -1, -1, comments, null);
 			
-			/*boolean res = UserMoneyDBHandler.getInstance().updateUserMoney(userAccType, 
-					UserMoneyOperType.ADD, userProfileId, amt, transaction);*/
-			MoneyTransaction cancelGameTransaction = new MoneyTransaction(userAccType, UserMoneyOperType.ADD, 
-					userProfileId, amt, transaction);
+			MoneyTransaction cancelTransaction = new MoneyTransaction();
+			cancelTransaction.setUserProfileId(userProfileId);
+			cancelTransaction.setAccountType(UserMoneyAccountType.LOADED_MONEY);
+			cancelTransaction.setOperType(UserMoneyOperType.ADD);
+			cancelTransaction.setAmount(amt);
+			cancelTransaction.setTransaction(transaction);
 			
-			cancelTransList.add(cancelGameTransaction);
 			
-			
+			cancelMoneyTransactions.add(cancelTransaction);
 			userCreditedStatus.put(userProfileId, true);
 		}
-		InMemUserMoneyManager.getInstance().update(cancelTransList, null);
+		completeDetails.setUsersMoneyTransactionList(cancelMoneyTransactions);
+		PostTask<UsersCompleteMoneyDetails, Boolean> updateMoneyTask = Request.updateMoney();
+		updateMoneyTask.setPostObject(completeDetails);
+		updateMoneyTask.execute();
 		
 		userProfileIdVsSummary.clear();
 		return userCreditedStatus;

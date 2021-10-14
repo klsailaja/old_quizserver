@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.exceptions.InternalException;
@@ -79,8 +81,24 @@ public class GamesController extends BaseController {
 			return GameManager.getInstance().getGameStatus(gameId);
 		}
 		catch(SQLException ex) {
-			logger.error("Exception in getGameStatus", ex);
+			logger.error("SQLException in getGameStatus", ex);
 			throw new InternalException(ex.getMessage());
+		}
+		catch(Exception ex) {
+			logger.error("Error in getGameStatus" , ex);
+			String errMessage = "Check beckend connectvity";
+            boolean isAPIException = false;
+			if (ex instanceof HttpClientErrorException) {
+                HttpClientErrorException clientExp = (HttpClientErrorException) ex;
+                errMessage = clientExp.getResponseBodyAsString();
+                isAPIException = true;
+            } else if (ex instanceof HttpServerErrorException) {
+                HttpServerErrorException serverExp = (HttpServerErrorException) ex;
+                errMessage = serverExp.getResponseBodyAsString();
+                isAPIException = true;
+            }
+			logger.error("Error message is {} : apiexception is {}", errMessage, isAPIException);
+			throw new NotAllowedException(errMessage);
 		}
 	}
 	
@@ -94,7 +112,22 @@ public class GamesController extends BaseController {
 		catch(SQLException ex) {
 			logger.error("Exception in getAllGamesStatus", ex);
 			throw new InternalException(ex.getMessage());
-		}	
+		} catch(Exception ex) {
+			logger.error("Error while fetching getAllGamesStatus" , ex);
+			String errMessage = "Check beckend connectvity";
+            boolean isAPIException = false;
+			if (ex instanceof HttpClientErrorException) {
+                HttpClientErrorException clientExp = (HttpClientErrorException) ex;
+                errMessage = clientExp.getResponseBodyAsString();
+                isAPIException = true;
+            } else if (ex instanceof HttpServerErrorException) {
+                HttpServerErrorException serverExp = (HttpServerErrorException) ex;
+                errMessage = serverExp.getResponseBodyAsString();
+                isAPIException = true;
+            }
+			logger.error("Error message is {} : apiexception is {}", errMessage, isAPIException);
+			throw new NotAllowedException(errMessage);
+		}
 	}
 	
 	@RequestMapping(value = "/{gametype}/enrolled/{userProfileId}/status", method = RequestMethod.GET, produces = "application/json") 
@@ -105,6 +138,21 @@ public class GamesController extends BaseController {
 		} catch (SQLException ex) {
 			logger.error("Exception in getUserEnrolledGamesStatus", ex);
 			throw new InternalException(ex.getMessage());
+		} catch(Exception ex) {
+			logger.error("Error while fetching getUserEnrolledGamesStatus" , ex);
+			String errMessage = "Check beckend connectvity";
+            boolean isAPIException = false;
+			if (ex instanceof HttpClientErrorException) {
+                HttpClientErrorException clientExp = (HttpClientErrorException) ex;
+                errMessage = clientExp.getResponseBodyAsString();
+                isAPIException = true;
+            } else if (ex instanceof HttpServerErrorException) {
+                HttpServerErrorException serverExp = (HttpServerErrorException) ex;
+                errMessage = serverExp.getResponseBodyAsString();
+                isAPIException = true;
+            }
+			logger.error("Error message is {} : apiexception is {}", errMessage, isAPIException);
+			throw new NotAllowedException(errMessage);
 		}
 	}
 	

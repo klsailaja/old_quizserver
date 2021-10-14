@@ -69,7 +69,7 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 			gameGenerator1.setupGames();
 			gameGenerator2.setupGames();
 			
-			WinMsgHandler.getInstance();
+			//WinMsgHandler.getInstance();
 			
 			Calendar calendar = Calendar.getInstance();
 			calendar.add(Calendar.DATE, 1);

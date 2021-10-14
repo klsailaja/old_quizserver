@@ -31,8 +31,8 @@ CREATE TABLE USERPROFILE(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 		NAME VARCHAR(20) NOT NULL,
 		PASSWD VARCHAR(80) NOT NULL, 
 		MAILID VARCHAR(320) NOT NULL, 
-		MYREFERALID VARCHAR(10), 
-		REFERREDID VARCHAR(10), 
+		MYREFERALID VARCHAR(20), 
+		REFERREDID VARCHAR(20), 
 		BOSSUSERID BIGINT,
         BOSSNAME VARCHAR(20),
         LOGGEDIN INT,
@@ -722,8 +722,8 @@ public class UserProfileDBHandler {
 		UserProfileDBHandler dbHandler = UserProfileDBHandler.getInstance();
 		
 		UserMoneyDBHandler userMoneyDBHandler = UserMoneyDBHandler.getInstance();
-		int total = 3000;
-		boolean batchMode = false;
+		long total = 50000000;
+		boolean batchMode = true;
 		
 		List<UserProfile> testProfiles = new ArrayList<>();
 		// System Users from 1 - 10
@@ -806,13 +806,17 @@ public class UserProfileDBHandler {
 			
 			if (batchMode) {
 				testProfiles.add(userProfile);
+				if ((testProfiles.size() % 200) == 0) {
+					dbHandler.testCreatedUserProfileList(testProfiles, 200);
+					testProfiles.clear();
+				}
 			} else {
 				//dbHandler.createUserProfile(userProfile);
 				UserProfileHandler.getInstance().createUserProfile(userProfile);
 			}
 		}
 		if (batchMode) {
-			dbHandler.testCreatedUserProfileList(testProfiles, 200);
+			//dbHandler.testCreatedUserProfileList(testProfiles, 200);
 		}
 	
 		List<UserMoney> userMoneys = new ArrayList<>();
@@ -825,12 +829,17 @@ public class UserProfileDBHandler {
 			
 			if (batchMode) {
 				userMoneys.add(userMoney);
+				if ((userMoneys.size() % 200) == 0) {
+					userMoneyDBHandler.testCreateMoneyInBatch(userMoneys, 200);
+					userMoneys.clear();
+				}
+				
 			} else {
 				//userMoneyDBHandler.createUserMoney(userMoney);
 			}
 		}
 		if (batchMode) {
-			userMoneyDBHandler.testCreateMoneyInBatch(userMoneys, 200);
+			//userMoneyDBHandler.testCreateMoneyInBatch(userMoneys, 200);
 		}
 	}
 }

@@ -14,6 +14,9 @@ public class UserProfile {
 	private long bossId;
 	private int loggedIn;
 	private int forgotPasswdUsed;
+	private String serverIpAddress;
+	private int serverPortNumber;
+	
 		
 	public int getLoggedIn() {
 		return loggedIn;
@@ -89,10 +92,16 @@ public class UserProfile {
 	public void setBossId(long bossId) {
 		this.bossId = bossId;
 	}
-	@Override
-	public String toString() {
-		return "UserProfile [id=" + id + ", emailAddress=" + emailAddress + ", name=" + name + ", referalId=" + myReferalId
-				+ ", referredId=" + bossReferredId + ", createdDate=" + createdDate + ", lastLoggedDate="
-				+ lastLoggedDate + "]";
+	public String getServerIpAddress() {
+		return serverIpAddress;
+	}
+	public void setServerIpAddress(String serverIpAddress) {
+		this.serverIpAddress = serverIpAddress;
+	}
+	public int getServerPortNumber() {
+		return serverPortNumber;
+	}
+	public void setServerPortNumber(int serverPortNumber) {
+		this.serverPortNumber = serverPortNumber;
 	}
 }

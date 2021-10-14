@@ -450,7 +450,7 @@ public class GameHistoryDBHandler {
 			for (int index = 0; index < gameIds.size(); index++) {
 				ps.setLong(1, gameIds.get(index));
 				rs = ps.executeQuery();
-				if (rs.next()) {
+				while (rs.next()) {
 					
 					GameResults gameResult = new GameResults();
 					
