@@ -3,7 +3,6 @@ package com.ab.quiz.helper;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +16,6 @@ import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.MoneyTransaction;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.PlayerSummary;
-import com.ab.quiz.pojo.UserMoney;
 
 public class PaymentProcessor {
 	
@@ -43,8 +41,8 @@ public class PaymentProcessor {
 		return winUsersIds;
 	}
 	
-	public void processPayments(Map<Long, UserMoney> userIdVsUserMoney, Map<Long, Long> userIdVsBossId, 
-			Map<Long, Integer> userIdVsReferalAmount, Map<Long, Integer> userIdVsWinningAmount) {
+	public void processPayments(Map<Long, Long> userIdVsBossId, 
+			List<MoneyTransaction> winUsersTransactions) {
 		
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat();
 		String timePattern = "dd:MMM:yy:HH:mm";
@@ -58,8 +56,6 @@ public class PaymentProcessor {
 				continue;
 			}
 			
-			List<MoneyTransaction> winnersMoneyTransactions = new ArrayList<>();
-			
 			String userName = ps.getUserName();
 			int amountWon = ps.getAmountWon();
 			int profit = amountWon - gameDetails.getTicketRate();
@@ -70,28 +66,18 @@ public class PaymentProcessor {
 			}
 			
 			long userProfileId = ps.getUserProfileId();
-			userIdVsWinningAmount.put(userProfileId, profit);
 			
 			try {
 				logger.info("Paying amount {} to id {} and userName {}", amountWon, userProfileId, userName);
 				
-				UserMoney userMoney = userIdVsUserMoney.get(userProfileId);
-				if (userMoney == null) {
-					logger.info("*****************************************");
-					logger.info("User Money not found for userId : {}", userProfileId);
-					logger.info("*****************************************");
-					continue;
-				}
 				
-				long userOB = userMoney.getAmount();
 				long gameStartTime = gameDetails.getStartTime();
 				String comments = "Winning Money for GameId#:" + gameDetails.getGameId();
-				long userCB = userOB + amountWon; 
 				
 				
 				MyTransaction transaction = Utils.getTransactionPojo(userProfileId, gameStartTime, 
 						amountWon, TransactionType.CREDITED.getId(), 
-						UserMoneyAccountType.WINNING_MONEY.getId(), userOB, userCB, comments, null);
+						UserMoneyAccountType.WINNING_MONEY.getId(), -1, -1, comments, null);
 				transaction.setIsWin(1);
 				
 				MoneyTransaction moneyTransaction = new MoneyTransaction();
@@ -101,16 +87,10 @@ public class PaymentProcessor {
 				moneyTransaction.setAmount(amountWon);
 				moneyTransaction.setTransaction(transaction);
 				
-				winnersMoneyTransactions.add(moneyTransaction);
-				
-				Map<Long, UserMoney> winUserMap = new HashMap<>();
-				winUserMap.put(userProfileId, userMoney);
-				
-				InMemUserMoneyManager.getInstance().update(winnersMoneyTransactions, winUserMap);
-				winnersMoneyTransactions.clear();
+				winUsersTransactions.add(moneyTransaction);
 				
 				Long bossProfileId = userIdVsBossId.get(userProfileId);
-				if (bossProfileId == null) {
+				if ((bossProfileId == 0) || (bossProfileId == null)) {
 					logger.info("Boss Referal code is null. Returning for userProfileId : {}", userProfileId);
 					continue;
 				}
@@ -121,20 +101,6 @@ public class PaymentProcessor {
 					continue;
 				}
 				
-				UserMoney bossUserMoney = userIdVsUserMoney.get(bossUserProfileId);
-				
-				if (bossUserMoney == null) {
-					logger.info("*****************************************");
-					logger.info("Boss User Money not found for userId : {} with boss id : {}", userProfileId, bossUserProfileId);
-					logger.info("*****************************************");
-					continue;
-				}
-				
-				userMoney = InMemUserMoneyManager.getInstance().getUserMoneyById(userProfileId);
-				
-				userOB = userMoney.getAmount();
-				long bossOB = bossUserMoney.getAmount();
-				
 				gameStartTime = gameDetails.getStartTime();
 				
 		        simpleDateFormat.applyPattern(timePattern);
@@ -143,16 +109,14 @@ public class PaymentProcessor {
 				comments = "Referrer share for GameId#" + gameDetails.getTempGameId() + " on " + timeStr; 
 				String bossCmts = "For Referring, share from " + userName 
 					+ " for GameId#" + gameDetails.getGameId() + " on " + timeStr;
-				userCB = userOB - bossShare;
-				long bossCB = bossOB + bossShare;
 				
 				transaction = Utils.getTransactionPojo(userProfileId, gameDetails.getStartTime(), 
 						bossShare, TransactionType.DEBITED.getId(), 
-						UserMoneyAccountType.WINNING_MONEY.getId(), userOB, userCB, comments, null);
+						UserMoneyAccountType.WINNING_MONEY.getId(), -1, -1, comments, null);
 				
 				MyTransaction transaction1 = Utils.getTransactionPojo(bossUserProfileId, gameDetails.getStartTime(), 
 								bossShare, TransactionType.CREDITED.getId(), 
-								UserMoneyAccountType.REFERAL_MONEY.getId(), bossOB, bossCB, bossCmts, null);
+								UserMoneyAccountType.REFERAL_MONEY.getId(), -1, -1, bossCmts, null);
 				transaction1.setIsWin(1);
 				
 				moneyTransaction = new MoneyTransaction();
@@ -162,7 +126,7 @@ public class PaymentProcessor {
 				moneyTransaction.setAmount(bossShare);
 				moneyTransaction.setTransaction(transaction);
 				
-				winnersMoneyTransactions.add(moneyTransaction);
+				winUsersTransactions.add(moneyTransaction);
 				
 				moneyTransaction = new MoneyTransaction();
 				moneyTransaction.setAccountType(UserMoneyAccountType.REFERAL_MONEY);
@@ -171,22 +135,7 @@ public class PaymentProcessor {
 				moneyTransaction.setAmount(bossShare);
 				moneyTransaction.setTransaction(transaction1);
 				
-				winnersMoneyTransactions.add(moneyTransaction);
-				
-				winUserMap.put(userProfileId, userMoney);
-				winUserMap.put(bossUserProfileId, bossUserMoney);
-				
-				InMemUserMoneyManager.getInstance().update(winnersMoneyTransactions, winUserMap);
-				
-				userIdVsWinningAmount.put(userProfileId, (profit - bossShare));
-				Integer totalBossShare = userIdVsReferalAmount.get(bossProfileId);
-				if (totalBossShare == null) {
-					totalBossShare = new Integer(bossShare);
-				} else {
-					totalBossShare = totalBossShare + bossShare;
-				}
-				userIdVsReferalAmount.put(bossProfileId, totalBossShare);
-				logger.info("userIdVsReferalAmount size {}", userIdVsReferalAmount);
+				winUsersTransactions.add(moneyTransaction);
 				
 			} catch (Exception ex) {
 				logger.error("For user profile id " + userProfileId);

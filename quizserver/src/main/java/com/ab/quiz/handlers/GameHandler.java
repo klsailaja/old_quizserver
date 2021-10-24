@@ -16,9 +16,7 @@ import com.ab.quiz.common.Request;
 import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
-import com.ab.quiz.db.UserProfileDBHandler;
 import com.ab.quiz.exceptions.NotAllowedException;
-import com.ab.quiz.helper.InMemUserMoneyManager;
 import com.ab.quiz.helper.LeaderBoard;
 import com.ab.quiz.helper.PaymentProcessor;
 import com.ab.quiz.helper.Utils;
@@ -30,8 +28,6 @@ import com.ab.quiz.pojo.PlayerAnswer;
 import com.ab.quiz.pojo.PlayerSummary;
 import com.ab.quiz.pojo.PrizeDetail;
 import com.ab.quiz.pojo.Question;
-import com.ab.quiz.pojo.UserMoney;
-import com.ab.quiz.pojo.UserProfile;
 import com.ab.quiz.pojo.UsersCompleteMoneyDetails;
 
 public class GameHandler {
@@ -78,7 +74,7 @@ public class GameHandler {
 		return playerSummary.getAccountUsed();
 	}
 	
-	public boolean join(long userProfileId, int accountUsed) throws SQLException {
+	public boolean join(long userProfileId, int accountUsed, long userBossId, String userName) {
 		// Create a Player object and assign the id. Add to Map userProfileIdVsSummary
 		// Get the UserProfile object and assign the name.
 		// If successful return true.
@@ -87,7 +83,7 @@ public class GameHandler {
 		
 		player.setUserProfileId(userProfileId);
 		//UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userProfileId);
-		player.setUserName("Test");
+		player.setUserName(userName);
 		player.setAccountUsed(accountUsed);
 		
 		synchronized (lock) {
@@ -95,7 +91,7 @@ public class GameHandler {
 		}
 		
 		userProfileIdVsAnswers.put(userProfileId, new ArrayList<PlayerAnswer>());
-		userIdVsBossId.put(userProfileId, 0L);
+		userIdVsBossId.put(userProfileId, userBossId);
 		//userIdVsName.put(userProfileId, userProfile.getName());
 		
 		return true;
@@ -129,13 +125,6 @@ public class GameHandler {
 		synchronized (lock) {
 			return userProfileIdVsSummary.size();
 		}
-	}
-	
-	private long getAccountBalance(UserMoney userMoney, int accountType) {
-		if (accountType == UserMoneyAccountType.LOADED_MONEY.getId()) {
-			return userMoney.getAmount();
-		} 
-		return -1;
 	}
 	
 	public Map<Long, Boolean> getRevertedStatus() {

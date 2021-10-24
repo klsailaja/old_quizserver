@@ -339,17 +339,17 @@ public class GameManager {
 			throw new NotAllowedException("Max count reached. Please try next game");
 		}
 		
+		long userBossId = gameOper.getUserBossId();
+		String userName = gameOper.getUserName();
+		
 		if (gameHandler.getGameDetails().getTicketRate() == 0) {
-			try {
-				boolean res = gameHandler.join(gameOper.getUserProfileId(), gameOper.getUserAccountType());
-				return res;
-			} catch (SQLException e) {
-				logger.error("Error while fetching User Profile Name Entry", e);
-			}
-			return true;
+			boolean res = gameHandler.join(gameOper.getUserProfileId(), gameOper.getUserAccountType(), 0, userName);
+			return res;
 		}
 		
+		
 		try {
+			
 			logger.info("This is in game manager join");
 			UsersCompleteMoneyDetails completeDetails = new UsersCompleteMoneyDetails();
 			completeDetails.setCheckMoney(true);
@@ -376,9 +376,7 @@ public class GameManager {
 			
 			PostTask<UsersCompleteMoneyDetails, Boolean> joinTask = Request.updateMoney();
 			joinTask.setPostObject(completeDetails);
-			logger.info("b4 post");
 			joinTask.execute();
-			logger.info("after post");
 			
 		} catch (Exception e) {
 			logger.error("Error while fetching User Money Details" , e);
@@ -397,13 +395,8 @@ public class GameManager {
 			throw new NotAllowedException(errMessage);
 		}
 		
-		try {
-			boolean res = gameHandler.join(gameOper.getUserProfileId(), gameOper.getUserAccountType());
-			return res;
-		} catch (SQLException e) {
-			logger.error("Error while fetching User Profile Name Entry", e);
-		}
-		return false;
+		boolean res = gameHandler.join(gameOper.getUserProfileId(), gameOper.getUserAccountType(), userBossId, userName);
+		return res;
 	}
 
 	public boolean unjoin(long gameId, GameOperation gameOper) throws NotAllowedException, SQLException {

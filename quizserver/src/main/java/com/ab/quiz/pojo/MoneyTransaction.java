@@ -10,7 +10,6 @@ public class MoneyTransaction {
 	private long userProfileId;
 	private long amount;
 	private MyTransaction transaction;
-	private String trackStatusKey;
 	
 	public MoneyTransaction() {
 		
@@ -24,7 +23,6 @@ public class MoneyTransaction {
 		this.userProfileId = userProfileId;
 		this.amount = amount;
 		this.transaction = transaction;
-		this.trackStatusKey = trackStatusKey;
 	}
 	
 	public UserMoneyAccountType getAccountType() {
@@ -56,11 +54,5 @@ public class MoneyTransaction {
 	}
 	public void setTransaction(MyTransaction transaction) {
 		this.transaction = transaction;
-	}
-	public String getTrackStatusKey() {
-		return trackStatusKey;
-	}
-	public void setTrackStatusKey(String trackStatusKey) {
-		this.trackStatusKey = trackStatusKey;
 	}
 }

@@ -264,19 +264,16 @@ public class GamesGenerator implements Runnable {
 		
 		for (int index = 1; index <= randomPlayerCount; index ++) {
 			
-			try {
-				long predefinedUserProfileId = index + userIdOffset;
-				
-				gameHandlerInstance.join(predefinedUserProfileId, UserMoneyAccountType.LOADED_MONEY.getId());
-				
-				for (int qIndex = 1; qIndex <= 10; qIndex ++) {
-					PlayerAnswer playerAns = getRandomPlayerAnswer();
-					playerAns.setQuestionNo(qIndex);
-					playerAns.setUserProfileId(predefinedUserProfileId);
-					gameHandlerInstance.submitAnswer(playerAns);
-				}
-			} catch(SQLException ex) {
-				logger.error("SQL Exception in handle free game", ex);
+			long predefinedUserProfileId = index + userIdOffset;
+			
+			gameHandlerInstance.join(predefinedUserProfileId, UserMoneyAccountType.LOADED_MONEY.getId(), 0, 
+					"Systemuser" + predefinedUserProfileId);
+			
+			for (int qIndex = 1; qIndex <= 10; qIndex ++) {
+				PlayerAnswer playerAns = getRandomPlayerAnswer();
+				playerAns.setQuestionNo(qIndex);
+				playerAns.setUserProfileId(predefinedUserProfileId);
+				gameHandlerInstance.submitAnswer(playerAns);
 			}
 		}
 	}

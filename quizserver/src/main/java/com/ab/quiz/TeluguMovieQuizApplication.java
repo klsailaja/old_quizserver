@@ -14,7 +14,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.helper.GamesGenerator;
 import com.ab.quiz.helper.LazyScheduler;
-import com.ab.quiz.helper.WinMsgHandler;
 import com.ab.quiz.tasks.DeleteOldRecords;
 import com.ab.quiz.tasks.TestUsersTask;
 

@@ -42,6 +42,7 @@ public class UserMoneyController extends BaseController {
 	public @ResponseBody boolean loadMoney(@PathVariable("userProfileId") long userProfileId, @PathVariable("amt") int amt,
 			@RequestBody TransferRequest transferReq)
 			throws InternalException {
+		
 		try {
 			return UserMoneyHandler.getInstance().updateUserMoney(userProfileId, amt);
 		} catch (SQLException ex) {
