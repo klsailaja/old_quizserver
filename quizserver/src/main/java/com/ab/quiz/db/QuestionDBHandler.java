@@ -356,7 +356,7 @@ public class QuestionDBHandler {
 	public static void main(String[] args) throws Exception {
 		System.out.println("Start");
 		//readTextFile();
-		UserProfileDBHandler.main(args);
+		//UserProfileDBHandler.main(args);
 		//MyTransactionDBHandler.main(args);
 		//GameHistoryDBHandler.main(args);
 		System.out.println("End");

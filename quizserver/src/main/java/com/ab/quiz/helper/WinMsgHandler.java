@@ -41,10 +41,9 @@ public class WinMsgHandler implements Runnable {
 	public void run() {
 		
 		lock.writeLock().lock();
-		
 		try {
-			
 			combinedMessages.clear();
+			
 			List<String> gameWinMsgs = MyTransactionDBHandler.getInstance().getRecentWinRecords(-1, false, null);
 			List<String> withDrawMsgs = WithdrawDBHandler.getInstance().getRecentWinRecords(-1, false, null);
 			List<String> remainingMsgs = gameWinMsgs;

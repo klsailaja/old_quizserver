@@ -13,14 +13,14 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.common.GetTask;
+import com.ab.quiz.common.Request;
 import com.ab.quiz.constants.ReceiptType;
 import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.WithdrawReqState;
 import com.ab.quiz.constants.WithdrawReqType;
 import com.ab.quiz.exceptions.NotAllowedException;
-import com.ab.quiz.handlers.UserMoneyHandler;
-import com.ab.quiz.helper.InMemUserMoneyManager;
 import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.helper.Utils;
 import com.ab.quiz.pojo.MyTransaction;
@@ -329,9 +329,16 @@ public class WithdrawDBHandler {
 			
 			logger.debug("Changed the withdraw req state result {}", (result1 > 0));
 			
-			UserMoneyDBHandler userMoneyHandler = UserMoneyDBHandler.getInstance();
 			long userProfileId = wdRequest.getUserProfileId(); 
-			UserMoney userMoney = userMoneyHandler.getUserMoneyById(userProfileId);
+			UserMoney userMoney = null;
+			
+			try {
+				GetTask<UserMoney> getUserMoneyTask = Request.getMoneyTask(userProfileId);
+				userMoney = (UserMoney)getUserMoneyTask.execute();
+			} catch (Exception ex) {
+				logger.error("Exception while getting the User Money for uid " + userProfileId, ex);
+				throw new NotAllowedException("Error while getting the User Money Object");
+			}
 			
 			long userOB = userMoney.getAmount();
 			long time = System.currentTimeMillis();

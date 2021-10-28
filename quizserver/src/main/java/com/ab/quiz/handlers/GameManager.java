@@ -174,15 +174,14 @@ public class GameManager {
 				gameStatus.setGameStatus(2); // Game is alive and lock period is reached..
 				if (gameHandler.getEnrolledUserCount() < 3) {
 					gameStatus.setGameStatus(-1);
-					Map<Long, Boolean> revertedStatus = gameHandler.cancelGame();
-					gameStatus.setUserAccountRevertStatus(revertedStatus);
+					gameStatus.setUserAccountRevertStatus(null);
 				}
 			}
 		}
 		return gameStatus;
 	}
 	
-	private GameStatusHolder getGamesStatus(int gameType, long userProfileId) throws SQLException, Exception {
+	private GameStatusHolder getGamesStatus(int gameType, long userProfileId) throws Exception {
 		// Discard completed state games
 		// Include Locked, In-Progress, Future
 		HashMap <Long, GameStatus> gameIdToGameStatus = new HashMap<>();
@@ -233,25 +232,52 @@ public class GameManager {
 			gameIdToGameStatus.put(gameStatus.getGameId(), gameStatus);
 		}
 		
+		UsersCompleteMoneyDetails completeDetails = new UsersCompleteMoneyDetails();
+		List<MoneyTransaction> cancelledGameUsersMoneyTrans = new ArrayList<>(); 
+		completeDetails.setUsersMoneyTransactionList(cancelledGameUsersMoneyTrans);
+		List<Long> cancelledUserIds = new ArrayList<>();
+		
 		for (GameHandler cancelGameHandler : cancelledGames) {
-			Map<Long, Boolean> revertedStatus = cancelGameHandler.getRevertedStatus();
-			if (revertedStatus == null) {
-				revertedStatus = cancelGameHandler.cancelGame();
+			if (!cancelGameHandler.isGameCancellationDone()) {
+				cancelGameHandler.setGameCancellationDone(true);
+				cancelGameHandler.cancelGame(completeDetails, cancelledUserIds);
 				cancelGameHandler.getGameDetails().setStatus(-1);
 			}
+		}
+		
+		
+		if (cancelledUserIds.size() > 0) {
+			PostTask<UsersCompleteMoneyDetails, Integer[]> joinTask = Request.updateMoney();
+			joinTask.setPostObject(completeDetails);
+			@SuppressWarnings("unchecked")
+			List<Integer> updateResults = (List<Integer>)joinTask.execute();
+			for (int index = 0; index < updateResults.size(); index ++) {
+				long canceledUserId = cancelledUserIds.get(index); 
+				boolean moneyResBoolean = updateResults.get(index) > 0; 
+				for (GameHandler cancelGameHandler : cancelledGames) {
+					if (cancelGameHandler.isUserEnrolled(canceledUserId)) {
+						cancelGameHandler.putRevertedStatus(canceledUserId, moneyResBoolean);
+					}
+				}
+			}
+		}
+		
+		for (GameHandler cancelGameHandler : cancelledGames) {
 			GameStatus gameStatus = new GameStatus();
 			gameStatus.setGameId(cancelGameHandler.getGameDetails().getGameId());
 			gameStatus.setViewId(cancelGameHandler.getGameDetails().getTempGameId());
 			gameStatus.setCurrentCount(cancelGameHandler.getEnrolledUserCount());
 			gameStatus.setGameStatus(-1);	// Cancelled
-			gameStatus.setUserAccountRevertStatus(revertedStatus);
-			
+			gameStatus.setUserAccountRevertStatus(cancelGameHandler.getRevertedStatus());
+		
 			gameIdToGameStatus.put(gameStatus.getGameId(), gameStatus);
 		}
-		lock.readLock().unlock();
 		
 		GameStatusHolder holder = new GameStatusHolder();
 		holder.setVal(gameIdToGameStatus);
+		
+		lock.readLock().unlock();
+		
 		return holder;
 	}
 	
@@ -374,7 +400,7 @@ public class GameManager {
 			
 			completeDetails.setUsersMoneyTransactionList(joinMoneyTransactions);
 			
-			PostTask<UsersCompleteMoneyDetails, Boolean> joinTask = Request.updateMoney();
+			PostTask<UsersCompleteMoneyDetails, Integer[]> joinTask = Request.updateMoney();
 			joinTask.setPostObject(completeDetails);
 			joinTask.execute();
 			
@@ -454,7 +480,7 @@ public class GameManager {
 			
 			completeDetails.setUsersMoneyTransactionList(unjoinMoneyTransactions);
 			
-			PostTask<UsersCompleteMoneyDetails, Boolean> updateMoneyTask = Request.updateMoney();
+			PostTask<UsersCompleteMoneyDetails, Integer[]> updateMoneyTask = Request.updateMoney();
 			updateMoneyTask.setPostObject(completeDetails);
 			updateMoneyTask.execute();
 			

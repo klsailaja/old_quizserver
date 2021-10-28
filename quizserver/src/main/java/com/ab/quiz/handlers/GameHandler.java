@@ -11,8 +11,6 @@ import java.util.TreeMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.ab.quiz.common.PostTask;
-import com.ab.quiz.common.Request;
 import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
@@ -45,8 +43,9 @@ public class GameHandler {
 	
 	// This map maintains the UserId Vs Boss Id
 	private Map<Long, Long> userIdVsBossId = new HashMap<>();
-	//private Map<Long, String> userIdVsName = new HashMap<>();
-	private Map<Long, Boolean> userCreditedStatus;
+	
+	private Map<Long, Boolean> userCreditedStatus = new HashMap<>();
+	private boolean isGameCancellationDone;
 	
 	
 	private static final Logger logger = LogManager.getLogger(GameHandler.class);
@@ -131,14 +130,17 @@ public class GameHandler {
 		return userCreditedStatus;
 	}
 	
-	public Map<Long, Boolean> cancelGame() throws SQLException, Exception {
-		userCreditedStatus = new HashMap<>();
+	public void putRevertedStatus(long uid, boolean result) {
+		userCreditedStatus.put(uid, result);
+	}
+	
+	public void cancelGame(UsersCompleteMoneyDetails moneyDetails, List<Long> cancelledUserIds) throws SQLException, Exception {
 		
 		Set<Map.Entry<Long, PlayerSummary>> setValues = userProfileIdVsSummary.entrySet();
 		long userProfileId = 0;
 		int accountUsed = 0;
 		
-		UsersCompleteMoneyDetails completeDetails = new UsersCompleteMoneyDetails();
+		
 		List<MoneyTransaction> cancelMoneyTransactions = new ArrayList<>();
 		
 		for (Map.Entry<Long, PlayerSummary> eachEntry : setValues) {
@@ -159,17 +161,10 @@ public class GameHandler {
 			cancelTransaction.setAmount(amt);
 			cancelTransaction.setTransaction(transaction);
 			
-			
 			cancelMoneyTransactions.add(cancelTransaction);
-			userCreditedStatus.put(userProfileId, true);
+			cancelledUserIds.add(userProfileId);
 		}
-		completeDetails.setUsersMoneyTransactionList(cancelMoneyTransactions);
-		PostTask<UsersCompleteMoneyDetails, Boolean> updateMoneyTask = Request.updateMoney();
-		updateMoneyTask.setPostObject(completeDetails);
-		updateMoneyTask.execute();
-		
-		userProfileIdVsSummary.clear();
-		return userCreditedStatus;
+		moneyDetails.getUsersMoneyTransactionList().addAll(cancelMoneyTransactions);
 	}
 	
 	public List<PlayerSummary> getLeaderBoardPositions(int qNo) {
@@ -289,4 +284,13 @@ public class GameHandler {
 	public Map<Long, Long> getUserIdToBossIdDetails() {
 		return userIdVsBossId;
 	}
+	
+	public boolean isGameCancellationDone() {
+		return isGameCancellationDone;
+	}
+
+	public void setGameCancellationDone(boolean isGameCancellationDone) {
+		this.isGameCancellationDone = isGameCancellationDone;
+	}
+
 }

@@ -1,6 +1,8 @@
 package com.ab.quiz;
 
-import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,12 +13,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ab.quiz.common.GetTask;
+import com.ab.quiz.common.PostTask;
+import com.ab.quiz.common.Request;
+import com.ab.quiz.constants.UserMoneyAccountType;
+import com.ab.quiz.constants.UserMoneyOperType;
 import com.ab.quiz.exceptions.InternalException;
 import com.ab.quiz.exceptions.NotAllowedException;
-import com.ab.quiz.handlers.UserMoneyHandler;
-import com.ab.quiz.helper.InMemUserMoneyManager;
+import com.ab.quiz.pojo.MoneyTransaction;
 import com.ab.quiz.pojo.TransferRequest;
 import com.ab.quiz.pojo.UserMoney;
+import com.ab.quiz.pojo.UsersCompleteMoneyDetails;
 
 @RestController
 public class UserMoneyController extends BaseController {
@@ -29,10 +36,11 @@ public class UserMoneyController extends BaseController {
 	public @ResponseBody UserMoney getUserMoney(@PathVariable("userProfileId") long userProfileId) 
 			throws InternalException, NotAllowedException {
 		
+		GetTask<UserMoney> getUserMoneyTask = Request.getMoneyTask(userProfileId);
 		try {
-			//return UserMoneyHandler.getInstance().getUserMoney(userProfileId);
-			return InMemUserMoneyManager.getInstance().getUserMoneyById(userProfileId);
-		} catch (SQLException ex) {
+			UserMoney userMoney = (UserMoney) getUserMoneyTask.execute();
+			return userMoney;
+		} catch (Exception ex) {
 			logger.error("Exception in getUserMoney", ex);
 			throw new InternalException("Server Error in getUserMoney");
 		}
@@ -43,24 +51,33 @@ public class UserMoneyController extends BaseController {
 			@RequestBody TransferRequest transferReq)
 			throws InternalException {
 		
+		UsersCompleteMoneyDetails completeDetails = new UsersCompleteMoneyDetails();
+		
+		List<MoneyTransaction> loadMoneyTransactions = new ArrayList<>();
+		
+		MoneyTransaction loadTransaction = new MoneyTransaction();
+		loadTransaction.setUserProfileId(userProfileId);
+		loadTransaction.setAccountType(UserMoneyAccountType.LOADED_MONEY);
+		loadTransaction.setOperType(UserMoneyOperType.ADD);
+		loadTransaction.setAmount(amt);
+		
+		completeDetails.setUsersMoneyTransactionList(loadMoneyTransactions);
+		
 		try {
-			return UserMoneyHandler.getInstance().updateUserMoney(userProfileId, amt);
-		} catch (SQLException ex) {
+			PostTask<UsersCompleteMoneyDetails, Integer[]> updateMoneyTask = Request.updateMoney();
+			updateMoneyTask.setPostObject(completeDetails);
+			Object result = updateMoneyTask.execute();
+			List<Integer> resultList = Arrays.asList((Integer[]) result);
+			boolean clientResult = false;
+			if ((resultList != null) && (resultList.size() > 0)) {
+				if (resultList.get(0) > 0) {
+					return true;
+				}
+			}
+			return clientResult;
+		} catch (Exception ex) {
 			logger.error("Exception in loadMoney", ex);
 			throw new InternalException("Server Error in loadMoney");
 		}
 	}
-	
-	
-	/*
-	@RequestMapping(value = "/money/{userProfileId}/transfer", method = RequestMethod.POST, produces = "application/json")
-	public @ResponseBody boolean transferMoney(@PathVariable("userProfileId") long userProfileId, 
-			@RequestBody TransferRequest transferReq) throws NotAllowedException, InternalException {
-		try {
-			return UserMoneyHandler.getInstance().transferMoney(userProfileId, transferReq);
-		} catch (SQLException ex) {
-			logger.error("Exception in transferMoney", ex);
-			throw new InternalException("Server Error in transferMoney");
-		}
-	}*/
 }

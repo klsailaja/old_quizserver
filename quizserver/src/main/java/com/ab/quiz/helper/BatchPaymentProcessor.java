@@ -42,7 +42,7 @@ public class BatchPaymentProcessor {
 			logger.info("Total Time in Run {}", (System.currentTimeMillis() - startTime));
 			winnerMoneyDetails.setUsersMoneyTransactionList(winUsersTransactions);
 			
-			PostTask<UsersCompleteMoneyDetails, Boolean> joinTask = Request.updateMoney();
+			PostTask<UsersCompleteMoneyDetails, Integer[]> joinTask = Request.updateMoney();
 			joinTask.setPostObject(winnerMoneyDetails);
 			joinTask.execute();
 		} catch (Exception ex) {

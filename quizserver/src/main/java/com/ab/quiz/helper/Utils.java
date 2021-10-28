@@ -1,14 +1,11 @@
 package com.ab.quiz.helper;
 
 import java.security.SecureRandom;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.ab.quiz.db.UserProfileDBHandler;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.PrizeDetail;
-import com.ab.quiz.pojo.UserProfile;
 
 public class Utils {
 	
@@ -132,7 +129,7 @@ public class Utils {
 		return (profit/50);
 	}
 	
-	public static void getClosedCircleUserIds(long userId, int maxUsers, List<Long> closedGrpUserIds,
+	/*public static void getClosedCircleUserIds(long userId, int maxUsers, List<Long> closedGrpUserIds,
 			List<String> closedGrpUserNames) throws SQLException {
 		int index = 0;
 		UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userId);
@@ -145,7 +142,7 @@ public class Utils {
 			index ++;
 			bossUserId = userProfile.getBossId();
 		}
-	}
+	}*/
 	
 	public static void main(String[] args) {
 		int[] rates = {10, 20, 50, 75, 100, 50, 75, 100, 150, 200};
