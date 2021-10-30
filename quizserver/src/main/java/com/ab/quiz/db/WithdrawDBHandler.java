@@ -14,6 +14,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.common.GetTask;
+import com.ab.quiz.common.PostTask;
 import com.ab.quiz.common.Request;
 import com.ab.quiz.constants.ReceiptType;
 import com.ab.quiz.constants.TransactionType;
@@ -27,6 +28,7 @@ import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.UserMoney;
 import com.ab.quiz.pojo.UserProfile;
 import com.ab.quiz.pojo.WDUserInput;
+import com.ab.quiz.pojo.WithdrawMoney;
 import com.ab.quiz.pojo.WithdrawReqByBank;
 import com.ab.quiz.pojo.WithdrawReqByPhone;
 import com.ab.quiz.pojo.WithdrawRequest;
@@ -288,7 +290,7 @@ public class WithdrawDBHandler {
 	
 	
 	public boolean closeWithDrawRequest(String receiptFileName, String withdrawRefId, String wdClosedCmts) 
-			throws SQLException, NotAllowedException, FileNotFoundException {
+			throws SQLException, NotAllowedException, FileNotFoundException, Exception {
 		// all validations
 		// Insert the receipt file
 		// Make the withdraw request as closed..
@@ -300,15 +302,34 @@ public class WithdrawDBHandler {
 			throw new NotAllowedException("This type of Request cannot be closed");
 		}
 		
+		long time = System.currentTimeMillis();
+		String comments = "Withdraw Request Processed. Receipt Attached for " + wdRequest.getRefId();
+		
+		MyTransaction transaction = Utils.getTransactionPojo(wdRequest.getUserProfileId(), time, 
+				wdRequest.getAmount(), TransactionType.CLOSED.getId(), 
+				wdRequest.getFromAccType(), -1, -1, comments, null);
+		
+		WithdrawMoney wdMoneyDetails = new WithdrawMoney();
+		
+		wdMoneyDetails.setUid(wdRequest.getUserProfileId());
+		wdMoneyDetails.setWdAmt(wdRequest.getAmount());
+		wdMoneyDetails.setWdType(WithdrawReqState.CLOSED.getId());
+		wdMoneyDetails.setTransaction(transaction);
+		
+		PostTask<WithdrawMoney, Boolean> wdTask = Request.performWitdrawTask();
+		wdTask.setPostObject(wdMoneyDetails);
+		boolean wdOperationResult = (boolean) wdTask.execute();
+		
+		if (!wdOperationResult) {
+			return false;
+		}
+		
 		ConnectionPool cp = null;
 		Connection dbConn = null;
 		PreparedStatement updateWDStatePS = null;
-		PreparedStatement revertMoneyPS = null;
 		int result1 = 0;
-		int result2 = 0;
 		
 		try {
-			
 			long receiptId = WithdrawReceiptDBHandler.getInstance().createWDReceipt(ReceiptType.WITHDRAW.getId(), receiptFileName);
 			logger.info("The receipt file contents DB Entry id is {}", receiptId);
 			if (receiptId == -1) {
@@ -329,54 +350,14 @@ public class WithdrawDBHandler {
 			
 			logger.debug("Changed the withdraw req state result {}", (result1 > 0));
 			
-			long userProfileId = wdRequest.getUserProfileId(); 
-			UserMoney userMoney = null;
-			
-			try {
-				GetTask<UserMoney> getUserMoneyTask = Request.getMoneyTask(userProfileId);
-				userMoney = (UserMoney)getUserMoneyTask.execute();
-			} catch (Exception ex) {
-				logger.error("Exception while getting the User Money for uid " + userProfileId, ex);
-				throw new NotAllowedException("Error while getting the User Money Object");
-			}
-			
-			long userOB = userMoney.getAmount();
-			long time = System.currentTimeMillis();
-			String comments = "Withdraw Request Processed. Receipt Attached for " + wdRequest.getRefId();
-			long userCB = userOB;
-			
-			MyTransaction transaction = Utils.getTransactionPojo(userProfileId, time, 
-					wdRequest.getAmount(), TransactionType.CLOSED.getId(), 
-					wdRequest.getFromAccType(), userOB, userCB, comments, null);
-			
-			String revertMoneySql = UserMoneyHandler.getInstance().getUserAccWithDrawSql(wdRequest.getFromAccType());
-			
-			revertMoneyPS = dbConn.prepareStatement(revertMoneySql);
-			
-			revertMoneyPS.setLong(1, 0);
-			revertMoneyPS.setLong(2, -1 * wdRequest.getAmount());
-			revertMoneyPS.setLong(3, userProfileId);
-			
-			result2 = revertMoneyPS.executeUpdate();
-			
-			int operRes = 0;
-			
-			if (result2 > 0) {
-				operRes = 1;
-			}
-			transaction.setOperResult(operRes);
-			MyTransactionDBHandler.getInstance().createTransaction(transaction);
 			return true;
 			 
 		} catch (SQLException ex) {
-			logger.error("Error while executing cancelWithdrawRequest ", ex);
+			logger.error("Error while executing closeWithDrawRequest ", ex);
 			throw ex;
 		} finally {
 			if (updateWDStatePS != null) {
 				updateWDStatePS.close();
-			}
-			if (revertMoneyPS != null) {
-				revertMoneyPS.close();
 			}
 			if (dbConn != null) {
 				dbConn.close();
@@ -398,30 +379,35 @@ public class WithdrawDBHandler {
 			throw new NotAllowedException("This Request not owned by you");
 		}
 		
-		boolean hasInMemRecords = InMemUserMoneyManager.getInstance().hasInMemRecords(userProfileId);
-		if (hasInMemRecords) {
-			InMemUserMoneyManager.getInstance().commitNow();
+		MyTransaction transaction = Utils.getTransactionPojo(userProfileId, System.currentTimeMillis(), 
+				wdRequest.getAmount(), TransactionType.CREDITED.getId(), 
+				UserMoneyAccountType.LOADED_MONEY.getId(), -1, -1, "Withdraw Request Cancelled", null);
+		WithdrawMoney wdMoneyDetails = new WithdrawMoney();
+		
+		wdMoneyDetails.setUid(userProfileId);
+		wdMoneyDetails.setWdAmt(wdRequest.getAmount());
+		wdMoneyDetails.setWdType(WithdrawReqState.CANCELLED.getId());
+		wdMoneyDetails.setTransaction(transaction);
+		
+		PostTask<WithdrawMoney, Boolean> wdTask = Request.performWitdrawTask();
+		wdTask.setPostObject(wdMoneyDetails);
+		
+		try {
+			boolean wdOperationResult = (boolean) wdTask.execute();
+		
+			if (!wdOperationResult) {
+				return false;
+			}
+		} catch(Exception ex) {
+			logger.error(ex);
+			throw new NotAllowedException("Backend issue");
 		}
-		
-		List<UserMoneyAccountType> accTypes = new ArrayList<>();
-		accTypes.add(UserMoneyAccountType.findById(wdRequest.getFromAccType()));
-		
-		List<TransactionType> transactionTypes = new ArrayList<>();
-		transactionTypes.add(TransactionType.CREDITED);
-		
-		List<String> comments = new ArrayList<>();
-		comments.add("Withdraw Request Cancelled");
-		
-		List<MyTransaction> wdRelatedTransactions = UserMoneyDBHandler.getInstance(). 
-				getTransactionObjects(wdRequest.getUserProfileId(), wdRequest.getAmount(), 
-				accTypes, transactionTypes, comments);
+
 		
 		ConnectionPool cp = null;
 		Connection dbConn = null;
 		PreparedStatement updateWDStatePS = null;
-		PreparedStatement revertMoneyPS = null;
 		int result1 = 0;
-		int result2 = 0;
 		
 		try {
 			cp = ConnectionPool.getInstance();
@@ -435,25 +421,6 @@ public class WithdrawDBHandler {
 			
 			logger.debug("Changed the withdraw req state result : {}", (result1 > 0));
 			
-			String revertMoneySql = UserMoneyHandler.getInstance().getUserAccWithDrawSql(wdRequest.getFromAccType());
-			
-			revertMoneyPS = dbConn.prepareStatement(revertMoneySql);
-			
-			revertMoneyPS.setLong(1, wdRequest.getAmount());
-			revertMoneyPS.setLong(2, -1 * wdRequest.getAmount());
-			revertMoneyPS.setLong(3, userProfileId);
-			
-			result2 = revertMoneyPS.executeUpdate();
-			
-			int transferRes = 0;
-			if (result2 > 0) {
-				transferRes = 1;
-			}
-			
-			for (MyTransaction transaction : wdRelatedTransactions) {
-				transaction.setOperResult(transferRes);
-			}
-			LazyScheduler.getInstance().submit(new AddTransactionsTask(wdRelatedTransactions));
 			return true;
 			 
 		} catch (SQLException ex) {
@@ -462,9 +429,6 @@ public class WithdrawDBHandler {
 		} finally {
 			if (updateWDStatePS != null) {
 				updateWDStatePS.close();
-			}
-			if (revertMoneyPS != null) {
-				revertMoneyPS.close();
 			}
 			if (dbConn != null) {
 				dbConn.close();
@@ -538,10 +502,10 @@ public class WithdrawDBHandler {
 		
 		logger.debug("In getWithdrawRequests() with {} {} {}", userProfileId, state, startRowNumber);
 		
-		UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userProfileId);
+		/*UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userProfileId);
 		if (userProfile.getId() == 0) {
 			throw new NotAllowedException("User not found with id " + userProfileId);
-		}
+		}*/
 		
 		String totalSql = GET_TOTAL_COUNT;
 		String sql = GET_DATA_BY_USER_ID;

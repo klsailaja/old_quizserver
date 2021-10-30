@@ -146,7 +146,7 @@ public class WDHandler {
 	}
 	
 	public boolean closeWithDrawRequest(String receiptFileName, String withdrawRefId, String wdClosedCmts) 
-			throws SQLException, NotAllowedException, FileNotFoundException {
+			throws SQLException, NotAllowedException, FileNotFoundException,Exception {
 		
 		WithdrawDBHandler withdrawDbHandler = WithdrawDBHandler.getInstance();
 		return withdrawDbHandler.closeWithDrawRequest(receiptFileName, withdrawRefId, wdClosedCmts);
