@@ -1,13 +1,12 @@
 package com.ab.quiz.tasks;
 
-import java.util.List;
 import java.util.Calendar;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.db.GameHistoryDBHandler;
-import com.ab.quiz.db.MyTransactionDBHandler;
 import com.ab.quiz.db.WithdrawDBHandler;
 
 public class DeleteOldRecords implements Runnable {
@@ -29,9 +28,6 @@ public class DeleteOldRecords implements Runnable {
 			logger.info("Time is {}", time);
 			int delCt = WithdrawDBHandler.getInstance().deleteRecords(time);
 			logger.info("Deleted WithdrawClosed Records size {}", delCt);
-			System.out.println(delCt);
-			delCt = MyTransactionDBHandler.getInstance().deleteRecords(time);
-			logger.info("Deleted Old Transactions Records size {}", delCt);
 			System.out.println(delCt);
 			List<Long> delGameIds = GameHistoryDBHandler.getInstance().deleteRecords(time);
 			logger.info("Deleted Old Game Records size {}", delGameIds.size());

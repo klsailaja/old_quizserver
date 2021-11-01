@@ -13,7 +13,6 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.ab.quiz.common.GetTask;
 import com.ab.quiz.common.PostTask;
 import com.ab.quiz.common.Request;
 import com.ab.quiz.constants.ReceiptType;
@@ -22,18 +21,14 @@ import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.WithdrawReqState;
 import com.ab.quiz.constants.WithdrawReqType;
 import com.ab.quiz.exceptions.NotAllowedException;
-import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.helper.Utils;
 import com.ab.quiz.pojo.MyTransaction;
-import com.ab.quiz.pojo.UserMoney;
-import com.ab.quiz.pojo.UserProfile;
 import com.ab.quiz.pojo.WDUserInput;
 import com.ab.quiz.pojo.WithdrawMoney;
 import com.ab.quiz.pojo.WithdrawReqByBank;
 import com.ab.quiz.pojo.WithdrawReqByPhone;
 import com.ab.quiz.pojo.WithdrawRequest;
 import com.ab.quiz.pojo.WithdrawRequestsHolder;
-import com.ab.quiz.tasks.AddTransactionsTask;
 
 /*
  *
@@ -668,8 +663,8 @@ public class WithdrawDBHandler {
 						userName = bossUserName;
 						str = msg2;
 					} else {
-						UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userId);
-						userName = userProfile.getName();
+						//UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userId);
+						userName = "TO DO";
 					}
 					
 					str = str.replace("$NAME", userName);

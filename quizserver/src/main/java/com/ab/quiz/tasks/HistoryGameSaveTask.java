@@ -8,7 +8,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.db.GameHistoryDBHandler;
-import com.ab.quiz.db.UserProfileDBHandler;
 import com.ab.quiz.handlers.GameHandler;
 import com.ab.quiz.pojo.GamePlayers;
 import com.ab.quiz.pojo.GameResults;
@@ -86,7 +85,7 @@ public class HistoryGameSaveTask implements Runnable {
 		try {
 			GameHistoryDBHandler.getInstance().bulkInsertGameResults(allGameResults, 20);
 			GameHistoryDBHandler.getInstance().bulkInsertGamePlayers(allGamePlayers, 50);
-			UserProfileDBHandler.getInstance().updateLastLoggedTimeInBulkMode(updateLastLoggedIn, 50);
+			//UserProfileDBHandler.getInstance().updateLastLoggedTimeInBulkMode(updateLastLoggedIn, 50);
 		} catch (SQLException e) {
 			logger.error("SQLException while doing bulk insert of game results and game players", e);
 		}

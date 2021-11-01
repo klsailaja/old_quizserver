@@ -9,7 +9,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.ab.quiz.db.MyTransactionDBHandler;
 import com.ab.quiz.db.WithdrawDBHandler;
 
 public class WinMsgHandler implements Runnable {
@@ -18,6 +17,7 @@ public class WinMsgHandler implements Runnable {
 	private static WinMsgHandler instance = null;
 	
 	private List<String> combinedMessages = new ArrayList<>();
+	private List<String> gameWinMsgs = new ArrayList();
 	private ReadWriteLock lock = new ReentrantReadWriteLock();
 	
 	private WinMsgHandler() {
@@ -44,7 +44,6 @@ public class WinMsgHandler implements Runnable {
 		try {
 			combinedMessages.clear();
 			
-			List<String> gameWinMsgs = MyTransactionDBHandler.getInstance().getRecentWinRecords(-1, false, null);
 			List<String> withDrawMsgs = WithdrawDBHandler.getInstance().getRecentWinRecords(-1, false, null);
 			List<String> remainingMsgs = gameWinMsgs;
 			
@@ -69,6 +68,12 @@ public class WinMsgHandler implements Runnable {
 		}
 		lock.writeLock().unlock();
 	}
+	
+	public void setWithdrawMessages(List<String> wdMsgs) {
+		gameWinMsgs.clear();
+		gameWinMsgs.addAll(wdMsgs);
+	}
+	
 	
 	public List<String> getCombinedMessages() {
 		lock.readLock().lock();
