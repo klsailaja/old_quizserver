@@ -134,6 +134,9 @@ public class TestUsersTask implements Runnable {
 				GameOperation gameOperation = new GameOperation();
 				gameOperation.setUserProfileId(predefinedUserProfileId);
 				gameOperation.setUserAccountType(UserMoneyAccountType.LOADED_MONEY.getId());
+				gameOperation.setUserName("testuser" + predefinedUserProfileId);
+				gameOperation.setUserBossId(21);
+				
 				GameManager.getInstance().joinGame(gameDetails.getGameId(), gameOperation);
 				//Thread.sleep(300);
 				

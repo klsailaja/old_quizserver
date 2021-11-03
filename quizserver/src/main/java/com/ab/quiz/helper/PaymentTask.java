@@ -44,6 +44,8 @@ public class PaymentTask implements Runnable {
 		
 		long paymentTimeTaken = System.currentTimeMillis();
 		
+		batchPaymentProcessor.setGameSlotsStartTime(completedGames.get(0).getGameDetails().getStartTime());
+		
 		for (GameHandler completedGame : completedGames) {
 			
 			logger.info("Making payments for Game server id# {} and client id# {}", 

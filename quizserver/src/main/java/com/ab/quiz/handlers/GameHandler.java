@@ -81,7 +81,6 @@ public class GameHandler {
 		PlayerSummary player = new PlayerSummary();
 		
 		player.setUserProfileId(userProfileId);
-		//UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userProfileId);
 		player.setUserName(userName);
 		player.setAccountUsed(accountUsed);
 		

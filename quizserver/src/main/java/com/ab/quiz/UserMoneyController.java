@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ab.quiz.common.GetTask;
 import com.ab.quiz.common.PostTask;
 import com.ab.quiz.common.Request;
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
 import com.ab.quiz.exceptions.InternalException;
@@ -78,6 +79,19 @@ public class UserMoneyController extends BaseController {
 		} catch (Exception ex) {
 			logger.error("Exception in loadMoney", ex);
 			throw new InternalException("Server Error in loadMoney");
+		}
+	}
+	
+	@RequestMapping(value = "/money/update/{trackKey}", method = RequestMethod.GET, produces = "application/json")
+	public @ResponseBody int getGamesSlotMoneyStatus(@PathVariable("trackKey") String trackKey) throws InternalException {
+		String newTrackKey = "server" + QuizConstants.MY_SERVER_ID + "-" + trackKey;
+		try {
+			GetTask<Integer> slotGamesStatusTask = Request.getGamesSlotMoneyStatus(newTrackKey);
+			Object result = slotGamesStatusTask.execute();
+			return (Integer) result;
+		} catch (Exception ex) {
+			logger.error("Exception in getGamesSlotMoneyStatus", ex);
+			throw new InternalException("Server Error in getGamesSlotMoneyStatus");
 		}
 	}
 }

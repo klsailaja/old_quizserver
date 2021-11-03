@@ -376,7 +376,6 @@ public class GameManager {
 		
 		try {
 			
-			logger.info("This is in game manager join");
 			UsersCompleteMoneyDetails completeDetails = new UsersCompleteMoneyDetails();
 			completeDetails.setCheckMoney(true);
 			
