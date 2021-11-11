@@ -1,5 +1,8 @@
 package com.ab.quiz;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,11 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ab.quiz.common.GetTask;
 import com.ab.quiz.common.PostTask;
 import com.ab.quiz.common.Request;
+import com.ab.quiz.db.WithdrawDBHandler;
 import com.ab.quiz.exceptions.InternalException;
 import com.ab.quiz.exceptions.NotAllowedException;
+import com.ab.quiz.helper.WinMsgHandler;
 import com.ab.quiz.pojo.LoginData;
 import com.ab.quiz.pojo.ReferalDetails;
 import com.ab.quiz.pojo.TransactionsHolder;
+import com.ab.quiz.pojo.UserNetwork;
 import com.ab.quiz.pojo.UserProfile;
 
 @RestController
@@ -161,5 +167,99 @@ public class UserProfileController extends BaseController {
 			return "true";
 		}
 		return "false";
+	}
+	
+	@RequestMapping(value = "/wd/messages/{userId}/{maxCount}", method = RequestMethod.GET, produces = "application/json")
+	public @ResponseBody List<String> getRecentWinWDMessages(@PathVariable long userId, @PathVariable int maxCount) 
+			throws NotAllowedException, InternalException {
+	
+		logger.info("In getRecentWinWDMessages with userId {} and {}", userId, maxCount);
+		try {
+			List<String> combinedMsgs = WinMsgHandler.getInstance().getCombinedMessages();
+			if (userId == -1) {
+				return combinedMsgs;
+			}
+			
+			GetTask<UserNetwork> closedFrdsTask = Request.getUserClosedNetworkTask(userId, maxCount);
+			UserNetwork frdsDetails = (UserNetwork)closedFrdsTask.execute();
+			
+			List<Long> closedGroupMembersIds = frdsDetails.getClosedUserIdSet();
+			List<String> closedGroupMembersNames = frdsDetails.getClosedUserNameList();
+			logger.info("The closed friends for uid : {} ids size is {}", userId, closedGroupMembersIds.size());
+			logger.info(closedGroupMembersIds);
+			logger.info(closedGroupMembersNames);
+			
+			
+			if (closedGroupMembersIds.size() > 0) {
+				
+				GetTask<String[]> userFrdsWinMsgTask = Request.getUserFrdsWinMsgsTask(userId, maxCount);
+				String[] frdsWinMsgs = (String[])userFrdsWinMsgTask.execute();
+				
+				List<List<String>> totalUsersWinMsgs = new ArrayList<>();
+				
+				List<String> eachUserWinMsgs = new ArrayList<>();
+				for (int index = 0; index < frdsWinMsgs.length; index ++) {
+					if (frdsWinMsgs[index].length() > 1) {
+						eachUserWinMsgs.add(frdsWinMsgs[index]);
+					} else {
+						totalUsersWinMsgs.add(eachUserWinMsgs);
+						eachUserWinMsgs = new ArrayList<>();
+					}
+				}
+				frdsWinMsgs = null;
+				
+				List<List<String>> totalUsersWithDrawMsgs = new ArrayList<>();
+				
+				for (int userIndex = 0; userIndex < closedGroupMembersIds.size(); userIndex++) {
+					 
+					long closedGrpUserId = closedGroupMembersIds.get(userIndex);
+					String closedGrpUserName = closedGroupMembersNames.get(userIndex);
+					
+					List<String> withDrawMsgs = WithdrawDBHandler.
+						getInstance().getRecentWinRecords(closedGrpUserId, true, closedGrpUserName);
+					
+					totalUsersWithDrawMsgs.add(withDrawMsgs);
+				}
+				
+				List<String> closedGrpUsersMsgs = new ArrayList<>();
+				
+				int frdsSize = closedGroupMembersIds.size();
+				int maxMsgIndex = 10;
+				
+				for (int msgIndex = 0; msgIndex < maxMsgIndex; msgIndex ++) {
+					for (int index = 0; index < frdsSize; index ++) {
+						if (index < totalUsersWinMsgs.size()) {
+							List<String> winList = totalUsersWinMsgs.get(index);
+							if (msgIndex < winList.size()) {
+								closedGrpUsersMsgs.add(winList.get(msgIndex));
+							}
+						}
+						if (index < totalUsersWithDrawMsgs.size()) {
+							List<String> wdList = totalUsersWithDrawMsgs.get(index);
+							if (msgIndex < wdList.size()) {
+								closedGrpUsersMsgs.add(wdList.get(msgIndex));
+							}
+						}
+					}
+				}
+				
+				closedGrpUsersMsgs.addAll(closedGrpUsersMsgs);
+				closedGrpUsersMsgs.addAll(closedGrpUsersMsgs);
+				
+				int totalClosedGrpMsgCount = 240 - closedGrpUsersMsgs.size();
+				for (int totalIndex = 0; totalIndex < totalClosedGrpMsgCount; totalIndex ++) {
+					if (totalIndex < combinedMsgs.size()) {
+						closedGrpUsersMsgs.add(combinedMsgs.get(totalIndex));
+					}
+				}
+				logger.info("closedGrpUsersMsgs size {}", closedGrpUsersMsgs.size());
+				return closedGrpUsersMsgs;
+			}
+			logger.info("combinedMsgs {}", combinedMsgs.size());
+			return combinedMsgs;
+		} catch (Exception ex) {
+			logger.error("Exception in getRecentWinWDMessages", ex);
+			throw new InternalException("Server Error in getRecentWinWDMessages");
+		}
 	}
 }
