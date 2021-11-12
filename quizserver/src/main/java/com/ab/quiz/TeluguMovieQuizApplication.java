@@ -12,6 +12,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import com.ab.quiz.constants.QuizConstants;
+import com.ab.quiz.db.ConnectionPool;
 import com.ab.quiz.helper.GamesGenerator;
 import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.tasks.DeleteOldRecords;
@@ -23,14 +24,38 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 	private static final Logger logger = LogManager.getLogger(TeluguMovieQuizApplication.class);
 	
 	public static void main(String[] args) {
+		
+		for (String arg:args) {
+            if (arg.indexOf("serverid") > -1) {
+            	arg = arg.trim();
+            	int pos = arg.lastIndexOf("=");
+            	int idInt = Integer.parseInt(arg.substring(pos + 1));
+            	QuizConstants.MY_SERVER_ID = idInt;
+            	System.out.println("My id is :" + QuizConstants.MY_SERVER_ID);
+            } else if (arg.indexOf("db") > -1) {
+            	arg = arg.trim();
+            	int pos = arg.lastIndexOf("=");
+            	String dbName = arg.substring(pos + 1);
+            	ConnectionPool.JDBC_DB_URL = ConnectionPool.JDBC_DB_URL.replace("${server_quiz_db}", dbName);
+            	System.out.println("JDBC Url :" + ConnectionPool.JDBC_DB_URL);
+            } else if (arg.indexOf("uid1") > -1) {
+            	arg = arg.trim();
+            	int pos = arg.lastIndexOf("=");
+            	long uid1 = Long.parseLong(arg.substring(pos + 1));
+            	TestUsersTask.startUIDValue1 = uid1;
+            } else if (arg.indexOf("uid2") > -1) {
+            	arg = arg.trim();
+            	int pos = arg.lastIndexOf("=");
+            	long uid2 = Long.parseLong(arg.substring(pos + 1));
+            	TestUsersTask.startUIDValue2 = uid2;
+            }
+		}
 		SpringApplication.run(TeluguMovieQuizApplication.class, args);
 	}
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
-		
 		try {
-			
 			logger.debug("Starting the TeluguMovieQuizApplication application");
 			
 			GamesGenerator gameGenerator1 = new GamesGenerator(1);

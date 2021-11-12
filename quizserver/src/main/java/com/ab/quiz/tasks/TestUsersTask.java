@@ -21,8 +21,10 @@ public class TestUsersTask implements Runnable {
 	
 	private ScheduledThreadPoolExecutor scheduler = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1);
 	private int mode;
-	private long testingUserIdMode1 = 1001;
-	private long testingUserIdMode2 = 2001;
+	public static long startUIDValue1 = 1001;
+	public static long startUIDValue2 = 2001;
+	public long testingUserIdMode1 = startUIDValue1;
+	public long testingUserIdMode2 = startUIDValue2;
 	private static final Logger logger = LogManager.getLogger(TestUsersTask.class);
 	
 	public TestUsersTask() {
@@ -89,12 +91,12 @@ public class TestUsersTask implements Runnable {
 				if (mode == 1) {
 					if ((index % QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED.length) == 0) {
 						index = 0;
-						testingUserIdMode1 = 1001;
+						testingUserIdMode1 = startUIDValue1;
 					}
 				} else {
 					if ((index % QuizConstants.GAMES_RATES_IN_ONE_SLOT_SPECIAL.length) == 0) {
 						index = 0;
-						testingUserIdMode2 = 2001;
+						testingUserIdMode2 = startUIDValue2;
 					}
 				}
 			}
