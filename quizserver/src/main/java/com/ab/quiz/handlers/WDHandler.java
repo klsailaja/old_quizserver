@@ -7,14 +7,21 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.common.GetTask;
+import com.ab.quiz.common.PostTask;
 import com.ab.quiz.common.Request;
 import com.ab.quiz.constants.PhonePaymentTypes;
+import com.ab.quiz.constants.TransactionType;
+import com.ab.quiz.constants.UserMoneyAccountType;
+import com.ab.quiz.constants.WithdrawReqState;
 import com.ab.quiz.constants.WithdrawReqType;
 import com.ab.quiz.db.WithdrawDBHandler;
 import com.ab.quiz.db.WithdrawReceiptDBHandler;
 import com.ab.quiz.exceptions.NotAllowedException;
+import com.ab.quiz.helper.Utils;
+import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.UserMoney;
 import com.ab.quiz.pojo.WDUserInput;
+import com.ab.quiz.pojo.WithdrawMoney;
 import com.ab.quiz.pojo.WithdrawReqByBank;
 import com.ab.quiz.pojo.WithdrawReqByPhone;
 import com.ab.quiz.pojo.WithdrawRequestInput;
@@ -134,6 +141,30 @@ public class WDHandler {
 		if (!wdrecordsCreated) {
 			logger.debug("Withdraw DB Records not created in DB");
 			throw new NotAllowedException("Could not insert beneficiary details to DB");
+		}
+		
+		MyTransaction transaction = Utils.getTransactionPojo(wdUserInput.getUserProfileId(), System.currentTimeMillis(), 
+				wdUserInput.getAmount(), TransactionType.DEBITED.getId(), 
+				UserMoneyAccountType.LOADED_MONEY.getId(), -1, -1, "Withdraw Request Placed", null);
+		WithdrawMoney wdMoneyDetails = new WithdrawMoney();
+		
+		wdMoneyDetails.setUid(wdUserInput.getUserProfileId());
+		wdMoneyDetails.setWdAmt(wdUserInput.getAmount());
+		wdMoneyDetails.setWdType(WithdrawReqState.OPEN.getId());
+		wdMoneyDetails.setTransaction(transaction);
+		
+		PostTask<WithdrawMoney, Boolean> wdTask = Request.performWitdrawTask();
+		wdTask.setPostObject(wdMoneyDetails);
+		
+		try {
+			boolean wdOperationResult = (boolean) wdTask.execute();
+		
+			if (!wdOperationResult) {
+				return false;
+			}
+		} catch(Exception ex) {
+			logger.error(ex);
+			throw new NotAllowedException("Backend issue");
 		}
 		return true;
 	}

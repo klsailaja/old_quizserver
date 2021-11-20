@@ -2,7 +2,7 @@ package com.ab.quiz.constants;
 
 public class QuizConstants {
 	
-	public static final int SPECIAL_CODE_MAX_COUNT = 1;
+	public static final int SPECIAL_CODE_MAX_COUNT = 100;
 	public static int MY_SERVER_ID = 1;
 	
 	public static final int MAX_LIVE_SLOTS = 4;
