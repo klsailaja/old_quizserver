@@ -1,5 +1,8 @@
 package com.ab.quiz.db;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.security.SecureRandom;
 import java.sql.Connection;
@@ -10,12 +13,14 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.imageio.ImageIO;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.common.PostTask;
 import com.ab.quiz.common.Request;
-import com.ab.quiz.constants.ReceiptType;
+import com.ab.quiz.constants.PictureType;
 import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.WithdrawReqState;
@@ -113,8 +118,8 @@ public class WithdrawDBHandler {
 	
 	private static final String REMOVE_OLD_RECORDS = "DELETE FROM " + TABLE_NAME 
 			+ " WHERE (" + REQUEST_CLOSED_TIME + " < ? AND ID <> 0 AND STATUS =" + WithdrawReqState.CLOSED.getId() + ")";
-	private static final String GET_WITHDRAW_TYPE_RECEIPT_IDS = "SELECT " + TRANSACTION_RECEIPT_ID + " FROM " + TABLE_NAME + " WHERE " + 
-			REQUEST_CLOSED_TIME + " < ?";
+	private static final String GET_WITHDRAW_TYPE_RECEIPT_IDS = "SELECT " + TRANSACTION_RECEIPT_ID + " FROM " + TABLE_NAME + " WHERE (" + 
+			REQUEST_CLOSED_TIME + " < ? AND STATUS =" + WithdrawReqState.CLOSED.getId() + ")";
 	
 	private WithdrawDBHandler() {
 	}
@@ -325,7 +330,12 @@ public class WithdrawDBHandler {
 		int result1 = 0;
 		
 		try {
-			long receiptId = WithdrawReceiptDBHandler.getInstance().createWDReceipt(ReceiptType.WITHDRAW.getId(), receiptFileName);
+			BufferedImage bImage = ImageIO.read(new File(receiptFileName));
+		    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		    ImageIO.write(bImage, "jpg", bos );
+		    byte [] data = bos.toByteArray();
+			long receiptId = PictureDBHandler.getInstance().createPictureDBEntry(String.valueOf(wdRequest.getId()), 
+					PictureType.WDRECEIPT.getId(), data, false, -1);
 			logger.info("The receipt file contents DB Entry id is {}", receiptId);
 			if (receiptId == -1) {
 				logger.error("Could not insert the receipt file contents to DB");
@@ -653,7 +663,7 @@ public class WithdrawDBHandler {
 			rs = ps.executeQuery();
 			if (rs != null) {
 				while (rs.next()) {
-					long userId = rs.getLong(USER_PROFILE_ID);
+					//long userId = rs.getLong(USER_PROFILE_ID);
 					int amt = rs.getInt(AMOUNT);
 					//long dateTime = rs.getLong(DATE);
 					

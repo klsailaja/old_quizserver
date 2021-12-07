@@ -10,8 +10,8 @@ public class ConnectionPool {
 	
 	// JDBC Driver Name & Database URL
     static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
-    public static String JDBC_DB_URL = "jdbc:mysql://localhost:3306/${server_quiz_db}?useUnicode=yes&characterEncoding=UTF-8";
-    
+    //public static String JDBC_DB_URL = "jdbc:mysql://localhost:3306/${server_quiz_db}?useUnicode=yes&characterEncoding=UTF-8";
+    public static String JDBC_DB_URL = "jdbc:mysql://localhost:3306/SERVER_QUIZ_DB?useUnicode=yes&characterEncoding=UTF-8";
     // JDBC Database Credentials
     static final String JDBC_USER = "rajasekhar";
     static final String JDBC_PASS = "rajasekhar";
