@@ -76,7 +76,7 @@ public class CCHandler {
 		
 		CustomerTicket cTicket = new CustomerTicket();
 		cTicket.setRequestType(CustomerCareReqType.ADDED_MONEY_NOT_UPDATED.getId());
-		cTicket.setUserId(23);
+		cTicket.setUserId(21);
 		cTicket.setOpenedTime(System.currentTimeMillis());
 		cTicket.setStatus(CustomerCareReqState.OPEN.getId());
 		cTicket.setExtraDetails("ExtraDetails");
@@ -93,7 +93,7 @@ public class CCHandler {
 
 		document.setDocContents(data);
 		
-		//ccHandler.placeCustomerCareTicket(cTicket, document);
-		ccHandler.closeCustomerCareTicket(23, "EpC0kkYNS1", "Closed Comments", completeFielPath);
+		ccHandler.placeCustomerCareTicket(cTicket, document);
+		//ccHandler.closeCustomerCareTicket(23, "EpC0kkYNS1", "Closed Comments", completeFielPath);
 	}
 }

@@ -409,7 +409,7 @@ public class CustomerCareDBHandler {
 	public CCTicketsHolder getCCTickets(long userProfileId, int startRowNumber, int state) 
 			throws SQLException, NotAllowedException {
 		
-		logger.debug("In getCCTickets() with {} {} {}", userProfileId, state, startRowNumber);
+		logger.info("In getCCTickets() with {} {} {}", userProfileId, state, startRowNumber);
 		
 		/*UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userProfileId);
 		if (userProfile.getId() == 0) {
@@ -443,6 +443,9 @@ public class CustomerCareDBHandler {
 		} else {
 			ps.setInt(2, startRowNumber);
 		}
+		
+		logger.info("Total SQL {}", totalSql);
+		logger.info("SQL {}", sql);
 		
 		CCTicketsHolder holder = new CCTicketsHolder();
 		List<CustomerTicket> dataList = new ArrayList<>();
@@ -492,6 +495,8 @@ public class CustomerCareDBHandler {
 					dataItem.setResolvedPicId(rs.getLong(RESOLVE_PIC_ID));
 					dataItem.setExtraDetails(rs.getString(EXTRADETAILS));
 					dataItem.setClosedCmts(rs.getString(CLOSECMTS));
+					
+					dataList.add(dataItem);
 				}
 			}
 		} catch (SQLException ex) {

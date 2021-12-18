@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ab.quiz.db.PictureDBHandler;
 import com.ab.quiz.exceptions.InternalException;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.WDHandler;
@@ -73,10 +74,10 @@ public class WithdrawOperationsController extends BaseController {
 	public @ResponseBody byte[] getReceiptContents(@PathVariable("id") long id) 
 			throws NotAllowedException, InternalException {
 		
-		logger.info("getReceiptContents is called with id {} ", id);
+		logger.info("wd getReceiptContents is called with id {} ", id);
 		try {
-			byte[] receiptBytes = WDHandler.getInstance().getReceiptContents(id);
-			logger.info("getReceiptContents request result is {}", receiptBytes.length);
+			byte[] receiptBytes = PictureDBHandler.getInstance().getPictureFileContents(id);
+			logger.info("wd getReceiptContents request result is {}", receiptBytes.length);
 			return receiptBytes;
 		} catch (SQLException ex) {
 			logger.error("Exception in getReceiptContents", ex);
