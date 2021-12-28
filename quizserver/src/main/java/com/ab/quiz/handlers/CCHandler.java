@@ -37,6 +37,11 @@ public class CCHandler {
 		return instance;
 	}
 	
+	public CustomerTicket getCustomerCareTicket(long tktId)	throws SQLException {
+		CustomerCareDBHandler ccDBHandler = CustomerCareDBHandler.getInstance();
+		return ccDBHandler.getCustomerTicketById(tktId);
+	}
+	
 	public CCTicketsHolder getWithdrawDataSet(long userProfileId, int startRowNumber, int state) 
 			throws SQLException, NotAllowedException {
 		
@@ -44,11 +49,11 @@ public class CCHandler {
 		return ccDBHandler.getCCTickets(userProfileId, startRowNumber, state);
 	}
 	
-	public boolean placeCustomerCareTicket(CustomerTicket ccTicket, Document document)
+	public long placeCustomerCareTicket(CustomerTicket ccTicket)
 			throws NotAllowedException, SQLException {
 		
 		CustomerCareDBHandler ccDBHandler = CustomerCareDBHandler.getInstance();
-		return ccDBHandler.createCCTicket(ccTicket, document);
+		return ccDBHandler.createCCTicket(ccTicket);
 	}
 	
 	public boolean cancelCustomerCareTicket(long userProfileId, String withdrawRefId) 
@@ -93,7 +98,7 @@ public class CCHandler {
 
 		document.setDocContents(data);
 		
-		ccHandler.placeCustomerCareTicket(cTicket, document);
+		ccHandler.placeCustomerCareTicket(cTicket);
 		//ccHandler.closeCustomerCareTicket(23, "EpC0kkYNS1", "Closed Comments", completeFielPath);
 	}
 }

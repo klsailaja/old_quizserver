@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,6 @@ import com.ab.quiz.constants.PictureType;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.pojo.CCTicketsHolder;
 import com.ab.quiz.pojo.CustomerTicket;
-import com.ab.quiz.pojo.Document;
 
 /*
 CREATE TABLE CUSTOMERCAREREQS(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, 
@@ -79,6 +79,12 @@ public class CustomerCareDBHandler {
 	
 	private static final String GET_TICKET_ENTRY_BY_REF_ID = "SELECT * FROM " + TABLE_NAME + " WHERE " + REFID + " = ?";
 	
+	private static final String GET_TICKET_BY_ID = "SELECT * FROM " + TABLE_NAME + " WHERE " 
+			+ ID + " = ?";
+	
+	private static final String UPDATE_TICKET_BY_ID = "UPDATE " + TABLE_NAME + " SET " + PROBLEM_PIC_ID + "= ? WHERE " + ID + " = ?";
+
+	
 	private static final String CLOSE_TICKET_BY_REF_ID = "UPDATE " + TABLE_NAME + " SET "
 			+ STATUS + " = ? ," + REQUEST_CLOSED_TIME + " = ? ,"
 			+ RESOLVE_PIC_ID + " = ? ," + CLOSECMTS + " = ? "
@@ -100,6 +106,10 @@ public class CustomerCareDBHandler {
 	
 	private static final String GET_DATA_BY_USER_ID = "SELECT * FROM " + TABLE_NAME 
 			+ " WHERE " + USER_PROFILE_ID + " = ? ORDER BY " + REQUEST_OPENED_TIME + " DESC LIMIT ?, " + MAX_ROWS;
+	
+	private static final String REMOVE_TICKET_BY_ID = "DELETE FROM " + TABLE_NAME 
+			+ " WHERE " + ID + " = ? ";
+	
 	
 	private static final Logger logger = LogManager.getLogger(CustomerCareDBHandler.class);
 	
@@ -151,6 +161,73 @@ public class CustomerCareDBHandler {
 				dbConn.close();
 			}
 		}
+	}
+	
+	public boolean updateTicketById(long ticketId, long pictureId) throws SQLException {
+		
+		ConnectionPool cp = ConnectionPool.getInstance();
+		Connection dbConn = cp.getDBConnection();
+		PreparedStatement ps = dbConn.prepareStatement(UPDATE_TICKET_BY_ID);
+		
+		ps.setLong(1, ticketId);
+		ps.setLong(2, pictureId);
+		
+		int operResult = 0;
+		
+		try {
+			int resultCount = ps.executeUpdate();
+			if (resultCount > 0) {
+				operResult = 1;
+			}
+		}
+		catch(SQLException ex) {
+			logger.error("******************************");
+			logger.error("Exception while updateTicketById for {} : {}", ticketId, pictureId);
+			logger.error("SQLException in ", ex);
+			logger.error("******************************");
+			throw ex;
+		} finally {
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
+		return (operResult > 0);
+	}
+	
+	public boolean removeTicketById(long ticketId) throws SQLException {
+		
+		ConnectionPool cp = ConnectionPool.getInstance();
+		Connection dbConn = cp.getDBConnection();
+		PreparedStatement ps = dbConn.prepareStatement(REMOVE_TICKET_BY_ID);
+		
+		ps.setLong(1, ticketId);
+		
+		int operResult = 0;
+		
+		try {
+			int resultCount = ps.executeUpdate();
+			if (resultCount > 0) {
+				operResult = 1;
+			}
+		}
+		catch(SQLException ex) {
+			logger.error("******************************");
+			logger.error("Exception while removeTicketById for {}", ticketId);
+			logger.error("SQLException in ", ex);
+			logger.error("******************************");
+			throw ex;
+		} finally {
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
+		return (operResult > 0);
 	}
 	
 	public long getMaxCCReqId() throws SQLException {
@@ -230,6 +307,53 @@ public class CustomerCareDBHandler {
 		}
 		logger.info("Old CC Records to be deleted size is {}", oldWDReceiptIds.size());
 		return oldWDReceiptIds;
+	}
+	
+	public CustomerTicket getCustomerTicketById(long tktId) throws SQLException {
+		
+		logger.debug("In getCustomerTicketById() with {}", tktId);
+		ConnectionPool cp = ConnectionPool.getInstance();
+		Connection dbConn = cp.getDBConnection();
+		
+		PreparedStatement ps = dbConn.prepareStatement(GET_TICKET_BY_ID);
+		ps.setLong(1, tktId);
+		ResultSet rs = null;
+		
+		CustomerTicket ticket = new CustomerTicket();
+		
+		try {
+			rs = ps.executeQuery();
+			if (rs != null) {
+				if (rs.next()) {
+					ticket.setId(rs.getLong(ID));
+					ticket.setRefId(rs.getString(REFID));
+					ticket.setUserId(rs.getLong(USER_PROFILE_ID));
+					ticket.setStatus(rs.getInt(STATUS));
+					ticket.setRequestType(rs.getInt(REQUEST_TYPE));
+					ticket.setOpenedTime(rs.getLong(REQUEST_OPENED_TIME));
+					ticket.setClosedTime(rs.getLong(REQUEST_CLOSED_TIME));
+					ticket.setProblemPicId(rs.getLong(PROBLEM_PIC_ID));
+					ticket.setResolvedPicId(rs.getLong(RESOLVE_PIC_ID));
+					ticket.setExtraDetails(rs.getString(EXTRADETAILS));
+					ticket.setClosedCmts(rs.getString(CLOSECMTS));
+				}
+				
+			}
+		} catch (SQLException ex) {
+			logger.error("SQLException in getCustomerTicketById()", ex);
+			throw ex;
+		} finally {
+			if (rs != null) {
+				rs.close();
+			}
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
+		return ticket;
 	}
 	
 	public CustomerTicket getCustomerTicketByRefId(String refId) throws SQLException {
@@ -347,15 +471,9 @@ public class CustomerCareDBHandler {
 		}
 	}
 	
-	public boolean createCCTicket(CustomerTicket ticket, Document document) throws SQLException {
+	public long createCCTicket(CustomerTicket ticket) throws SQLException {
 		
-		long problemPicId = -1;
 		long maxReqId = getMaxCCReqId() + 1;;
-		if (document.getDocContents() != null) {
-			problemPicId = PictureDBHandler.getInstance().createPictureDBEntry(String.valueOf(maxReqId), 
-					PictureType.TICKET_OPENED.getId(), document.getDocContents(), true, -1);
-		}
-		
 		ConnectionPool cp = null;
 		Connection dbConn = null;
 		PreparedStatement ps = null;
@@ -363,7 +481,7 @@ public class CustomerCareDBHandler {
 		try {
 			cp = ConnectionPool.getInstance();
 			dbConn = cp.getDBConnection();
-			ps = dbConn.prepareStatement(CREATE_TICKET_ENTRY);
+			ps = dbConn.prepareStatement(CREATE_TICKET_ENTRY, Statement.RETURN_GENERATED_KEYS);
 			
 			int idStrLen = String.valueOf(maxReqId).length();
 			int remainingLen = REFERENCE_MAX_LEN - idStrLen;
@@ -374,7 +492,7 @@ public class CustomerCareDBHandler {
 			ps.setInt(3, ticket.getRequestType());
 			ps.setLong(4, ticket.getOpenedTime());
 			ps.setInt(5, ticket.getStatus());
-			ps.setLong(6, problemPicId);
+			ps.setLong(6, -1);
 			ps.setLong(7, -1);
 			ps.setLong(8, -1);
 			ps.setString(9, ticket.getExtraDetails());
@@ -383,7 +501,14 @@ public class CustomerCareDBHandler {
 			int result = ps.executeUpdate();
 			logger.debug("In createCCTicket create op result : {}", result);
 			
-			return (result >= 1);
+			if (result > 0) {
+				ResultSet idRes = ps.getGeneratedKeys();
+				if (idRes.next()) {
+					long userProfileId = idRes.getLong(1);
+					idRes.close();
+					return userProfileId;
+				}
+			}
 		} catch (SQLException ex) {
 			logger.error("Error creating createCCTicket ", ex);
 			throw ex;
@@ -395,6 +520,7 @@ public class CustomerCareDBHandler {
 				dbConn.close();
 			}
 		}
+		return -1;
 	}
 	
 	private String getReferenceNumber(int maxLen, long maxId) throws SQLException {

@@ -125,19 +125,26 @@ public class PictureDBHandler {
 		ps.setString(2, actualFileName);
 		
 		int affectedRowCount = ps.executeUpdate();
+		long picEntryId = -1;
 		
 		if (affectedRowCount > 0) {
 			rs = ps.getGeneratedKeys();
-			long picEntryId = -1;
+			
 			if ((rs != null) && (rs.next())) {
 				picEntryId = rs.getLong(1);
 			}
-			if (picEntryId == -1) {
-				throw new SQLException("create a new picture DB entry is is -1");
-			}
-			return picEntryId;
 		}
-		return -1;
+		if (rs != null) {
+			rs.close();
+		}
+		
+		if (ps != null) {
+			ps.close();
+		}
+		if (dbConn != null) {
+			dbConn.close();
+		}
+		return picEntryId;
 	}
 	
 	public Picture getPicture(long id) throws SQLException {
