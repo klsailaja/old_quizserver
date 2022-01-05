@@ -490,8 +490,8 @@ public class CustomerCareDBHandler {
 			ps.setString(1, refId);
 			ps.setLong(2, ticket.getUserId());
 			ps.setInt(3, ticket.getRequestType());
-			ps.setLong(4, ticket.getOpenedTime());
-			ps.setInt(5, ticket.getStatus());
+			ps.setLong(4, System.currentTimeMillis());
+			ps.setInt(5, CustomerCareReqState.OPEN.getId());
 			ps.setLong(6, -1);
 			ps.setLong(7, -1);
 			ps.setLong(8, -1);
