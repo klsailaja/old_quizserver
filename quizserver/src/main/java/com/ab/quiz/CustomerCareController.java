@@ -80,6 +80,7 @@ public class CustomerCareController extends BaseController {
 	        		if (dbCCTkts == null) {
 	        			ccTktIdStr = null;
 	        			ccTktId = -1;
+	        			return false;
 	        		}
 	        	}
 	        }

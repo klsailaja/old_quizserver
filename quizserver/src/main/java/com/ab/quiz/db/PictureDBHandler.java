@@ -349,6 +349,21 @@ public class PictureDBHandler {
 				fileName = "wd_receipt";
 				break;
 			}
+			case AADHAR_FRONT: {
+				dirName = "KYC_DOCS";
+				fileName = "aadhar_front";
+				break;
+			}
+			case AADHAR_BACK: {
+				dirName = "KYC_DOCS";
+				fileName = "aadhar_back";
+				break;
+			}
+			case PAN: {
+				dirName = "KYC_DOCS";
+				fileName = "pan";
+				break;
+			}
 		}
 		
 		String[] fileProps = new String[2];
