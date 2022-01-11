@@ -117,6 +117,10 @@ public class KYCHandler {
 		return false;
 	}
 	
+	public KYCEntry getKYCEntry(long uid) throws SQLException {
+		return KYCDBHandler.getInstance().getKYCEntryById(uid);
+	}
+	
 	private PictureType getPictureTypeEnumVal(int picType) {
 		if (picType == 1) {
 			return PictureType.AADHAR_FRONT;

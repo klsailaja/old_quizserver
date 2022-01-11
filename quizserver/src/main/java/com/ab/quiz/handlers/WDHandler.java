@@ -18,6 +18,7 @@ import com.ab.quiz.db.WithdrawDBHandler;
 import com.ab.quiz.db.WithdrawReceiptDBHandler;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.helper.Utils;
+import com.ab.quiz.pojo.KYCEntry;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.UserMoney;
 import com.ab.quiz.pojo.WDUserInput;
@@ -59,11 +60,11 @@ public class WDHandler {
 		UserMoney userMoneyDb = null;
 	
 		try {
-			GetTask<UserMoney> getUserMoneyTask = Request.getMoneyTask(userProfileId);
+			GetTask<UserMoney> getUserMoneyTask = Request.getFullMoneyTask(userProfileId);
 			userMoneyDb = (UserMoney)getUserMoneyTask.execute();
 		} catch (Exception ex) {
 			logger.error("Exception while getting the User Money for uid " + userProfileId, ex);
-			throw new NotAllowedException("Error while getting the User Money Object");
+			throw new NotAllowedException("Backend issue while getting User Money Object");
 		}
 		
 		if (userMoneyDb.getId() == 0) {
@@ -77,6 +78,12 @@ public class WDHandler {
 	
 		if (wdUserInput.getAmount() > accountMoney) {
 			throw new NotAllowedException("Withdraw Amount is more than available amount");
+		}
+		if (userMoneyDb.getWinAmount() > 50000) {
+			KYCEntry kycDocStatus = KYCHandler.getInstance().getKYCEntry(userProfileId);
+			if (!kycDocStatus.getStatus().equalsIgnoreCase("approved")) {
+				throw new NotAllowedException("Please complete the KYC Process to proceed");
+			}
 		}
 	
 		if (wdUserInput.getRequestType() == WithdrawReqType.BY_PHONE.getId()) {

@@ -31,6 +31,7 @@ import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.GameOperation;
 import com.ab.quiz.pojo.GameStatus;
 import com.ab.quiz.pojo.GameStatusHolder;
+import com.ab.quiz.pojo.KYCEntry;
 import com.ab.quiz.pojo.MoneyTransaction;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.PlayerAnswer;
@@ -378,6 +379,13 @@ public class GameManager {
 			
 			UsersCompleteMoneyDetails completeDetails = new UsersCompleteMoneyDetails();
 			completeDetails.setCheckMoney(true);
+			
+			KYCEntry kycEntity = KYCHandler.getInstance().getKYCEntry(gameOper.getUserProfileId());
+			int kycStatus = 0;
+			if (kycEntity.getStatus().equalsIgnoreCase("approved")) {
+				kycStatus = 1;
+			}
+			completeDetails.setkycDocsStatus(kycStatus);
 			
 			List<MoneyTransaction> joinMoneyTransactions = new ArrayList<>();
 			

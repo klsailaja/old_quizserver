@@ -4,6 +4,7 @@ import java.sql.SQLException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -47,6 +48,19 @@ public class KYCController extends BaseController {
 		} catch (SQLException ex) {
 			logger.error("Exception in createKYCImg", ex);
 			throw new InternalException("Server Error in createKYCImg");
+		}
+	}
+	
+	@RequestMapping(value = "/kyc/{uid}", method = RequestMethod.GET, produces = "application/json")
+	public @ResponseBody KYCEntry getKYCEntry(@PathVariable("uid") long userProfileId) 
+			throws InternalException, NotAllowedException {
+		
+		try {
+			KYCHandler kycHandler = KYCHandler.getInstance();
+			return kycHandler.getKYCEntry(userProfileId);
+		} catch (Exception ex) {
+			logger.error("Exception in getKYCEntry", ex);
+			throw new InternalException("Server Error in getKYCEntry");
 		}
 	}
 }

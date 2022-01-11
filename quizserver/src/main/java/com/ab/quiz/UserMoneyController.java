@@ -47,6 +47,20 @@ public class UserMoneyController extends BaseController {
 		}
 	}
 	
+	@RequestMapping(value = "/fullmoney/{userProfileId}", method = RequestMethod.GET, produces = "application/json")
+	public @ResponseBody UserMoney getFullUserMoney(@PathVariable("userProfileId") long userProfileId) 
+			throws InternalException, NotAllowedException {
+		
+		GetTask<UserMoney> getUserMoneyTask = Request.getFullMoneyTask(userProfileId);
+		try {
+			UserMoney userMoney = (UserMoney) getUserMoneyTask.execute();
+			return userMoney;
+		} catch (Exception ex) {
+			logger.error("Exception in getFullMoneyTask", ex);
+			throw new InternalException("Server Error in getFullMoneyTask");
+		}
+	}
+	
 	@RequestMapping(value = "/money/{userProfileId}/load/{amt}", method = RequestMethod.POST, produces = "application/json")
 	public @ResponseBody boolean loadMoney(@PathVariable("userProfileId") long userProfileId, @PathVariable("amt") int amt,
 			@RequestBody TransferRequest transferReq)
