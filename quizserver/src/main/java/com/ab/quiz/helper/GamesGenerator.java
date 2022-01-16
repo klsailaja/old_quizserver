@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.constants.UserMoneyAccountType;
+import com.ab.quiz.db.PictureDBHandler;
 import com.ab.quiz.db.QuestionDBHandler;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.GameHandler;
@@ -228,9 +229,22 @@ public class GamesGenerator implements Runnable {
 				Question flipQuestion = quizQuestions.remove(10);
 				gameDetails.setFlipQuestion(flipQuestion);
 				
+				Question flipPicQuestion = flipQuestion;
+				flipPicQuestion.setQuestionType(2);
+				byte[] picBytesFlip = PictureDBHandler.getInstance().getPictureFileContents(1);
+				flipPicQuestion.setPictureBytes(picBytesFlip);
+				
 				long gap = 0; 
 				for (Question ques : quizQuestions) {
 					ques.setQuestionStartTime(lastProcessedTime + gap);
+					ques.setQuestionType(2);
+					if (ques.getQuestionNumber() <= 2) {
+						byte[] picBytes = PictureDBHandler.getInstance().getPictureFileContents(1);
+						if (picBytes != null) {
+							logger.info("picBytes is {}", picBytes.length);
+						}
+						ques.setPictureBytes(picBytes);
+					};
 					gap = gap + QuizConstants.GAP_BETWEEN_QUESTIONS;
 				}
 				gameDetails.setGameQuestions(quizQuestions);

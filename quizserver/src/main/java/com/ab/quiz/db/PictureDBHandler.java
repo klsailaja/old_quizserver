@@ -207,7 +207,7 @@ public class PictureDBHandler {
 		}
 		
 		String[] fileNames = getPictureFileName(pictureObject.getPictureType());
-		String completeFielPath = PIC_HOME + File.pathSeparator + fileNames[0] + File.pathSeparator + fileNames[1];
+		String completeFielPath = PIC_HOME + File.separator + fileNames[0] + File.separator + pictureObject.getFilePath();
 		
 		try {
 			BufferedImage bImage = ImageIO.read(new File(completeFielPath));

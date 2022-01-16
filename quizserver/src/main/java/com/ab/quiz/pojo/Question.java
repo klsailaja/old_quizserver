@@ -13,7 +13,25 @@ public class Question {
 	private int correctOption;
 	private long questionStartTime;
 	private boolean isFlipUsed;
+	private int questionType;
+	private byte[] pictureBytes;
 	
+	public int getQuestionType() {
+		return questionType;
+	}
+
+	public void setQuestionType(int questionType) {
+		this.questionType = questionType;
+	}
+
+	public byte[] getPictureBytes() {
+		return pictureBytes;
+	}
+
+	public void setPictureBytes(byte[] pictureBytes) {
+		this.pictureBytes = pictureBytes;
+	}
+
 	public boolean isFlipUsed() { return isFlipUsed; }
 	
 	public void setFlipUsed(boolean isFlipUsed) { this.isFlipUsed = isFlipUsed; }

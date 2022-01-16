@@ -98,7 +98,7 @@ public class CCHandler {
 
 		document.setDocContents(data);
 		
-		ccHandler.placeCustomerCareTicket(cTicket);
-		//ccHandler.closeCustomerCareTicket(23, "EpC0kkYNS1", "Closed Comments", completeFielPath);
+		//ccHandler.placeCustomerCareTicket(cTicket);
+		ccHandler.closeCustomerCareTicket(23, "3Ez4U600i1", "Closed Comments", completeFielPath);
 	}
 }

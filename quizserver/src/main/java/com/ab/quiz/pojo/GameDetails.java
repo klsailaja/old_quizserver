@@ -15,7 +15,7 @@ public class GameDetails {
 	private int tempGameId;
 	private List<Question> gameQuestions;
 	private Question flipQuestion;
-	
+	private Question flipPictureQuestion;
 	
 	public String getCelebrityName() {
 		return celebrityName;
@@ -83,5 +83,11 @@ public class GameDetails {
 	}
 	public void setFlipQuestion(Question question) {
 		this.flipQuestion = question;
+	}
+	public Question getFlipPictureQuestion() {
+		return flipPictureQuestion;
+	}
+	public void setFlipPictureQuestion(Question flipPictureQuestion) {
+		this.flipPictureQuestion = flipPictureQuestion;
 	}
 }
