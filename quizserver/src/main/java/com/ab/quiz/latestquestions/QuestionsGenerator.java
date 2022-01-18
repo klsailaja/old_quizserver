@@ -1189,7 +1189,7 @@ public class QuestionsGenerator {
 	    		}
 			}*/
 			
-			String sqlQry = "INSERT INTO QUIZQUESTIONS (NSTATEMENT,NOPTIONA,NOPTIONB,NOPTIONC,NOPTIOND,NOPTIONE,NOPTIONF,NOPTIONG,NOPTIONH,CORRECTOPTION,CATEGORY) VALUES('";
+			String sqlQry = "INSERT INTO QUIZQUESTIONS (NSTATEMENT,NOPTIONA,NOPTIONB,NOPTIONC,NOPTIOND,NOPTIONE,NOPTIONF,NOPTIONG,NOPTIONH,CORRECTOPTION,PICID,CATEGORY) VALUES('";
 			List<String> mixedModeCategories = new ArrayList<>();
 			mixedModeCategories.add("b");
 			mixedModeCategories.add("c");
@@ -1337,6 +1337,20 @@ public class QuestionsGenerator {
 	    		strBuffer.append("'");
 	    		strBuffer.append(",");
 	    		strBuffer.append("1");
+	    		strBuffer.append(",");
+	    		
+	    		int randomSeed = getRandomNumber(1,10);
+	    		int picId = 1;
+	    		if ((randomSeed % 2) == 0) {
+	    			picId = randomSeed;
+	    		} else {
+	    			if (randomSeed > 5) {
+	    				picId = 1;
+	    			} else {
+	    				picId = randomSeed;
+	    			}
+	    		}
+	    		strBuffer.append(picId);
 	    		strBuffer.append(",");
 	    		strBuffer.append(celebrityIdSetStr);
 	    		strBuffer.append(");");

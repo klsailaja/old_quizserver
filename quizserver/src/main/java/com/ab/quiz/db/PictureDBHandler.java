@@ -287,7 +287,7 @@ public class PictureDBHandler {
 		}
 		
 		String[] fileNames = getPictureFileName(oldPicture.getPictureType());
-		String completeFielPath = PIC_HOME + File.pathSeparator + fileNames[0] + File.pathSeparator + fileNames[1];
+		String completeFielPath = PIC_HOME + File.separator + fileNames[0] + File.separator + oldPicture.getFilePath();;
 		
 		Path path = Paths.get(completeFielPath);
 		try {
@@ -364,12 +364,17 @@ public class PictureDBHandler {
 				fileName = "pan";
 				break;
 			}
+			default: {
+				dirName = "KYC_DOCS";
+				fileName = "pan";
+			}
+		
+			String[] fileProps = new String[2];
+			fileProps[0] = dirName;
+			fileProps[1] = fileName;
+		
+			return fileProps;
 		}
-		
-		String[] fileProps = new String[2];
-		fileProps[0] = dirName;
-		fileProps[1] = fileName;
-		
-		return fileProps;
+		return null;
 	}
 }

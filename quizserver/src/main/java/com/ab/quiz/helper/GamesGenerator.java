@@ -12,7 +12,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.constants.UserMoneyAccountType;
-import com.ab.quiz.db.PictureDBHandler;
 import com.ab.quiz.db.QuestionDBHandler;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.GameHandler;
@@ -226,25 +225,31 @@ public class GamesGenerator implements Runnable {
 				}
 				
 				List<Question> quizQuestions = QuestionDBHandler.getInstance().getRandomQues(celebId);
-				Question flipQuestion = quizQuestions.remove(10);
-				gameDetails.setFlipQuestion(flipQuestion);
 				
-				Question flipPicQuestion = flipQuestion;
-				flipPicQuestion.setQuestionType(2);
-				byte[] picBytesFlip = PictureDBHandler.getInstance().getPictureFileContents(1);
-				flipPicQuestion.setPictureBytes(picBytesFlip);
+				if (celebId == -1) {
+					Question flipQuestion = quizQuestions.remove(10);
+					gameDetails.setFlipQuestion(flipQuestion);
+				} else {
+					Question flipQuestion = quizQuestions.remove(8);
+					gameDetails.setFlipQuestion(flipQuestion);
+					
+					Question flipPicQuestion = quizQuestions.remove(11);
+					gameDetails.setFlipPictureQuestion(flipPicQuestion);
+					
+					
+					Question picQues1 = quizQuestions.remove(9);
+					Question picQues2 = quizQuestions.remove(10);
+					
+					int firstNum = getRandomNumber(1,3);
+					int secondNum = getRandomNumber(4,7);
+					
+					quizQuestions.add(firstNum, picQues1);
+					quizQuestions.add(secondNum, picQues2);
+				}
 				
 				long gap = 0; 
 				for (Question ques : quizQuestions) {
 					ques.setQuestionStartTime(lastProcessedTime + gap);
-					ques.setQuestionType(2);
-					if (ques.getQuestionNumber() <= 2) {
-						byte[] picBytes = PictureDBHandler.getInstance().getPictureFileContents(1);
-						if (picBytes != null) {
-							logger.info("picBytes is {}", picBytes.length);
-						}
-						ques.setPictureBytes(picBytes);
-					};
 					gap = gap + QuizConstants.GAP_BETWEEN_QUESTIONS;
 				}
 				gameDetails.setGameQuestions(quizQuestions);
@@ -259,6 +264,11 @@ public class GamesGenerator implements Runnable {
 		}
 		return gameHandlerList;
 	}
+	
+	
+	private int getRandomNumber(int min, int max) {
+        return min + (int)(Math.random() * (max - min));
+    }
 	
 	
 	private void handleFreeGame(GameHandler gameHandlerInstance) {

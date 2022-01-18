@@ -2,7 +2,7 @@ package com.ab.quiz.constants;
 
 public enum PictureType {
 	
-	TICKET_OPENED(1), TICKET_CLOSED(2), WDRECEIPT(3), AADHAR_FRONT(4), AADHAR_BACK(5), PAN(6); 
+	TICKET_OPENED(1), TICKET_CLOSED(2), WDRECEIPT(3), AADHAR_FRONT(4), AADHAR_BACK(5), PAN(6), MOVIE_QUESTION(7); 
 	
 	private final int id;
 	

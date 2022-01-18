@@ -29,7 +29,8 @@ CREATE TABLE QUIZQUESTIONS(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 		NOPTIONF VARCHAR(100) NOT NULL,
 		NOPTIONG VARCHAR(100) NOT NULL,
 		NOPTIONH VARCHAR(100) NOT NULL, 
-		CORRECTOPTION INT, 
+		CORRECTOPTION INT,
+		PICID BIGINT DEFAULT(-1), 
         CATEGORY SET('1','2','3','4','5','6','7','8','9','10',
         '11','12','13','14','15','16','17','18','19','20',
         '21','22','23','24','25','26','27','28','29','30',
@@ -56,13 +57,15 @@ public class QuestionDBHandler {
 	private static String NOPTION_G = "NOPTIONG";
 	private static String NOPTION_H = "NOPTIONH";
 	private static String CORRECTOPTION = "CORRECTOPTION";
+	private static String PICID = "PICID";
 	
 	private static final String CREATE_QUESTION_ENTRY = "INSERT INTO " + TABLE_NAME   
 			+ "(" + NSTATEMENT + "," + NOPTION_A + "," + NOPTION_B + "," + NOPTION_C + ","
 			+ NOPTION_D + "," + NOPTION_E + "," + NOPTION_F + "," + NOPTION_G + "," + NOPTION_H + ","
-			+ CORRECTOPTION + "," +
+			+ CORRECTOPTION + ","
+			+ PICID + "," + 
 			CATEGORY + "," + TIMELINE + ") VALUES"
-			+ "(?,?,?,?,?,?,?,?)";
+			+ "(?,?,?,?,?,?,?,?,?)";
 	/*private static final String GET_QUESTION_ENTRY_SET = "SELECT * FROM " + TABLE_NAME 
 			+ " WHERE " + ID + " IN (?,?,?,?,?,?,?,?,?,?,?)";*/
 	private static final String GET_QUESTIONS_BY_RANDOM = "SELECT * FROM " + TABLE_NAME
@@ -70,7 +73,9 @@ public class QuestionDBHandler {
 	/*private static final String GET_QUESTIONS_RANDOM_CELEBRITY = "SELECT * FROM " +
 			TABLE_NAME + " WHERE MOD(" + CATEGORY + ",?) = 0 ORDER BY RAND() LIMIT 11";*/
 	private static final String GET_QUESTIONS_RANDOM_CELEBRITY = "SELECT * FROM " + 
-			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 ORDER BY RAND() LIMIT 11";
+			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 ORDER BY RAND() LIMIT 9";
+	private static final String GET_QUESTIONS_RANDOM_CELEBRITY_PIC = "SELECT * FROM " + 
+			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 AND " + PICID + "> -1 ORDER BY RAND() LIMIT 3";
 			
 	
 	private static final Logger logger = LogManager.getLogger(QuestionDBHandler.class);
@@ -159,22 +164,19 @@ public class QuestionDBHandler {
 		}
 	}
 	
-	public List<Question> getRandomQues(int category) throws SQLException {
-		String psSql = GET_QUESTIONS_BY_RANDOM;
-		if (category != -1) {
-			psSql = GET_QUESTIONS_RANDOM_CELEBRITY;
-		}
+	private List<Question> queryQuestions(String sqlQry, int category) throws SQLException {
+		
+		List<Question> questionSet = new ArrayList<>();
 		
 		ConnectionPool cp = ConnectionPool.getInstance();
 		Connection dbConn = cp.getDBConnection();
-		PreparedStatement ps = dbConn.prepareStatement(psSql);
+		PreparedStatement ps = dbConn.prepareStatement(sqlQry);
 		ResultSet rs = null;
 		
 		if (category != -1) {
 			ps.setString(1, String.valueOf(category));
 		}
 		
-		List<Question> questionSet = new ArrayList<>(11);
 		int qNo = 1;
 		
 		try {
@@ -198,6 +200,13 @@ public class QuestionDBHandler {
 					String optionG = rs.getString(NOPTION_G);
 					String optionH = rs.getString(NOPTION_H);
 					question.setCorrectOption(rs.getInt(CORRECTOPTION));
+					long picId = rs.getLong(PICID);
+					if (picId > -1) {
+						if (category != -1) {
+							byte[] picBytes = QuestionPicsDBHandler.getInstance().getPictureFileContents(picId);
+							question.setPictureBytes(picBytes);
+						}
+					}
 					
 					TreeSet<Integer> uniqueValues = new TreeSet<>();
 					
@@ -291,6 +300,28 @@ public class QuestionDBHandler {
 			if (dbConn != null) {
 				dbConn.close();
 			}
+		}
+		return questionSet;
+	}
+	
+	public List<Question> getRandomQues(int category) throws SQLException {
+		
+		List<Question> questionSet = new ArrayList<>();
+		
+		String psSql = GET_QUESTIONS_BY_RANDOM;
+		
+		if (category != -1) {
+			psSql = GET_QUESTIONS_RANDOM_CELEBRITY;
+		}
+		
+		List<Question> set = queryQuestions(psSql, category);
+		questionSet.addAll(set);
+		
+		if (category != -1) {
+			psSql = GET_QUESTIONS_RANDOM_CELEBRITY_PIC;
+			set = queryQuestions(psSql, category);
+			questionSet.addAll(set);
+			
 		}
 		return questionSet;
 	}

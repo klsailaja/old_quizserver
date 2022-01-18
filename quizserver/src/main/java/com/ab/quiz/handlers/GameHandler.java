@@ -191,7 +191,11 @@ public class GameHandler {
 					if (playerAns.getQuestionNo() <= qNo) {
 						Question question = questions.get(playerAns.getQuestionNo());
 						if (playerAns.isFlipUsed()) {
-							question = gameDetails.getFlipQuestion();
+							if (question.getQuestionType() == 2) {
+								question = gameDetails.getFlipPictureQuestion();
+							} else {
+								question = gameDetails.getFlipQuestion();
+							}
 						}
 						if (question.getCorrectOption() == playerAns.getUserAnswer()) {
 							correctCount++;
