@@ -230,26 +230,40 @@ public class GamesGenerator implements Runnable {
 					Question flipQuestion = quizQuestions.remove(10);
 					gameDetails.setFlipQuestion(flipQuestion);
 				} else {
-					Question flipQuestion = quizQuestions.remove(8);
+					Question flipQuestion = quizQuestions.remove(10);
+					gameDetails.setFlipQuestion(flipQuestion);
+					/*Question flipQuestion = quizQuestions.remove(8);
 					gameDetails.setFlipQuestion(flipQuestion);
 					
-					Question flipPicQuestion = quizQuestions.remove(11);
+					List<Question> picBasedQuestion = QuestionDBHandler.getInstance().getRandomPicBasedQues(celebId);
+					
+					Question flipPicQuestion = picBasedQuestion.get(2);
 					gameDetails.setFlipPictureQuestion(flipPicQuestion);
 					
 					
-					Question picQues1 = quizQuestions.remove(9);
-					Question picQues2 = quizQuestions.remove(10);
+					Question picQues1 = picBasedQuestion.get(0);
+					picQues1.setQuestionType(2);
+					picQues1.setQuestionNumber(9);
+					
+					Question picQues2 = picBasedQuestion.get(1);
+					picQues2.setQuestionType(2);
+					picQues2.setQuestionNumber(10);
 					
 					int firstNum = getRandomNumber(1,3);
 					int secondNum = getRandomNumber(4,7);
 					
 					quizQuestions.add(firstNum, picQues1);
 					quizQuestions.add(secondNum, picQues2);
+					
+					picBasedQuestion.clear();*/
 				}
 				
-				long gap = 0; 
+				//logger.info("Questions size is {}", quizQuestions.size());
+				long gap = 0;
+				int quesNumber = 1;
 				for (Question ques : quizQuestions) {
 					ques.setQuestionStartTime(lastProcessedTime + gap);
+					ques.setQuestionNumber(quesNumber++);
 					gap = gap + QuizConstants.GAP_BETWEEN_QUESTIONS;
 				}
 				gameDetails.setGameQuestions(quizQuestions);
@@ -266,9 +280,9 @@ public class GamesGenerator implements Runnable {
 	}
 	
 	
-	private int getRandomNumber(int min, int max) {
+	/*private int getRandomNumber(int min, int max) {
         return min + (int)(Math.random() * (max - min));
-    }
+    }*/
 	
 	
 	private void handleFreeGame(GameHandler gameHandlerInstance) {

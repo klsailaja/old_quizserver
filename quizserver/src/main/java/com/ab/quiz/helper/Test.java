@@ -1,5 +1,6 @@
 package com.ab.quiz.helper;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +70,9 @@ public class Test {
 	}
 	
 	public static void main(String[] args) {
+		//2022-01-21 16:20:47 INFO  Money Credited Sattus for server1 : {server1-1642761600867=1, server1-1642761300867=1}
+		System.out.println(new Date(1642761600867l));
+		System.out.println(new Date(1642761300867l));
 		//new Test().method1();
 		/*System.out.println(19 / 20);
 		System.out.println(20 / 20);*/

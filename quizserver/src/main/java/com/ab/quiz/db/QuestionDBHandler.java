@@ -73,7 +73,7 @@ public class QuestionDBHandler {
 	/*private static final String GET_QUESTIONS_RANDOM_CELEBRITY = "SELECT * FROM " +
 			TABLE_NAME + " WHERE MOD(" + CATEGORY + ",?) = 0 ORDER BY RAND() LIMIT 11";*/
 	private static final String GET_QUESTIONS_RANDOM_CELEBRITY = "SELECT * FROM " + 
-			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 ORDER BY RAND() LIMIT 9";
+			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 ORDER BY RAND() LIMIT 11";
 	private static final String GET_QUESTIONS_RANDOM_CELEBRITY_PIC = "SELECT * FROM " + 
 			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 AND " + PICID + "> -1 ORDER BY RAND() LIMIT 3";
 			
@@ -304,6 +304,19 @@ public class QuestionDBHandler {
 		return questionSet;
 	}
 	
+	public List<Question> getRandomPicBasedQues(int category) throws SQLException {
+		
+		List<Question> picQuestionSet = new ArrayList<>();
+		
+		if (category != -1) {
+			String psSql = GET_QUESTIONS_RANDOM_CELEBRITY_PIC;
+			List<Question> set = queryQuestions(psSql, category);
+			picQuestionSet.addAll(set);
+		}
+		return picQuestionSet;
+	}
+	
+	
 	public List<Question> getRandomQues(int category) throws SQLException {
 		
 		List<Question> questionSet = new ArrayList<>();
@@ -316,13 +329,6 @@ public class QuestionDBHandler {
 		
 		List<Question> set = queryQuestions(psSql, category);
 		questionSet.addAll(set);
-		
-		if (category != -1) {
-			psSql = GET_QUESTIONS_RANDOM_CELEBRITY_PIC;
-			set = queryQuestions(psSql, category);
-			questionSet.addAll(set);
-			
-		}
 		return questionSet;
 	}
 	

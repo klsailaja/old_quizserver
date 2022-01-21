@@ -25,6 +25,7 @@ import com.ab.quiz.pojo.MoneyTransaction;
 import com.ab.quiz.pojo.TransferRequest;
 import com.ab.quiz.pojo.UserMoney;
 import com.ab.quiz.pojo.UsersCompleteMoneyDetails;
+import com.ab.quiz.tasks.WinnersMoneyUpdaterTask;
 
 @RestController
 public class UserMoneyController extends BaseController {
@@ -99,13 +100,6 @@ public class UserMoneyController extends BaseController {
 	@RequestMapping(value = "/money/update/{trackKey}", method = RequestMethod.GET, produces = "application/json")
 	public @ResponseBody int getGamesSlotMoneyStatus(@PathVariable("trackKey") String trackKey) throws InternalException {
 		String newTrackKey = "server" + QuizConstants.MY_SERVER_ID + "-" + trackKey;
-		try {
-			GetTask<Integer> slotGamesStatusTask = Request.getGamesSlotMoneyStatus(newTrackKey);
-			Object result = slotGamesStatusTask.execute();
-			return (Integer) result;
-		} catch (Exception ex) {
-			logger.error("Exception in getGamesSlotMoneyStatus", ex);
-			throw new InternalException("Server Error in getGamesSlotMoneyStatus");
-		}
+		return WinnersMoneyUpdaterTask.getInstance().getSlotGamesMoneyCreditedStatus(newTrackKey);
 	}
 }

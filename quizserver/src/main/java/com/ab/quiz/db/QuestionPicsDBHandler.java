@@ -217,7 +217,7 @@ public class QuestionPicsDBHandler {
 			ImageIO.write(bImage, "jpg", bos );
 		    byte [] data = bos.toByteArray();
 		    if (data != null) {
-		    	logger.info("The byte array length of the file is {} : {}", completeFielPath, data.length);
+		    	//logger.info("The byte array length of the file is {} : {}", completeFielPath, data.length);
 		    	return data;
 		    }
 		

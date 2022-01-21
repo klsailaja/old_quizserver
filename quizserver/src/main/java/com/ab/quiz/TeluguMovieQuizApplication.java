@@ -17,6 +17,7 @@ import com.ab.quiz.helper.GamesGenerator;
 import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.tasks.DeleteOldRecords;
 import com.ab.quiz.tasks.TestUsersTask;
+import com.ab.quiz.tasks.WinnersMoneyUpdaterTask;
 
 @SpringBootApplication
 public class TeluguMovieQuizApplication implements ApplicationRunner {
@@ -107,6 +108,8 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 			
 			LazyScheduler.getInstance().submitRepeatedTask(new DeleteOldRecords(), initialDelay, 
 					24 * 60 * 1000, TimeUnit.MILLISECONDS);
+			LazyScheduler.getInstance().submitRepeatedTask(WinnersMoneyUpdaterTask.getInstance(), 0, 
+					1 * 60 * 1000, TimeUnit.MILLISECONDS);
 			
 			if (QuizConstants.TESTMODE == 1) {
 				TestUsersTask task = new TestUsersTask();
