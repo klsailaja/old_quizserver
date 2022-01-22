@@ -3,6 +3,7 @@ package com.ab.quiz.pojo;
 public class GameResults {
 	
 	private int sNo;
+	private int creditedStatus;
 	private long gameId;
 	private long gamePlayedTime;
 	private String celebrityName;
@@ -16,6 +17,13 @@ public class GameResults {
 	}
 	public void setsNo(int sNo) {
 		this.sNo = sNo;
+	}
+	
+	public int getCreditedStatus() {
+		return creditedStatus;
+	}
+	public void setCreditedStatus(int creditedStatus) {
+		this.creditedStatus = creditedStatus;
 	}
 	
 	public int getTktRate() {

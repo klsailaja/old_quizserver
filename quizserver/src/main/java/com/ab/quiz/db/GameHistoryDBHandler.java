@@ -10,6 +10,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.pojo.GameHistoryTempPOJO;
 import com.ab.quiz.pojo.GamePlayers;
 import com.ab.quiz.pojo.GameResults;
 import com.ab.quiz.pojo.UserHistoryGameDetails;
@@ -32,6 +33,9 @@ CREATE INDEX GAMEHISTORY_Inx ON GAMEHISTORY(GAMEID);
 CREATE INDEX GAMEHISTORY_Inx1 ON GAMEHISTORY(GAMEPLAYEDTIME);		
 DROP INDEX GAMEHISTORY_Inx1 ON GAMEHISTORY;		
 CREATE INDEX GAMEHISTORY_Inx1 ON GAMEHISTORY(GAMEPLAYEDTIME);
+CREATE INDEX GAMEHISTORY_Inx2 ON GAMEHISTORY(MONEYCREDITEDSTATUS);		
+DROP INDEX GAMEHISTORY_Inx2 ON GAMEHISTORY;		
+CREATE INDEX GAMEHISTORY_Inx2 ON GAMEHISTORY(MONEYCREDITEDSTATUS);
 CREATE INDEX PLAYERHISTORY_Inx ON PLAYERHISTORY(USERID);		
 DROP INDEX PLAYERHISTORY_Inx ON PLAYERHISTORY;		
 CREATE INDEX PLAYERHISTORY_Inx ON PLAYERHISTORY(USERID);
@@ -44,7 +48,7 @@ public class GameHistoryDBHandler {
 	private static String TABLE_NAME = "GAMEHISTORY";
 	private static String PLAYER_HISTORY_TABLE_NAME = "PLAYERHISTORY"; 
 	
-	//private static String ID = "ID";
+	private static String ID = "ID";
 	private static String GAMEID = "GAMEID";
 	private static String GAME_PLAYED_TIME = "GAMEPLAYEDTIME";
 	private static String TICKET_RATE = "TICKETRATE";
@@ -59,8 +63,9 @@ public class GameHistoryDBHandler {
 	
 	private static final String CREATE_GAME_HISTORY = "INSERT INTO " + TABLE_NAME   
 			+ "(" + GAMEID + "," + GAME_PLAYED_TIME + "," + TICKET_RATE + "," + CELEBRITY_NAME + ","
+			+ STATUS + ","
 			+ WINNERS_LIST + ") VALUES"
-			+ "(?,?,?,?,?)";
+			+ "(?,?,?,?,?,?)";
 	private static final String GET_GAME_HISTORY_ENTRY_BY_GAMEID = "SELECT * FROM " + TABLE_NAME 
 			+ " WHERE " + GAMEID + " = ?";
 	
@@ -77,7 +82,8 @@ public class GameHistoryDBHandler {
 	private static final String SELECT_OLD_RECORDS_GAMEID = "SELECT " + GAMEID + " FROM " + TABLE_NAME + " WHERE " + GAME_PLAYED_TIME + " < ?";
 	private static final String REMOVE_OLD_RECORDS_PLAYERS = "DELETE FROM " + PLAYER_HISTORY_TABLE_NAME 
 			+ " WHERE " + PLAYER_GAMEID + " = ? ";
-	private static final String UPDATE_STATUS = "UPDATE " + TABLE_NAME + " SET " + STATUS + "= ? WHERE " + STATUS + "= 0";
+	private static final String UPDATE_STATUS = "UPDATE " + TABLE_NAME + " SET " + STATUS + "= ? WHERE " + ID + "= ?";
+	private static final String GET_OPEN_RECORDS = "SELECT " + ID + "," + GAME_PLAYED_TIME + " FROM " + TABLE_NAME + " WHERE " + STATUS + " = 0";
 	
 	private static final Logger logger = LogManager.getLogger(GameHistoryDBHandler.class);
 	private static GameHistoryDBHandler instance = null;
@@ -141,6 +147,76 @@ public class GameHistoryDBHandler {
 			}
 		}
 		return gameIds;
+	}
+	
+	public void bulkUpdateStatus(List<Long> ids, List<Integer> status, int batchSize) throws SQLException {
+
+		long startTime = System.currentTimeMillis();
+		
+		ConnectionPool cp = null;
+		Connection dbConn = null;
+		PreparedStatement ps = null;
+		
+		try {
+			cp = ConnectionPool.getInstance();
+			dbConn = cp.getDBConnection();
+			
+			dbConn.setAutoCommit(false);
+			
+			ps = dbConn.prepareStatement(UPDATE_STATUS);
+			
+			int totalFailureCount = 0;
+			int totalSuccessCount = 0;
+			
+			int index = 0;
+			for (int loopIndex = 0; loopIndex < ids.size(); loopIndex++) { 
+				ps.setLong(1, status.get(loopIndex));
+				ps.setLong(2, ids.get(loopIndex));
+				ps.addBatch();
+				index++;
+				
+				if (index == batchSize) {
+					index = 0;
+					int results[] = ps.executeBatch();
+					dbConn.setAutoCommit(false);
+					dbConn.commit();
+					for (int result : results) {
+						if (result >= 1) {
+							++totalSuccessCount;
+						} else {
+							++totalFailureCount;
+						}
+					}
+				}
+			}
+			if (index > 0) {
+				int results[] = ps.executeBatch();
+				dbConn.setAutoCommit(false);
+				dbConn.commit();
+				for (int result : results) {
+					if (result >= 1) {
+						++totalSuccessCount;
+					} else {
+						++totalFailureCount;
+					}
+				}
+			}
+			logger.info("Bulk update Game Status records with success row count {} : failure row count {}", 
+					totalSuccessCount, totalFailureCount);
+			logger.info("Time taken to process this query in Millis : {}", (System.currentTimeMillis() - startTime));
+		} catch(SQLException ex) {
+			logger.error("******************************");
+			logger.error("Error updating game status entries in bulk mode", ex);
+			logger.error("******************************");
+			throw ex;
+		} finally {
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
 	}
 	
 	public void bulkDeletePlayerDetails(List<Long> gameIds, int batchSize) throws SQLException {
@@ -218,6 +294,10 @@ public class GameHistoryDBHandler {
 	
 	public void bulkInsertGamePlayers(List<GamePlayers> playersList, int batchSize) throws SQLException {
 		
+		if (playersList.size() == 0) {
+			return;
+		}
+		
 		logger.info("In bulkInsertGamePlayers {}", playersList.size());
 		
 		ConnectionPool cp = null;
@@ -291,6 +371,10 @@ public class GameHistoryDBHandler {
 	public void bulkInsertGameResults(List<GameResults> gameResultsList, int batchSize1) 
 			throws SQLException {
 		
+		if (gameResultsList.size() == 0) {
+			return;
+		}
+		
 		ConnectionPool cp = null;
 		Connection dbConn = null;
 		
@@ -313,7 +397,8 @@ public class GameHistoryDBHandler {
 				ps.setLong(2, gameResults.getGamePlayedTime());
 				ps.setInt(3, gameResults.getTktRate());
 				ps.setString(4, gameResults.getCelebrityName());
-				ps.setString(5, gameResults.getWinnersList());
+				ps.setInt(5, gameResults.getCreditedStatus());
+				ps.setString(6, gameResults.getWinnersList());
 				
 				ps.addBatch();
 				index++;
@@ -407,6 +492,44 @@ public class GameHistoryDBHandler {
 		return gameIds;
 	}
 	
+	public List<GameHistoryTempPOJO> getOpenStatusRecords() throws SQLException {
+		
+		List<GameHistoryTempPOJO> openObjects = new ArrayList<>();
+		
+		ConnectionPool cp = ConnectionPool.getInstance();
+		Connection dbConn = cp.getDBConnection();
+		
+		ResultSet rs = null;
+		
+		PreparedStatement ps = dbConn.prepareStatement(GET_OPEN_RECORDS);
+		
+		try {
+			rs = ps.executeQuery();
+			if (rs != null) {
+				while (rs.next()) {
+					GameHistoryTempPOJO obj = new GameHistoryTempPOJO();
+					obj.setGameId(rs.getLong(ID));
+					obj.setGamePlayedTime(rs.getLong(GAME_PLAYED_TIME));
+					
+					openObjects.add(obj);
+				}
+			}
+		} catch (SQLException ex) {
+			logger.error("SQLException in getting history open records details", ex);
+		} finally {
+			if (rs != null) {
+				rs.close();
+			}
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
+		return openObjects;
+	}
+	
 	public UserHistoryGameDetails getUserPlayedGameDetails(long userId, int startRowNo)
 			throws SQLException {
 		
@@ -462,6 +585,7 @@ public class GameHistoryDBHandler {
 					
 					gameResult.setsNo(++startRowNo);
 					gameResult.setGameId(rs.getLong(GAMEID));
+					gameResult.setCreditedStatus(rs.getInt(STATUS));
 					gameResult.setGamePlayedTime(rs.getLong(GAME_PLAYED_TIME));
 					gameResult.setTktRate(rs.getInt(TICKET_RATE));
 					gameResult.setCelebrityName(rs.getString(CELEBRITY_NAME));
@@ -595,7 +719,14 @@ public class GameHistoryDBHandler {
 			gamePlayersList.add(gp3);
 		}
 		System.out.println("GamePlayers size " + gamePlayersList.size());
-		instance.bulkInsertGameResults(gameResultsList, 400);
-		instance.bulkInsertGamePlayers(gamePlayersList, 500);
+		//instance.bulkInsertGameResults(gameResultsList, 400);
+		//instance.bulkInsertGamePlayers(gamePlayersList, 500);
+		List<GameHistoryTempPOJO> list = instance.getOpenStatusRecords();
+		for (GameHistoryTempPOJO item : list) {
+			System.out.println(item.getGamePlayedTime() + ":" + item.getGameId());
+		}
 	}
 }
+
+
+
