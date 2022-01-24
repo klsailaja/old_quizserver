@@ -73,7 +73,7 @@ public class QuestionDBHandler {
 	/*private static final String GET_QUESTIONS_RANDOM_CELEBRITY = "SELECT * FROM " +
 			TABLE_NAME + " WHERE MOD(" + CATEGORY + ",?) = 0 ORDER BY RAND() LIMIT 11";*/
 	private static final String GET_QUESTIONS_RANDOM_CELEBRITY = "SELECT * FROM " + 
-			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 ORDER BY RAND() LIMIT 11";
+			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 ORDER BY RAND() LIMIT 9";
 	private static final String GET_QUESTIONS_RANDOM_CELEBRITY_PIC = "SELECT * FROM " + 
 			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 AND " + PICID + "> -1 ORDER BY RAND() LIMIT 3";
 			
