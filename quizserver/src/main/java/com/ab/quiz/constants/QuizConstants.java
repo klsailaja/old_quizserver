@@ -5,7 +5,7 @@ public class QuizConstants {
 	public static final int SPECIAL_CODE_MAX_COUNT = 100;
 	public static int MY_SERVER_ID = 1;
 	
-	public static final int MAX_LIVE_SLOTS = 3;
+	public static final int MAX_LIVE_SLOTS = 4;
 	
 	//public static final int[] GAMES_RATES_IN_ONE_SLOT_MIXED = {0, 10, 10, 20, 20, 50, 50, 100, 100, 150, 150, 200, 200};
 	public static final int[] GAMES_RATES_IN_ONE_SLOT_MIXED = {0, 10, 10, 20, 20, 50, 50, 75, 75, 100, 100};

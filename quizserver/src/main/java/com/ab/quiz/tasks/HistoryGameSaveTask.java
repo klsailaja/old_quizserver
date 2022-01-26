@@ -7,11 +7,14 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.common.PostTask;
+import com.ab.quiz.common.Request;
 import com.ab.quiz.db.GameHistoryDBHandler;
 import com.ab.quiz.handlers.GameHandler;
 import com.ab.quiz.pojo.GamePlayers;
 import com.ab.quiz.pojo.GameResults;
 import com.ab.quiz.pojo.PlayerSummary;
+import com.ab.quiz.pojo.UpdateTime;
 
 public class HistoryGameSaveTask implements Runnable {
 	
@@ -85,9 +88,21 @@ public class HistoryGameSaveTask implements Runnable {
 		try {
 			GameHistoryDBHandler.getInstance().bulkInsertGameResults(allGameResults, 20);
 			GameHistoryDBHandler.getInstance().bulkInsertGamePlayers(allGamePlayers, 50);
-			//UserProfileDBHandler.getInstance().updateLastLoggedTimeInBulkMode(updateLastLoggedIn, 50);
 		} catch (SQLException e) {
 			logger.error("SQLException while doing bulk insert of game results and game players", e);
+		}
+		
+		PostTask<UpdateTime, String> postTimes = Request.updateUserLastLoggedInTime();
+		UpdateTime updateTimeObj = new UpdateTime();
+		updateTimeObj.setUserIds(updateLastLoggedIn);
+		
+		postTimes.setPostObject(updateTimeObj);
+		try {
+			postTimes.execute();
+		} catch (Exception ex) {
+			logger.error("*********************************************");
+			logger.error("Exception in updateUserLastLoggedInTime", ex);
+			logger.error("*********************************************");
 		}
 	}
 }

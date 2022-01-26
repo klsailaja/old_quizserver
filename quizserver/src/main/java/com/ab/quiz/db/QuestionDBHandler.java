@@ -76,10 +76,12 @@ public class QuestionDBHandler {
 			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 ORDER BY RAND() LIMIT 9";
 	private static final String GET_QUESTIONS_RANDOM_CELEBRITY_PIC = "SELECT * FROM " + 
 			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 AND " + PICID + "> -1 ORDER BY RAND() LIMIT 3";
+	 
 			
 	
 	private static final Logger logger = LogManager.getLogger(QuestionDBHandler.class);
 	private static QuestionDBHandler instance = null;
+	private String pictureQuestionPrefix = null;
 	
 	private QuestionDBHandler() {
 	}
@@ -88,6 +90,11 @@ public class QuestionDBHandler {
 		if (instance == null) {
 			logger.debug("In QuestionDBHandler getInstance() method instance created");
 			instance = new QuestionDBHandler();
+			try {
+				instance.pictureQuestionPrefix = UsefulInfoDBHandler.getInstance().getPicQuestionPrefix();
+			} catch (SQLException e) {
+				instance.pictureQuestionPrefix = "Picture based question. Click here to view";
+			}
 		}
 		return instance;
 	}
@@ -311,6 +318,10 @@ public class QuestionDBHandler {
 		if (category != -1) {
 			String psSql = GET_QUESTIONS_RANDOM_CELEBRITY_PIC;
 			List<Question> set = queryQuestions(psSql, category);
+			for (Question question : set) {
+				String questionStatement = question.getnStatement(); 
+				question.setnStatement(pictureQuestionPrefix + " " + questionStatement);
+			}
 			picQuestionSet.addAll(set);
 		}
 		return picQuestionSet;

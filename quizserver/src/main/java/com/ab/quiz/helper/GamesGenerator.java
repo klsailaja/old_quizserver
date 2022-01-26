@@ -239,6 +239,7 @@ public class GamesGenerator implements Runnable {
 					List<Question> picBasedQuestion = QuestionDBHandler.getInstance().getRandomPicBasedQues(celebId);
 					
 					Question flipPicQuestion = picBasedQuestion.get(2);
+					flipPicQuestion.setQuestionType(2);
 					gameDetails.setFlipPictureQuestion(flipPicQuestion);
 					
 					

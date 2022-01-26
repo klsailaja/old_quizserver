@@ -2,6 +2,7 @@ package com.ab.quiz.handlers;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -250,8 +251,9 @@ public class GameManager {
 		if (cancelledUserIds.size() > 0) {
 			PostTask<UsersCompleteMoneyDetails, Integer[]> joinTask = Request.updateMoney();
 			joinTask.setPostObject(completeDetails);
-			@SuppressWarnings("unchecked")
-			List<Integer> updateResults = (List<Integer>)joinTask.execute();
+			Integer[] joinTaskResults = (Integer[])joinTask.execute();
+			List<Integer> updateResults = Arrays.asList(joinTaskResults);
+			
 			for (int index = 0; index < updateResults.size(); index ++) {
 				long canceledUserId = cancelledUserIds.get(index); 
 				boolean moneyResBoolean = updateResults.get(index) > 0; 
