@@ -77,7 +77,7 @@ public class KYCDBHandler {
 			ps.setString(5, kycEntry.getStatus());
 			
 			int result = ps.executeUpdate();
-			logger.debug("In createKYCEntry create op result : {}", result);
+			logger.info("In createKYCEntry create op result : {}", result);
 			
 			if (result > 0) {
 				return true;
@@ -122,11 +122,6 @@ public class KYCDBHandler {
 		ResultSet rs = null;
 		
 		KYCEntry kycEntry = new KYCEntry();
-		kycEntry.setStatus("Not Submitted");
-		kycEntry.setUserId(userId);
-		kycEntry.setAfpId(-1);
-		kycEntry.setAbpId(-1);
-		kycEntry.setPpId(-1);
 		
 		try {
 			rs = ps.executeQuery();
@@ -175,13 +170,14 @@ public class KYCDBHandler {
 		Connection dbConn = cp.getDBConnection();
 		PreparedStatement ps = dbConn.prepareStatement(getUpdateQryType(qryType));
 		
-		ps.setLong(1, userId);
-		ps.setLong(2, pictureId);
+		ps.setLong(1, pictureId);
+		ps.setLong(2, userId);
 		
 		int operResult = 0;
 		
 		try {
 			int resultCount = ps.executeUpdate();
+			logger.info("In updateKYCEntry {}", resultCount);
 			if (resultCount > 0) {
 				operResult = 1;
 			}

@@ -1,8 +1,10 @@
 package com.ab.quiz.tasks;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -40,10 +42,17 @@ public class WinnersMoneyUpdaterTask implements Runnable {
 			GetTask<SlotGamesWinMoneyStatus[]> slotGamesStatusTask = Request.getGamesSlotMoneyStatus(serverPrefixTrackKey);
 			SlotGamesWinMoneyStatus[] thisServerStatus = (SlotGamesWinMoneyStatus[]) slotGamesStatusTask.execute();
 			moneyCreditedSatus.clear();
+			
+			Map<Date,Integer> printInReadFormat = new HashMap<>();
 			for (int index = 0; index < thisServerStatus.length; index++) {
 				moneyCreditedSatus.put(thisServerStatus[index].getTrackKey(), thisServerStatus[index].getCreditedStatus());
+				String timeStr = thisServerStatus[index].getTrackKey();
+				timeStr = timeStr.substring(timeStr.indexOf('-') + 1);
+				long timeLong = Long.parseLong(timeStr);
+				printInReadFormat.put(new Date(timeLong), thisServerStatus[index].getCreditedStatus());
 			}
 			logger.info("Money Credited Status for {} : {}", serverPrefixTrackKey, moneyCreditedSatus);
+			logger.info("Money Credited Status for {} : {}", serverPrefixTrackKey, printInReadFormat);
 			
 			List<GameHistoryTempPOJO> openRecords = GameHistoryDBHandler.getInstance().getOpenStatusRecords();
 			List<Long> ids = new ArrayList<>();
@@ -52,7 +61,7 @@ public class WinnersMoneyUpdaterTask implements Runnable {
 			for (GameHistoryTempPOJO pojo : openRecords) {
 				Integer status = moneyCreditedSatus.get(serverPrefixTrackKey + "-" + pojo.getGamePlayedTime());
 				if (status == null) {
-					logger.info(pojo.getGamePlayedTime() + "::::" + pojo.getGameId() + "status is null");
+					logger.info("Ignoring open record with game time {} and game id {}", new Date(pojo.getGamePlayedTime()), pojo.getGameId());
 					continue;
 				}
 				if (status == 1) {

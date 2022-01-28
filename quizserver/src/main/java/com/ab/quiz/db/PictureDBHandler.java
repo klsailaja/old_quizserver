@@ -328,7 +328,6 @@ public class PictureDBHandler {
 	}
 	
 	private String[] getPictureFileName(int pictureType) {
-		
 		PictureType picType = PictureType.findById(pictureType);
 		String dirName = "CUSTOMER_TICKETS";
 		String fileName = "ticket_opened";
@@ -367,14 +366,12 @@ public class PictureDBHandler {
 			default: {
 				dirName = "KYC_DOCS";
 				fileName = "pan";
+				break;
 			}
-		
-			String[] fileProps = new String[2];
-			fileProps[0] = dirName;
-			fileProps[1] = fileName;
-		
-			return fileProps;
 		}
-		return null;
+		String[] fileProps = new String[2];
+		fileProps[0] = dirName;
+		fileProps[1] = fileName;
+		return fileProps;
 	}
 }

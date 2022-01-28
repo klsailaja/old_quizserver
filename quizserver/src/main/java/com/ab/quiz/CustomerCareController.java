@@ -1,6 +1,5 @@
 package com.ab.quiz;
 
-import java.io.IOException;
 import java.sql.SQLException;
 
 import org.apache.logging.log4j.LogManager;
@@ -99,7 +98,7 @@ public class CustomerCareController extends BaseController {
 					problemPic.setDocContents(bytes);
 					problemPic.setDocType(PictureType.TICKET_OPENED.getId());
 					
-				} catch (IOException e) {
+				} catch (Exception e) {
 					logger.error("error processing uploaded file", e);
 					isImgCreationError = true;
 				}
@@ -114,17 +113,17 @@ public class CustomerCareController extends BaseController {
 				if (problemPicId == -1) {
 					isImgCreationError = true;
 				}
-			} catch (SQLException e) {
+			} catch (Exception e) {
 				isImgCreationError = true;
-				logger.error("SQLException while creating the picture for customer id : {}", ccTktIdStr);
+				logger.error("Exception while creating the picture for customer id : {}", ccTktIdStr);
 			}
 		}
 		if (isImgCreationError) {
 			if (ccTktId > -1) {
 				try {
 					CustomerCareDBHandler.getInstance().removeTicketById(ccTktId);
-				} catch (SQLException e) {
-					logger.error("SQLException while deleting the customer ticket with id : {}", ccTktIdStr);
+				} catch (Exception e) {
+					logger.error("Exception while deleting the customer ticket with id : {}", ccTktIdStr);
 				}
 			}
 			return false;
@@ -133,8 +132,8 @@ public class CustomerCareController extends BaseController {
 				try {
 					CustomerCareDBHandler.getInstance().updateTicketById(ccTktId, problemPicId);
 					return true;
-				} catch (SQLException e) {
-					logger.error("SQLException while updateTicketById with id : {} and {}", ccTktIdStr, problemPicId);
+				} catch (Exception e) {
+					logger.error("Exception while updateTicketById with id : {} and {}", ccTktIdStr, problemPicId);
 				}
 			}
 			

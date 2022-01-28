@@ -15,6 +15,7 @@ import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.db.ConnectionPool;
 import com.ab.quiz.helper.GamesGenerator;
 import com.ab.quiz.helper.LazyScheduler;
+import com.ab.quiz.helper.WinMsgHandler;
 import com.ab.quiz.tasks.DeleteOldRecords;
 import com.ab.quiz.tasks.TestUsersTask;
 import com.ab.quiz.tasks.WinnersMoneyUpdaterTask;
@@ -94,7 +95,7 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 			gameGenerator1.setupGames();
 			gameGenerator2.setupGames();
 			
-			//WinMsgHandler.getInstance();
+			WinMsgHandler.getInstance();
 			
 			Calendar calendar = Calendar.getInstance();
 			calendar.add(Calendar.DATE, 1);

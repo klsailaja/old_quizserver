@@ -26,6 +26,7 @@ public class KYCController extends BaseController {
 	@RequestMapping (value = "/kyc", method = RequestMethod.POST, produces = "application/json")
 	public @ResponseBody Long createKYCEntry(@RequestBody KYCEntry kycEntry) 
 			throws NotAllowedException, InternalException {
+		logger.info("This is in createKYCEntry {}", kycEntry);
 		try {
 			KYCHandler kycHandler = KYCHandler.getInstance(); 
 			long ccTkt = kycHandler.placeKYCEntry(kycEntry);
