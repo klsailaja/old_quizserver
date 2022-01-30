@@ -1,9 +1,12 @@
 package com.ab.quiz.helper;
 
 import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.PrizeDetail;
 
@@ -17,6 +20,20 @@ public class Utils {
 	private static final String SOURCE = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ" 
 			+ "abcdefghijklmnopqrstuvwxyz";
 	private static final SecureRandom secureRnd = new SecureRandom();
+	
+	private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat();
+	private static final String timePattern = "dd:MMM:yy:HH:mm";
+	
+	
+	public static String getTransactionObjComments(GameDetails gameDetails) {
+        simpleDateFormat.applyPattern(timePattern);
+        
+        StringBuffer strBuffer = new StringBuffer("GameId#:");
+        strBuffer.append(gameDetails.getTempGameId());
+        strBuffer.append(" on ");
+        strBuffer.append(simpleDateFormat.format(new Date(gameDetails.getStartTime())));
+        return strBuffer.toString();
+	}
 	
 	public static List<PrizeDetail> getPrizeDetails(int ticketRate, int playerCount) {
 		
@@ -85,22 +102,6 @@ public class Utils {
 		return prizeDetails;
 	}
 	
-	/*public static MyTransaction getTransactionPojo(long userId, long date,  
-			int amount, int transactionType, int accountType, long ob, long cb, String comments) {
-		
-		MyTransaction transaction = new MyTransaction();
-		transaction.setUserId(userId);
-		transaction.setDate(date);
-		transaction.setAmount(amount);
-		transaction.setAccountType(accountType);
-		transaction.setTransactionType(transactionType);
-		transaction.setOpeningBalance(ob);
-		transaction.setClosingBalance(cb);
-		transaction.setComment(comments);
-		transaction.setIsWin(0);
-		return transaction;
-	}*/
-	
 	public static MyTransaction getTransactionPojo(long userId, long date,  
 			int amount, int transactionType, int accountType, long ob, long cb, String comments, String transactionId) {
 		
@@ -128,21 +129,6 @@ public class Utils {
 	public static int getBossMoney(int profit) {
 		return (profit/50);
 	}
-	
-	/*public static void getClosedCircleUserIds(long userId, int maxUsers, List<Long> closedGrpUserIds,
-			List<String> closedGrpUserNames) throws SQLException {
-		int index = 0;
-		UserProfile userProfile = UserProfileDBHandler.getInstance().getProfileById(userId);
-		long bossUserId = userProfile.getBossId();
-		
-		while ((index < maxUsers) && (bossUserId > 0)) {
-			closedGrpUserIds.add(bossUserId);
-			userProfile = UserProfileDBHandler.getInstance().getProfileById(bossUserId);
-			closedGrpUserNames.add(userProfile.getName());
-			index ++;
-			bossUserId = userProfile.getBossId();
-		}
-	}*/
 	
 	public static void main(String[] args) {
 		int[] rates = {10, 20, 50, 75, 100, 50, 75, 100, 125, 150};

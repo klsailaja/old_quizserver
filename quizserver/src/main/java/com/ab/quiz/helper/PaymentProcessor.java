@@ -1,8 +1,6 @@
 package com.ab.quiz.helper;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -44,8 +42,6 @@ public class PaymentProcessor {
 	public void processPayments(Map<Long, Long> userIdVsBossId, 
 			List<MoneyTransaction> winUsersTransactions) {
 		
-		SimpleDateFormat simpleDateFormat = new SimpleDateFormat();
-		String timePattern = "dd:MMM:yy:HH:mm";
 		logger.info("*******************************************************");
 		logger.info("Batching payments for GameId#:" + gameDetails.getGameId() + ": client GameId#" + gameDetails.getTempGameId());
 		for (PlayerSummary ps : summaryList) {
@@ -72,12 +68,12 @@ public class PaymentProcessor {
 				
 				
 				long gameStartTime = gameDetails.getStartTime();
-				String comments = "Winning Money for GameId#:" + gameDetails.getGameId();
+				String transactionDesc = "Winning Money for " + Utils.getTransactionObjComments(gameDetails);
 				
 				
 				MyTransaction transaction = Utils.getTransactionPojo(userProfileId, gameStartTime, 
 						amountWon, TransactionType.CREDITED.getId(), 
-						UserMoneyAccountType.WINNING_MONEY.getId(), -1, -1, comments, null);
+						UserMoneyAccountType.WINNING_MONEY.getId(), -1, -1, transactionDesc, null);
 				transaction.setIsWin(1);
 				
 				MoneyTransaction moneyTransaction = new MoneyTransaction();
@@ -101,18 +97,13 @@ public class PaymentProcessor {
 					continue;
 				}
 				
-				gameStartTime = gameDetails.getStartTime();
-				
-		        simpleDateFormat.applyPattern(timePattern);
-		        String timeStr = simpleDateFormat.format(new Date(gameDetails.getStartTime()));
-		        
-				comments = "Referrer share for GameId#" + gameDetails.getTempGameId() + " on " + timeStr; 
+				transactionDesc = "Referrer share for " + Utils.getTransactionObjComments(gameDetails);
 				String bossCmts = "For Referring, share from " + userName 
-					+ " for GameId#" + gameDetails.getGameId() + " on " + timeStr;
+					+ " for " + Utils.getTransactionObjComments(gameDetails);
 				
 				transaction = Utils.getTransactionPojo(userProfileId, gameDetails.getStartTime(), 
 						bossShare, TransactionType.DEBITED.getId(), 
-						UserMoneyAccountType.WINNING_MONEY.getId(), -1, -1, comments, null);
+						UserMoneyAccountType.WINNING_MONEY.getId(), -1, -1, transactionDesc, null);
 				
 				MyTransaction transaction1 = Utils.getTransactionPojo(bossUserProfileId, gameDetails.getStartTime(), 
 								bossShare, TransactionType.CREDITED.getId(), 

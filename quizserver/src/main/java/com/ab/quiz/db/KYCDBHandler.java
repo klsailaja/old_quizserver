@@ -122,6 +122,10 @@ public class KYCDBHandler {
 		ResultSet rs = null;
 		
 		KYCEntry kycEntry = new KYCEntry();
+		kycEntry.setAfpId(-1);
+		kycEntry.setAbpId(-1);
+		kycEntry.setPpId(-1);
+
 		
 		try {
 			rs = ps.executeQuery();

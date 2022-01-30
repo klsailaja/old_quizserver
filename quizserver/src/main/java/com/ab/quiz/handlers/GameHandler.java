@@ -148,7 +148,8 @@ public class GameHandler {
 			accountUsed = playerSummary.getAccountUsed();
 			long amt = getGameDetails().getTicketRate();
 			
-			String comments = "Refund for Cancelled game#:" + gameDetails.getGameId();
+			String comments = "Refund for Cancelled " + Utils.getTransactionObjComments(gameDetails);
+			
 			
 			MyTransaction transaction = Utils.getTransactionPojo(userProfileId, gameDetails.getStartTime(), 
 					gameDetails.getTicketRate(), TransactionType.CREDITED.getId(), accountUsed, -1, -1, comments, null);

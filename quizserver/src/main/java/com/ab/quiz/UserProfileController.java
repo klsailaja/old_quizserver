@@ -189,7 +189,6 @@ public class UserProfileController extends BaseController {
 			logger.info(closedGroupMembersIds);
 			logger.info(closedGroupMembersNames);
 			
-			
 			if (closedGroupMembersIds.size() > 0) {
 				
 				GetTask<String[]> userFrdsWinMsgTask = Request.getUserFrdsWinMsgsTask(userId, maxCount);

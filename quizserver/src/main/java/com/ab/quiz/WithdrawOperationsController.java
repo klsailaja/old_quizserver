@@ -77,7 +77,9 @@ public class WithdrawOperationsController extends BaseController {
 		logger.info("wd getReceiptContents is called with id {} ", id);
 		try {
 			byte[] receiptBytes = PictureDBHandler.getInstance().getPictureFileContents(id);
-			logger.info("wd getReceiptContents request result is {}", receiptBytes.length);
+			if (receiptBytes != null) {
+				logger.info("wd getReceiptContents request result is {}", receiptBytes.length);
+			}
 			return receiptBytes;
 		} catch (SQLException ex) {
 			logger.error("Exception in getReceiptContents", ex);

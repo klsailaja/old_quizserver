@@ -384,8 +384,12 @@ public class GameManager {
 			
 			KYCEntry kycEntity = KYCHandler.getInstance().getKYCEntry(gameOper.getUserProfileId());
 			int kycStatus = 0;
-			if (kycEntity.getStatus().equalsIgnoreCase("approved")) {
-				kycStatus = 1;
+			if (kycEntity != null) {
+				if (kycEntity.getStatus() != null) {
+					if (kycEntity.getStatus().equalsIgnoreCase("approved")) {
+						kycStatus = 1;
+					}
+				}
 			}
 			completeDetails.setkycDocsStatus(kycStatus);
 			
@@ -399,9 +403,10 @@ public class GameManager {
 			
 			long tktRate = gameHandler.getGameDetails().getTicketRate();
 			
+			String transactionDesc = "For Playing " + Utils.getTransactionObjComments(gameHandler.getGameDetails());
 			MyTransaction transaction = Utils.getTransactionPojo(gameOper.getUserProfileId(), 
 					currentGameStartTime, (int)tktRate, TransactionType.DEBITED.getId(), 
-					UserMoneyAccountType.LOADED_MONEY.getId(), -1, -1, "Played game#:" + gameId, null);
+					UserMoneyAccountType.LOADED_MONEY.getId(), -1, -1, transactionDesc, null);
 			
 			joinTransaction.setTransaction(transaction);
 			
@@ -479,9 +484,10 @@ public class GameManager {
 			unjoinTransaction.setOperType(UserMoneyOperType.ADD);
 			unjoinTransaction.setAmount(tktRate);
 			
+			String transactionDesc = "Refund for left " + Utils.getTransactionObjComments(gameHandler.getGameDetails());
 			MyTransaction transaction = Utils.getTransactionPojo(gameOper.getUserProfileId(), 
 					currentGameStartTime, (int)tktRate, TransactionType.CREDITED.getId(), 
-					accType.getId(), -1, -1, "Refund for left game# " + gameId, null);
+					accType.getId(), -1, -1, transactionDesc, null);
 			
 			unjoinTransaction.setTransaction(transaction);
 			

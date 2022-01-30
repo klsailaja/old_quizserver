@@ -60,6 +60,8 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 		try {
 			logger.debug("Starting the TeluguMovieQuizApplication application");
 			
+			ConnectionPool.getInstance();
+			
 			GamesGenerator gameGenerator1 = new GamesGenerator(1);
 			gameGenerator1.initialize();
 			
