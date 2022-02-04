@@ -1,17 +1,28 @@
 package com.ab.quiz.latestquestions;
 
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
 import java.util.Map.Entry;
 
 public class QuestionsGenerator {
@@ -114,11 +125,11 @@ public class QuestionsGenerator {
 	
 	private static void fillupMoviesDB(String fileName) throws Exception {
 		
-		Path filePath = Paths.get(fileName);
-		List<String> list = Files.readAllLines(filePath, StandardCharsets.UTF_8);
+		List<String> fileInputLines = readFromInputFile(fileName);
+		
 		int uniqueId = 0;
 		
-		for (String line : list) {
+		for (String line : fileInputLines) {
         	line = line.trim();
         	if (line.length() == 0) {
         		continue;
@@ -225,15 +236,55 @@ public class QuestionsGenerator {
 	    				category = buildCategory(strTokenizer2, 1, categoryStr);
 	    				break;
 	    			}
+	    			case "t": {
+	    				// Person Name Category for Female artists
+	    				category = buildCategory(strTokenizer2, 2, categoryStr);
+	    				break;
+	    			}
+	    		}
+	    		if (category == null) {
+	    			continue;
 	    		}
 	    		movieInfo.addCategory(category);
-	    		
         	}
         	moviesDataBase.add(movieInfo);
 		}
 		//System.out.println("Moviz size :" + moviesDataBase.size());
 	}
 	
+	private static List<String> readFromInputFile(String fileName) {
+		
+		List<String> fileContents = new ArrayList<>();
+		
+		try  
+		{  
+			File file = new File("D:\\Projects\\Games\\MovieDetails.xlsx");  
+			FileInputStream fis = new FileInputStream(file);   //obtaining bytes from the file  
+			//creating Workbook instance that refers to .xlsx file  
+			XSSFWorkbook wb = new XSSFWorkbook(fis);   
+			XSSFSheet sheet = wb.getSheetAt(0);     //creating a Sheet object to retrieve object  
+			Iterator<Row> itr = sheet.iterator();    //iterating over excel file  
+			while (itr.hasNext())                 
+			{  
+				Row row = itr.next();
+				StringBuffer lineStrBuffer = new StringBuffer(); 
+				Iterator<Cell> cellIterator = row.cellIterator();   //iterating over each column  
+				while (cellIterator.hasNext())   
+				{  
+					Cell cell = cellIterator.next();
+					lineStrBuffer.append(cell.getStringCellValue());
+					lineStrBuffer.append(":");
+				}
+				fileContents.add(lineStrBuffer.toString());
+			}  
+		}  
+		catch(Exception e)  
+		{  
+			e.printStackTrace();  
+		}
+		return fileContents;
+	}
+
 	private static void fillupAnswers() {
 		
 		for (MovieInfo movieInfo : moviesDataBase) {
@@ -243,6 +294,7 @@ public class QuestionsGenerator {
 			for (Category category : categoryList) {
 				switch (category.getCategoryName()) {
 					case "a": {
+						System.out.println(category.getValue(0));
 						break;
 					}
 					case "b": {
@@ -306,6 +358,10 @@ public class QuestionsGenerator {
 					}
 					case "s": {
 						fillupSCategory(movieInfo.getId(), categoryList);
+						break;
+					}
+					case "t": {
+						fillTCategory(movieInfo.getId(), categoryList);
 						break;
 					}
 				}
@@ -764,6 +820,84 @@ public class QuestionsGenerator {
 	}
 	
 	
+	// 
+	private static void fillTCategory(int currentId, List<Category> allCategoryList) {
+		String movieCategoryName = "a";
+		String currentCategoryName = "t";
+		
+		List<Category> currentMovieList = getCategoryList(movieCategoryName, allCategoryList);
+		List<Category> currentValuesList = getCategoryList(currentCategoryName, allCategoryList);
+		
+		Category currentMovieObj = currentMovieList.get(0);
+		
+		for (Category currentValueObj : currentValuesList) {
+			List<String> answers1List = new ArrayList<>();
+			List<String> answers2List = new ArrayList<>();
+			
+			List<String> wrongAnswers1 = new ArrayList<>();
+			List<String> wrongAnswers2 = new ArrayList<>();
+			
+			answers1List.add(currentValueObj.getValue(1));
+			answers2List.add(currentMovieObj.getValue(0));
+			wrongAnswers1.addAll(answers1List);
+			wrongAnswers2.addAll(answers2List);
+			
+			for (MovieInfo movieInfo : moviesDataBase) {
+				if (movieInfo.getId() == currentId) {
+					continue;
+				}
+				List<Category> miMoviesList = movieInfo.getCategoryList(movieCategoryName);
+				List<Category> miCurrentNamesList = movieInfo.getCategoryList(currentCategoryName);
+				
+				Category miMovieObject = miMoviesList.get(0);
+		
+				for (Category miCurrentCategory : miCurrentNamesList) {
+					String artistName = miCurrentCategory.getValue(0);
+					String characterName = miCurrentCategory.getValue(1);
+					
+					if ((artistName.equals(currentValueObj.getValue(0))) && 
+					   (characterName.equals(currentValueObj.getValue(1)))) {
+						continue;
+					}
+					if ((characterName.indexOf(currentValueObj.getValue(1)) > -1) || 
+					   (currentValueObj.getValue(1).indexOf(characterName) > -1)) {
+						continue;
+					}
+					if (artistName.equals(currentValueObj.getValue(0))) {
+						if (!wrongAnswers1.contains(characterName)) {
+							wrongAnswers1.add(characterName);
+						}
+						wrongAnswers2.add(miMovieObject.getValue(0));
+					}
+				}
+			}
+			String nameCategory = "t";
+			
+			List<String> finalWongAnswer1 = fillupWrongAnswers(nameCategory, wrongAnswers1);
+			finalWongAnswer1.removeAll(answers1List);
+			int fillGap = 8 - answers1List.size();
+			for (int index = 0; index < fillGap; index++) {
+				answers1List.add(finalWongAnswer1.get(index));
+			}
+			wrongAnswers1.clear();
+			finalWongAnswer1.clear();
+			
+			
+			List<String> finalWongAnswer2 = fillupWrongAnswers(movieCategoryName, wrongAnswers2);
+			finalWongAnswer2.removeAll(answers2List);
+			fillGap = 8 - answers2List.size();
+			for (int index = 0; index < fillGap; index++) {
+				answers2List.add(finalWongAnswer2.get(index));
+			}
+			wrongAnswers2.clear();
+			finalWongAnswer2.clear();				
+			
+			currentValueObj.addAnswers(1, answers1List);
+			currentValueObj.addAnswers(2, answers2List);
+		}
+	}
+	
+	
 	
 	private static void fillJCategory(int currentId, List<Category> allCategoryList) {
 		String movieCategoryName = "a";
@@ -816,10 +950,6 @@ public class QuestionsGenerator {
 				}
 			}
 			String nameCategory = "j";
-			boolean isFemale = (currentValueObj.getCategoryFieldsSize() == 3);
-			if (isFemale) {
-				nameCategory = "j1";
-			}
 			
 			List<String> finalWongAnswer1 = fillupWrongAnswers(nameCategory, wrongAnswers1);
 			finalWongAnswer1.removeAll(answers1List);
@@ -1038,7 +1168,7 @@ public class QuestionsGenerator {
 	private static void formQuestions() throws Exception {
 		
 		// Get the file reference
-    	Path path = Paths.get("D://Projects//Games/T1.txt");
+    	Path path = Paths.get("D://Projects//Games/T2.txt");
     	int qCount = 0;
     	BufferedWriter writer = Files.newBufferedWriter(path);
 		
@@ -1173,6 +1303,16 @@ public class QuestionsGenerator {
 	    				finalQuestions.addAll(categoryQuestions);
 						break;
 					}
+					case "t": {
+						map.put("%RELATION_CHAR%", category.getValue(0));
+	    				map.put("%PERU%", category.getValue(1));
+	    				addToLocalCelebrityList(category.getValue(0));
+	    				List<String> categoryQuestions = getFormedQuestions("t", "PERU", category.getType1Answers(), "tc", 
+	    						category.getType2Answers());
+	    				finalQuestions.addAll(categoryQuestions);
+						break;
+					}
+					
 				}
 			}
 			
@@ -1207,6 +1347,7 @@ public class QuestionsGenerator {
 			personNamesCategories.add("o1");
 			personNamesCategories.add("q1");
 			personNamesCategories.add("s");
+			personNamesCategories.add("t1");
 			
 	    	for (String lineQuestion : finalQuestions) {
 	    		
@@ -1230,7 +1371,7 @@ public class QuestionsGenerator {
 	    		
 	    		if ((optionATxt.indexOf("%") > -1) || ((optionBTxt.indexOf("%") > -1)) || ((optionCTxt.indexOf("%") > -1))
 	    		 || (((optionDTxt.indexOf("%") > -1)))) {
-	    			System.out.println(lineQuestion);
+	    			System.err.println(lineQuestion);
 	    		}
 	    		List<String> uniqueValues = new ArrayList<>();
 	    		if (!uniqueValues.contains(optionATxt)) {
@@ -1258,7 +1399,7 @@ public class QuestionsGenerator {
 	    			uniqueValues.add(optionHTxt);
 	    		}
 	    		if (uniqueValues.size() != 8) {
-	    			System.out.println(lineQuestion);
+	    			System.err.println(lineQuestion);
 	    		}
 	    		
 	    		if (personNamesCategories.contains(categoryNameStr)) {
@@ -1355,7 +1496,7 @@ public class QuestionsGenerator {
 	    		strBuffer.append(celebrityIdSetStr);
 	    		strBuffer.append(");");
 	    		
-	    		System.out.println(strBuffer.toString());
+	    		//System.out.println(strBuffer.toString());
 	    		
 	    		//Use try-with-resource to get auto-closeable writer instance
 	    	    writer.append(strBuffer.toString());
@@ -1481,7 +1622,9 @@ public class QuestionsGenerator {
 	
 	public static void main(String[] args) throws Exception {
 		
-		String movieInputPath = "D:\\Projects\\Games\\MovieDetails.txt";
+		String movieInputPath = "D:\\Projects\\Games\\MovieDetails.xlsx";
+		//writeToExcelFile(movieInputPath);
+		
 		fillupMoviesDB(movieInputPath);
 		
 		String celebritiesInputPath = "D:\\Projects\\Games\\Celebrities.txt";
@@ -1502,5 +1645,59 @@ public class QuestionsGenerator {
 			System.out.println(artistName);
 		}
 		
+	}
+	
+	private static void writeToExcelFile(String fileName) throws Exception {
+		
+		try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+			// spreadsheet object
+			XSSFSheet spreadsheet
+			    = workbook.createSheet("Plain Movie Data");
+			XSSFRow row;
+			int rowId = 0;
+			
+			Path filePath = Paths.get(fileName);
+			List<String> list = Files.readAllLines(filePath, StandardCharsets.UTF_8);
+			
+			for (String line : list) {
+				line = line.trim();
+				if (line.length() == 0) {
+					continue;
+				}
+				
+				if (line.startsWith("//")) {
+					continue;
+				}
+
+				row = spreadsheet.createRow(rowId++);
+				
+				StringTokenizer strTokenizer1 = new StringTokenizer(line, ":");
+				int cellid = 0;
+				
+				while (strTokenizer1.hasMoreTokens()) {
+					String eachCategoryStr = strTokenizer1.nextToken();
+					eachCategoryStr = eachCategoryStr.trim();
+					if (eachCategoryStr.startsWith("j")) {
+						StringTokenizer hiphenStringTokenizer = new StringTokenizer(eachCategoryStr, "-");
+						if (hiphenStringTokenizer.countTokens() == 4) {
+							String modifiedCategoryStr = null;
+							int pos1 = eachCategoryStr.indexOf("-");
+							int pos2 = eachCategoryStr.lastIndexOf("-");
+							String strRemaining = eachCategoryStr.substring(pos1, pos2);
+							modifiedCategoryStr = "t" + strRemaining;
+							eachCategoryStr = modifiedCategoryStr;
+						}
+					}
+					Cell cell = row.createCell(cellid++);
+			        cell.setCellValue((String)eachCategoryStr);
+				}
+			}
+			
+			FileOutputStream out = new FileOutputStream(
+			        new File("D:\\Projects\\Games\\MovieDetails.xlsx"));
+  
+			workbook.write(out);
+			out.close();
+		}
 	}
 }
