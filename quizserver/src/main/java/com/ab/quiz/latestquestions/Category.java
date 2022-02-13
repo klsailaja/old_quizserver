@@ -1,16 +1,27 @@
 package com.ab.quiz.latestquestions;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Category {
 	private String categoryName;
 	private List<String> categoryFileds = new ArrayList<>();
 	private List<String> questionType1AnswersList = new ArrayList<>();
 	private List<String> questionType2AnswersList = new ArrayList<>();
+	private Map<String,List<String>> categoryNameVsAnswersList = new HashMap<>();
 	
 	public Category(String categoryName) {
 		this.categoryName = categoryName;
+	}
+	
+	public void addAnswersToMap(String dependencyCategoryName, List<String> answers) {
+		categoryNameVsAnswersList.put(dependencyCategoryName, answers);
+	}
+	
+	public Map<String,List<String>> getMapAnswers() {
+		return categoryNameVsAnswersList;
 	}
 	
 	public String getCategoryName() {
@@ -58,6 +69,8 @@ public class Category {
 	}
 	
 	public String toString() {
-		return questionType1AnswersList.size() + " : " + questionType2AnswersList.size(); 
+		return categoryName + " : \n" 
+				+ categoryFileds + "\n"  
+				+ categoryNameVsAnswersList; 
 	}
 }

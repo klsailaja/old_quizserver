@@ -157,7 +157,7 @@ public class Utils {
 			totalOurShare = totalOurShare + avgShare;
 		}
 		System.out.println("Total share is " + (totalOurShare));
-		long totalAmt = (totalOurShare * 2 * 140);
+		long totalAmt = (totalOurShare * 2 * 288);
 		System.out.println("totalAmt :" + totalAmt);
 		
 		/*System.out.println(getBossMoney(55));
