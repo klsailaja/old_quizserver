@@ -1136,17 +1136,10 @@ public class PicQuestionsGenerator {
 			mixedModeCategories.add("f");
 			
 			List<String> personNamesCategories = new ArrayList<>();
-			personNamesCategories.add("b1");
-			personNamesCategories.add("c1");
-			personNamesCategories.add("e1");
-			personNamesCategories.add("f1");
-			personNamesCategories.add("g1");
-			personNamesCategories.add("h1");
-			personNamesCategories.add("t1");
-			personNamesCategories.add("o1");
-			personNamesCategories.add("q1");
-			//personNamesCategories.add("s");
-			personNamesCategories.add("u1");
+			personNamesCategories.add("b");
+			personNamesCategories.add("c");
+			personNamesCategories.add("e");
+			personNamesCategories.add("f");
 			
 	    	for (String lineQuestion : finalQuestions) {
 	    		StringTokenizer finalQuestionStrTokenizer = new StringTokenizer(lineQuestion, ":");

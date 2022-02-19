@@ -1549,7 +1549,7 @@ public class QuestionsGenerator {
 	    				picId = randomSeed;
 	    			}
 	    		}
-	    		strBuffer.append(picId);
+	    		strBuffer.append(-1);
 	    		strBuffer.append(",");
 	    		strBuffer.append(celebrityIdSetStr);
 	    		strBuffer.append(");");
