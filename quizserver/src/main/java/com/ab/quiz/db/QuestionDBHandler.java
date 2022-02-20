@@ -68,13 +68,13 @@ public class QuestionDBHandler {
 			+ "(?,?,?,?,?,?,?,?,?)";
 	/*private static final String GET_QUESTION_ENTRY_SET = "SELECT * FROM " + TABLE_NAME 
 			+ " WHERE " + ID + " IN (?,?,?,?,?,?,?,?,?,?,?)";*/
-	private static final String GET_QUESTIONS_BY_RANDOM = "SELECT * FROM " + TABLE_NAME
+	private static final String GET_QUESTIONS_BY_RANDOM = "SELECT DISTINCT * FROM " + TABLE_NAME
 			+ " ORDER BY RAND() LIMIT 11";
 	/*private static final String GET_QUESTIONS_RANDOM_CELEBRITY = "SELECT * FROM " +
 			TABLE_NAME + " WHERE MOD(" + CATEGORY + ",?) = 0 ORDER BY RAND() LIMIT 11";*/
-	private static final String GET_QUESTIONS_RANDOM_CELEBRITY = "SELECT * FROM " + 
+	private static final String GET_QUESTIONS_RANDOM_CELEBRITY = "SELECT DISTINCT * FROM " + 
 			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 ORDER BY RAND() LIMIT 9";
-	private static final String GET_QUESTIONS_RANDOM_CELEBRITY_PIC = "SELECT * FROM " + 
+	private static final String GET_QUESTIONS_RANDOM_CELEBRITY_PIC = "SELECT DISTINCT * FROM " + 
 			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 AND " + PICID + "> -1 ORDER BY RAND() LIMIT 3";
 	 
 			
@@ -318,10 +318,10 @@ public class QuestionDBHandler {
 		if (category != -1) {
 			String psSql = GET_QUESTIONS_RANDOM_CELEBRITY_PIC;
 			List<Question> set = queryQuestions(psSql, category);
-			for (Question question : set) {
+			/*for (Question question : set) {
 				String questionStatement = question.getnStatement(); 
 				question.setnStatement(pictureQuestionPrefix + " " + questionStatement);
-			}
+			}*/
 			picQuestionSet.addAll(set);
 		}
 		return picQuestionSet;
