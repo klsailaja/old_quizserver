@@ -81,7 +81,7 @@ public class QuestionDBHandler {
 	
 	private static final Logger logger = LogManager.getLogger(QuestionDBHandler.class);
 	private static QuestionDBHandler instance = null;
-	private String pictureQuestionPrefix = null;
+	//private String pictureQuestionPrefix = null;
 	
 	private QuestionDBHandler() {
 	}
@@ -90,11 +90,11 @@ public class QuestionDBHandler {
 		if (instance == null) {
 			logger.debug("In QuestionDBHandler getInstance() method instance created");
 			instance = new QuestionDBHandler();
-			try {
+			/*try {
 				instance.pictureQuestionPrefix = UsefulInfoDBHandler.getInstance().getPicQuestionPrefix();
 			} catch (SQLException e) {
 				instance.pictureQuestionPrefix = "Picture based question. Click here to view";
-			}
+			}*/
 		}
 		return instance;
 	}
