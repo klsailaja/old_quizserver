@@ -39,12 +39,30 @@ public class GamesController extends BaseController {
 	
 	private static final Logger logger = LogManager.getLogger(GamesController.class);
 	
-	@RequestMapping(value = "/{gametype}/future", method = RequestMethod.GET, produces = "application/json")
-	public @ResponseBody List<GameDetails> getFutureGames(@PathVariable("gametype") int gametype) {
-		logger.info("Call to getFutureGames() with {}", gametype);
+	@RequestMapping(value = "/{gametype}/future/{lastGameId}/{slotSize}", method = RequestMethod.GET, produces = "application/json")
+	public @ResponseBody List<GameDetails> getFutureGames(@PathVariable("gametype") int gametype, 
+			@PathVariable("lastGameId") long lastGameId, @PathVariable("slotSize") int slotSize) {
+		logger.info("Call to getFutureGames() with {} : {} : {}", gametype, lastGameId, slotSize);
 		List<GameDetails> futureGames = GameManager.getInstance().getFutureGames(gametype);
-		logger.info("Call to getFutureGames() returned with {}", futureGames.size());
-		return futureGames;
+		
+		List<GameDetails> returnFutureGames = new ArrayList<>();
+		int maxSize = slotSize * QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED.length;
+		if (gametype == 2) {
+			maxSize = slotSize * QuizConstants.GAMES_RATES_IN_ONE_SLOT_SPECIAL.length;
+		}
+		int count = 0;
+		for (GameDetails gd : futureGames) {
+			if (gd.getGameId() > lastGameId) {
+				returnFutureGames.add(gd);
+				count++;
+				if (count == maxSize) {
+					logger.info("Call to getFutureGames() with maxSize returned with {} ", returnFutureGames.size());
+					return returnFutureGames;
+				}
+			}
+		}
+		logger.info("Call to getFutureGames() plain returned with {} ", returnFutureGames.size());
+		return returnFutureGames;
 	}
 
 	@RequestMapping(value = "/{gametype}/enrolled/{userProfileId}", method = RequestMethod.GET)
