@@ -228,12 +228,14 @@ public class GamesGenerator implements Runnable {
 				
 				if (celebId == -1) {
 					Question flipQuestion = quizQuestions.remove(10);
+					flipQuestion.setQuestionType(1);
 					gameDetails.setFlipQuestion(flipQuestion);
 				} else {
 					/*Question flipQuestion = quizQuestions.remove(10);
 					gameDetails.setFlipQuestion(flipQuestion);*/
 					
 					Question flipQuestion = quizQuestions.remove(8);
+					flipQuestion.setQuestionType(1);
 					gameDetails.setFlipQuestion(flipQuestion);
 					
 					List<Question> picBasedQuestion = QuestionDBHandler.getInstance().getRandomPicBasedQues(celebId);
@@ -251,11 +253,13 @@ public class GamesGenerator implements Runnable {
 					picQues2.setQuestionType(2);
 					picQues2.setQuestionNumber(10);
 					
-					int firstNum = getRandomNumber(1,3);
-					int secondNum = getRandomNumber(4,7);
+					/*int firstNum = getRandomNumber(1,3);
+					int secondNum = getRandomNumber(4,7);*/
 					
-					quizQuestions.add(firstNum, picQues1);
-					quizQuestions.add(secondNum, picQues2);
+					quizQuestions.add(picQues1);
+					quizQuestions.add(picQues2);
+					
+					logger.info("quizQuestions size is {}", quizQuestions.size());
 					
 					picBasedQuestion.clear();
 				}

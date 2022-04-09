@@ -205,6 +205,7 @@ public class QuestionPicsDBHandler {
 		
 		Picture pictureObject = getPicture(id);
 		if (pictureObject == null) {
+			logger.info("********************* Movie pic id object not found {}", id);
 			return null;
 		}
 		
@@ -225,6 +226,7 @@ public class QuestionPicsDBHandler {
 			logger.error("Exception while reading the byte array for {}", completeFielPath);
 			logger.error(e);
 		}
+		logger.info("********************* Movie pic id retunring null here for id {}", id);
 	    return null;
 	}
 }

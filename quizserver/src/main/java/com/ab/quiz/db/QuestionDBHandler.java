@@ -73,9 +73,9 @@ public class QuestionDBHandler {
 	/*private static final String GET_QUESTIONS_RANDOM_CELEBRITY = "SELECT * FROM " +
 			TABLE_NAME + " WHERE MOD(" + CATEGORY + ",?) = 0 ORDER BY RAND() LIMIT 11";*/
 	private static final String GET_QUESTIONS_RANDOM_CELEBRITY = "SELECT DISTINCT * FROM " + 
-			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 ORDER BY RAND() LIMIT 9";
+			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 AND " + PICID + "=-1 ORDER BY RAND() LIMIT 9";
 	private static final String GET_QUESTIONS_RANDOM_CELEBRITY_PIC = "SELECT DISTINCT * FROM " + 
-			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 AND " + PICID + "> -1 ORDER BY RAND() LIMIT 3";
+			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 AND " + PICID + "> -1 ORDER BY RAND() LIMIT 6";
 	 
 			
 	
@@ -171,7 +171,7 @@ public class QuestionDBHandler {
 		}
 	}
 	
-	private List<Question> queryQuestions(String sqlQry, int category) throws SQLException {
+	private List<Question> queryQuestions(String sqlQry, int category, int picQuestionsCt) throws SQLException {
 		
 		List<Question> questionSet = new ArrayList<>();
 		
@@ -184,12 +184,13 @@ public class QuestionDBHandler {
 			ps.setString(1, String.valueOf(category));
 		}
 		
+		int successfulPicQuestionCount = 0;
 		int qNo = 1;
 		
 		try {
 			rs = ps.executeQuery();
 			if (rs != null) {
-				while (rs.next()) {
+				while ((rs.next()) && (successfulPicQuestionCount <= picQuestionsCt)) {
 					Question question = new Question();
 					
 					question.setQuestionNumber(qNo++);
@@ -211,7 +212,10 @@ public class QuestionDBHandler {
 					if (picId > -1) {
 						if (category != -1) {
 							byte[] picBytes = QuestionPicsDBHandler.getInstance().getPictureFileContents(picId);
-							question.setPictureBytes(picBytes);
+							if (picBytes != null) {
+								successfulPicQuestionCount++;
+								question.setPictureBytes(picBytes);
+							}
 						}
 					}
 					
@@ -317,11 +321,7 @@ public class QuestionDBHandler {
 		
 		if (category != -1) {
 			String psSql = GET_QUESTIONS_RANDOM_CELEBRITY_PIC;
-			List<Question> set = queryQuestions(psSql, category);
-			/*for (Question question : set) {
-				String questionStatement = question.getnStatement(); 
-				question.setnStatement(pictureQuestionPrefix + " " + questionStatement);
-			}*/
+			List<Question> set = queryQuestions(psSql, category, 2);
 			picQuestionSet.addAll(set);
 		}
 		return picQuestionSet;
@@ -338,7 +338,7 @@ public class QuestionDBHandler {
 			psSql = GET_QUESTIONS_RANDOM_CELEBRITY;
 		}
 		
-		List<Question> set = queryQuestions(psSql, category);
+		List<Question> set = queryQuestions(psSql, category, 10);
 		questionSet.addAll(set);
 		return questionSet;
 	}

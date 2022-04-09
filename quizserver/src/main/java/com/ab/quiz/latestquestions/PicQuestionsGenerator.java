@@ -313,15 +313,15 @@ public class PicQuestionsGenerator {
 							correctSongAnswer = Integer.parseInt(correctSongAnswerStr);
 						}
 						if (category.getCategoryFieldsSize() > 3) {
-							heroIndexStr = category.getValue(2);
+							heroIndexStr = category.getValue(3);
 							heroIndex = Integer.parseInt(heroIndexStr);
-							heroineIndexStr = category.getValue(3);
+							heroineIndexStr = category.getValue(4);
 							heroineIndex = Integer.parseInt(heroineIndexStr);
 						}
 						fillACategory(movieInfo.getId(), categoryList, heroIndex, heroineIndex, CONSIDER_BOTH, category);
-						fillECategory(movieInfo.getId(), categoryList, heroineIndex, heroineIndex, CONSIDER_BOTH, category);
-						fillFCategory(movieInfo.getId(), categoryList, heroineIndex, heroineIndex, CONSIDER_BOTH, category);
-						fillSCategory(movieInfo.getId(), categoryList, correctSongAnswer, heroineIndex, heroineIndex, CONSIDER_BOTH, category);
+						fillECategory(movieInfo.getId(), categoryList, heroIndex, heroineIndex, CONSIDER_BOTH, category);
+						fillFCategory(movieInfo.getId(), categoryList, heroIndex, heroineIndex, CONSIDER_BOTH, category);
+						fillSCategory(movieInfo.getId(), categoryList, correctSongAnswer, heroIndex, heroineIndex, CONSIDER_BOTH, category);
 					}
 				}
 			}
@@ -1062,6 +1062,7 @@ public class PicQuestionsGenerator {
 						Map<String,List<String>> mapAnswers = category.getMapAnswers();
 						
 						String imgFilePath = category.getValue(1);
+						System.out.println(imgFilePath);
 						File imgFileObj = new File(imgFilePath);
 						String fileName = imgFileObj.getName();
 						
@@ -1145,10 +1146,11 @@ public class PicQuestionsGenerator {
 	    		StringTokenizer finalQuestionStrTokenizer = new StringTokenizer(lineQuestion, ":");
 	    		String categoryNameStr = finalQuestionStrTokenizer.nextToken();
 	    		
-	    		boolean skip = false;
-	    		if (categoryNameStr.indexOf("1") > -1) {
+	    		boolean skip = true;
+	    		/*if (categoryNameStr.indexOf("1") > -1) {
+	    			System.out.println("Raj:" + lineQuestion);	    			
 	    			skip = true;
-	    		}
+	    		}*/
 	    		
 	    		String questionTxt = finalQuestionStrTokenizer.nextToken().trim();
 	    		String optionATxt = finalQuestionStrTokenizer.nextToken().trim();

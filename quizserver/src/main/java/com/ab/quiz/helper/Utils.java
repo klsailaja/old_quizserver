@@ -127,7 +127,7 @@ public class Utils {
 	}
 	
 	public static int getBossMoney(int profit) {
-		return (profit/50);
+		return (profit/25);
 	}
 	
 	public static void main(String[] args) {

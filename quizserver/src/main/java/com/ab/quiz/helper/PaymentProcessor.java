@@ -44,6 +44,7 @@ public class PaymentProcessor {
 		
 		logger.info("*******************************************************");
 		logger.info("Batching payments for GameId#:" + gameDetails.getGameId() + ": client GameId#" + gameDetails.getTempGameId());
+		logger.info("Game Ticket Rate {}", gameDetails.getTicketRate());
 		for (PlayerSummary ps : summaryList) {
 			logger.info(ps);
 		}
@@ -56,10 +57,13 @@ public class PaymentProcessor {
 			int amountWon = ps.getAmountWon();
 			int profit = amountWon - gameDetails.getTicketRate();
 			
+			
 			if (profit < 0) {
 				logger.info("****************** profit is negative: " + (profit));
 				profit = 0;
 			}
+			
+			logger.info("Profit is {}", profit);
 			
 			long userProfileId = ps.getUserProfileId();
 			
@@ -93,6 +97,9 @@ public class PaymentProcessor {
 				
 				long bossUserProfileId = bossProfileId;
 				int bossShare = Utils.getBossMoney(profit);
+				
+				logger.info("Paying boss share of {} to boss id {}",bossShare, bossUserProfileId);
+				
 				if (bossShare == 0) {
 					continue;
 				}
