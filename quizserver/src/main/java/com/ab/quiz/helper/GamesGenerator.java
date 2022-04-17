@@ -285,12 +285,6 @@ public class GamesGenerator implements Runnable {
 		return gameHandlerList;
 	}
 	
-	
-	private int getRandomNumber(int min, int max) {
-        return min + (int)(Math.random() * (max - min));
-    }
-	
-	
 	private void handleFreeGame(GameHandler gameHandlerInstance) {
 		if (gameHandlerInstance.getGameDetails().getTicketRate() != 0) {
 			return;

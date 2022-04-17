@@ -28,7 +28,8 @@ public class HistoryGameSaveTask implements Runnable {
 	@Override
 	public void run() {
 		
-		long gameId; 
+		long serverGameId;
+		long clientGameId;
 		int ticketRate; 
 		long startTime;
 
@@ -43,19 +44,19 @@ public class HistoryGameSaveTask implements Runnable {
 			}
 			
 			ticketRate = gameHandler.getGameDetails().getTicketRate();
-			gameId = gameHandler.getGameDetails().getTempGameId();
+			serverGameId = gameHandler.getGameDetails().getGameId();
+			clientGameId = gameHandler.getGameDetails().getTempGameId();
 			startTime = gameHandler.getGameDetails().getStartTime();
 			
 			GameResults gameResult = new GameResults();
-			gameResult.setGameId(gameId);
+			gameResult.setServerGameId(serverGameId);
+			gameResult.setClientGameId(clientGameId);
 			gameResult.setGamePlayedTime(startTime);
 			gameResult.setTktRate(ticketRate);
 			gameResult.setCelebrityName("NA");
 			if (gameHandler.getGameDetails().getGameType() == 2) {
 				gameResult.setCelebrityName(gameHandler.getGameDetails().getCelebrityName());
 			}
-			
-			
 			
 			List<PlayerSummary> winnersList = gameHandler.getLeaderBoardPositions(10, false);
 			StringBuffer strBuffer = new StringBuffer();

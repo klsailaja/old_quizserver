@@ -17,7 +17,8 @@ import com.ab.quiz.pojo.UserHistoryGameDetails;
 
 /*
 CREATE TABLE GAMEHISTORY(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, 
-		GAMEID BIGINT NOT NULL,
+		SERVERGAMEID BIGINT NOT NULL,
+		CLIENTGAMEID BIGINT NOT NULL,
 		GAMEPLAYEDTIME BIGINT NOT NULL,
 		MONEYCREDITEDSTATUS INT NOT NULL,
 		TICKETRATE INT NOT NULL,
@@ -27,9 +28,9 @@ CREATE TABLE PLAYERHISTORY(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
    		GAMEID BIGINT NOT NULL,
    		USERID BIGINT NOT NULL, PRIMARY KEY (ID)) ENGINE = INNODB;
    		    		
-CREATE INDEX GAMEHISTORY_Inx ON GAMEHISTORY(GAMEID);		
+CREATE INDEX GAMEHISTORY_Inx ON GAMEHISTORY(SERVERGAMEID);		
 DROP INDEX GAMEHISTORY_Inx ON GAMEHISTORY;		
-CREATE INDEX GAMEHISTORY_Inx ON GAMEHISTORY(GAMEID);
+CREATE INDEX GAMEHISTORY_Inx ON GAMEHISTORY(SERVERGAMEID);
 CREATE INDEX GAMEHISTORY_Inx1 ON GAMEHISTORY(GAMEPLAYEDTIME);		
 DROP INDEX GAMEHISTORY_Inx1 ON GAMEHISTORY;		
 CREATE INDEX GAMEHISTORY_Inx1 ON GAMEHISTORY(GAMEPLAYEDTIME);
@@ -49,7 +50,8 @@ public class GameHistoryDBHandler {
 	private static String PLAYER_HISTORY_TABLE_NAME = "PLAYERHISTORY"; 
 	
 	private static String ID = "ID";
-	private static String GAMEID = "GAMEID";
+	private static String SERVERGAMEID = "SERVERGAMEID";
+	private static String CLIENTGAMEID = "CLIENTGAMEID";
 	private static String GAME_PLAYED_TIME = "GAMEPLAYEDTIME";
 	private static String TICKET_RATE = "TICKETRATE";
 	private static String CELEBRITY_NAME = "CELEBRITYNAME";
@@ -62,12 +64,12 @@ public class GameHistoryDBHandler {
 	//private static String ISWINNER = "ISWINNER";
 	
 	private static final String CREATE_GAME_HISTORY = "INSERT INTO " + TABLE_NAME   
-			+ "(" + GAMEID + "," + GAME_PLAYED_TIME + "," + TICKET_RATE + "," + CELEBRITY_NAME + ","
+			+ "(" + SERVERGAMEID + "," + CLIENTGAMEID + "," + GAME_PLAYED_TIME + "," + TICKET_RATE + "," + CELEBRITY_NAME + ","
 			+ STATUS + ","
 			+ WINNERS_LIST + ") VALUES"
-			+ "(?,?,?,?,?,?)";
+			+ "(?,?,?,?,?,?,?)";
 	private static final String GET_GAME_HISTORY_ENTRY_BY_GAMEID = "SELECT * FROM " + TABLE_NAME 
-			+ " WHERE " + GAMEID + " = ?";
+			+ " WHERE " + SERVERGAMEID + " = ?";
 	
 	private static final String CREATE_PLAYER_HISTORY = "INSERT INTO " + PLAYER_HISTORY_TABLE_NAME   
 			+ "(" + PLAYER_GAMEID + "," + PLAYER_USERID + ") VALUES"
@@ -79,7 +81,7 @@ public class GameHistoryDBHandler {
 			+ PLAYER_USERID + " = ? ";
 	private static final String REMOVE_OLD_RECORDS = "DELETE FROM " + TABLE_NAME 
 			+ " WHERE (" + GAME_PLAYED_TIME + " < ? AND ID <> 0)";
-	private static final String SELECT_OLD_RECORDS_GAMEID = "SELECT " + GAMEID + " FROM " + TABLE_NAME + " WHERE " + GAME_PLAYED_TIME + " < ?";
+	private static final String SELECT_OLD_RECORDS_GAMEID = "SELECT " + SERVERGAMEID + " FROM " + TABLE_NAME + " WHERE " + GAME_PLAYED_TIME + " < ?";
 	private static final String REMOVE_OLD_RECORDS_PLAYERS = "DELETE FROM " + PLAYER_HISTORY_TABLE_NAME 
 			+ " WHERE " + PLAYER_GAMEID + " = ? ";
 	private static final String UPDATE_STATUS = "UPDATE " + TABLE_NAME + " SET " + STATUS + "= ? WHERE " + ID + "= ?";
@@ -118,7 +120,7 @@ public class GameHistoryDBHandler {
 			rs = ps.executeQuery();
 			if (rs != null) {
 				while (rs.next()) {
-					gameIds.add(rs.getLong(GAMEID));
+					gameIds.add(rs.getLong(SERVERGAMEID));
 				}
 			}
 			
@@ -393,12 +395,13 @@ public class GameHistoryDBHandler {
 			
 			int index = 0;
 			for (GameResults gameResults : gameResultsList) {
-				ps.setLong(1, gameResults.getGameId());
-				ps.setLong(2, gameResults.getGamePlayedTime());
-				ps.setInt(3, gameResults.getTktRate());
-				ps.setString(4, gameResults.getCelebrityName());
-				ps.setInt(5, gameResults.getCreditedStatus());
-				ps.setString(6, gameResults.getWinnersList());
+				ps.setLong(1, gameResults.getServerGameId());
+				ps.setLong(2, gameResults.getClientGameId());
+				ps.setLong(3, gameResults.getGamePlayedTime());
+				ps.setInt(4, gameResults.getTktRate());
+				ps.setString(5, gameResults.getCelebrityName());
+				ps.setInt(6, gameResults.getCreditedStatus());
+				ps.setString(7, gameResults.getWinnersList());
 				
 				ps.addBatch();
 				index++;
@@ -584,7 +587,7 @@ public class GameHistoryDBHandler {
 					GameResults gameResult = new GameResults();
 					
 					gameResult.setsNo(++startRowNo);
-					gameResult.setGameId(rs.getLong(GAMEID));
+					gameResult.setClientGameId(rs.getLong(CLIENTGAMEID));
 					gameResult.setCreditedStatus(rs.getInt(STATUS));
 					gameResult.setGamePlayedTime(rs.getLong(GAME_PLAYED_TIME));
 					gameResult.setTktRate(rs.getInt(TICKET_RATE));
@@ -688,7 +691,7 @@ public class GameHistoryDBHandler {
 		for (int i = 1; i <= total; i++) {
 			GameResults gr = new GameResults();
 			
-			gr.setGameId(i);
+			gr.setServerGameId(i);
 			gr.setGamePlayedTime(System.currentTimeMillis());
 			gr.setCelebrityName("TestCeleb");
 			gr.setTktRate(100);

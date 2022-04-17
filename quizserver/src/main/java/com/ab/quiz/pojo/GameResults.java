@@ -4,7 +4,8 @@ public class GameResults {
 	
 	private int sNo;
 	private int creditedStatus;
-	private long gameId;
+	private long serverGameId;
+	private long clientGameId;
 	private long gamePlayedTime;
 	private String celebrityName;
 	private int tktRate;
@@ -33,12 +34,6 @@ public class GameResults {
 		this.tktRate = tktRate;
 	}
 	
-	public long getGameId() {
-		return gameId;
-	}
-	public void setGameId(long gameId) {
-		this.gameId = gameId;
-	}
 	public long getGamePlayedTime() {
 		return gamePlayedTime;
 	}
@@ -56,5 +51,17 @@ public class GameResults {
 	}
 	public void setWinnersList(String winnersList) {
 		WinnersList = winnersList;
+	}
+	public long getServerGameId() {
+		return serverGameId;
+	}
+	public void setServerGameId(long serverGameId) {
+		this.serverGameId = serverGameId;
+	}
+	public long getClientGameId() {
+		return clientGameId;
+	}
+	public void setClientGameId(long clientGameId) {
+		this.clientGameId = clientGameId;
 	}
 }
