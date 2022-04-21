@@ -68,7 +68,7 @@ public class QuestionDBHandler {
 			+ "(?,?,?,?,?,?,?,?,?)";
 	/*private static final String GET_QUESTION_ENTRY_SET = "SELECT * FROM " + TABLE_NAME 
 			+ " WHERE " + ID + " IN (?,?,?,?,?,?,?,?,?,?,?)";*/
-	private static final String GET_QUESTIONS_BY_RANDOM = "SELECT DISTINCT * FROM " + TABLE_NAME
+	private static final String GET_QUESTIONS_BY_RANDOM = "SELECT DISTINCT * FROM " + TABLE_NAME + " WHERE " + PICID + "=-1" 
 			+ " ORDER BY RAND() LIMIT 11";
 	/*private static final String GET_QUESTIONS_RANDOM_CELEBRITY = "SELECT * FROM " +
 			TABLE_NAME + " WHERE MOD(" + CATEGORY + ",?) = 0 ORDER BY RAND() LIMIT 11";*/
