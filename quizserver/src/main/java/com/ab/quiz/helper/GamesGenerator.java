@@ -224,47 +224,51 @@ public class GamesGenerator implements Runnable {
 					}
 				}
 				
-				List<Question> quizQuestions = QuestionDBHandler.getInstance().getRandomQues(celebId);
+				List<Question> quizQuestions = new ArrayList<>();
 				
-				if (celebId == -1) {
-					Question flipQuestion = quizQuestions.remove(10);
+				// Fill up the text based questions here start
+				int flipQuestionPos = QuizConstants.CEEBRITY_MODE_TEXT_QUESTIONS_COUNT;
+				if (mode == 1) {
+					flipQuestionPos = QuizConstants.MIX_MODE_TEXT_QUESTIONS_COUNT;
+				}
+				if (flipQuestionPos > 0) {
+					List<Question> textQuestions = QuestionDBHandler.getInstance().getRandomQues(celebId);
+					quizQuestions.addAll(textQuestions);
+					textQuestions.clear();
+					
+					Question flipQuestion = quizQuestions.remove(flipQuestionPos);
 					flipQuestion.setQuestionType(1);
 					gameDetails.setFlipQuestion(flipQuestion);
-				} else {
-					/*Question flipQuestion = quizQuestions.remove(10);
-					gameDetails.setFlipQuestion(flipQuestion);*/
-					
-					Question flipQuestion = quizQuestions.remove(8);
-					flipQuestion.setQuestionType(1);
-					gameDetails.setFlipQuestion(flipQuestion);
-					
+				}
+				// text based questions stop
+				
+				// Pic based questions start
+				flipQuestionPos = QuizConstants.CEEBRITY_MODE_PICS_QUESTIONS_COUNT;
+				if (mode == 1) {
+					flipQuestionPos = QuizConstants.MIX_MODE_PICS_QUESTIONS_COUNT;
+				}
+				logger.info("flipQuestionPos :" + flipQuestionPos + " mode :" + mode);
+				if (flipQuestionPos > 0) {
 					List<Question> picBasedQuestion = QuestionDBHandler.getInstance().getRandomPicBasedQues(celebId);
 					
-					Question flipPicQuestion = picBasedQuestion.get(2);
-					flipPicQuestion.setQuestionType(2);
-					gameDetails.setFlipPictureQuestion(flipPicQuestion);
+					Question flipQuestion = picBasedQuestion.remove(flipQuestionPos);
+					flipQuestion.setQuestionType(2);
+					gameDetails.setFlipPictureQuestion(flipQuestion);
 					
-					
-					Question picQues1 = picBasedQuestion.get(0);
-					picQues1.setQuestionType(2);
-					picQues1.setQuestionNumber(9);
-					
-					Question picQues2 = picBasedQuestion.get(1);
-					picQues2.setQuestionType(2);
-					picQues2.setQuestionNumber(10);
-					
-					/*int firstNum = getRandomNumber(1,3);
-					int secondNum = getRandomNumber(4,7);*/
-					
-					quizQuestions.add(picQues1);
-					quizQuestions.add(picQues2);
-					
-					logger.info("quizQuestions size is {}", quizQuestions.size());
+					for (int picIndex = 0; picIndex < flipQuestionPos; picIndex++) {
+						Question picQues = picBasedQuestion.get(picIndex);
+						picQues.setQuestionType(2);
+						picQues.setQuestionNumber(flipQuestionPos + 1 + picIndex);
+						quizQuestions.add(picQues);
+					}
 					
 					picBasedQuestion.clear();
 				}
-				
-				//logger.info("Questions size is {}", quizQuestions.size());
+				logger.info("quizQuestions size is {}", quizQuestions.size());
+				for (Question ques : quizQuestions) {
+					logger.info(ques);
+				}
+				//
 				long gap = 0;
 				int quesNumber = 1;
 				for (Question ques : quizQuestions) {

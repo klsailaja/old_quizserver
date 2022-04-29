@@ -58,10 +58,10 @@ public class QuestionsGenerator {
 		
 		formQuestions();
 		
-		System.out.println(allArtistNames.size());
+		/*System.out.println(allArtistNames.size());
 		for (String artistName : allArtistNames) {
 			System.out.println(artistName);
-		}
+		}*/
 		
 	}
 	
@@ -160,6 +160,7 @@ public class QuestionsGenerator {
 		
 		for (String line : fileInputLines) {
         	line = line.trim();
+        	//System.out.println(line);
         	if (line.length() == 0) {
         		continue;
         	}
@@ -288,7 +289,9 @@ public class QuestionsGenerator {
 	    		}
 	    		movieInfo.addCategory(category);
         	}
-        	moviesDataBase.add(movieInfo);
+        	if (movieInfo.getAllCategories().size() > 0) {
+        		moviesDataBase.add(movieInfo);
+        	}
 		}
 		//System.out.println("Moviz size :" + moviesDataBase.size());
 	}
@@ -316,7 +319,8 @@ public class QuestionsGenerator {
 					lineStrBuffer.append(cell.getStringCellValue());
 					lineStrBuffer.append(":");
 				}
-				fileContents.add(lineStrBuffer.toString());
+				int pos = lineStrBuffer.lastIndexOf(":");
+				fileContents.add(lineStrBuffer.substring(0, pos).toString());
 			}  
 		}  
 		catch(Exception e)  
@@ -1047,6 +1051,9 @@ public class QuestionsGenerator {
 				List<Category> miCurrentNamesList = movieInfo.getCategoryList(currentCategoryName);
 				
 				Category miMovieObject = miMoviesList.get(0);
+				if (miMovieObject.getCategoryFieldsSize() == 0) {
+					continue;
+				}
 		
 				for (Category miCurrentCategory : miCurrentNamesList) {
 					String charName1 = currentValueObj.getValue(0);
@@ -1153,8 +1160,13 @@ public class QuestionsGenerator {
 					continue;
 				}
 				List<Category> miMoviesList = movieInfo.getCategoryList(movieCategoryName);
+				if (miMoviesList.size() == 0) {
+					continue;
+				}
 				List<Category> miCurrentNamesList = movieInfo.getCategoryList(currentCategoryName);
 				List<String> miCurrentValuesMergedList = Utils.getMergedList(0, miCurrentNamesList);
+				
+				//System.out.println(miMoviesList);
 				Category miMovieObject = miMoviesList.get(0);
 		
 				boolean matched = false;
@@ -1213,6 +1225,7 @@ public class QuestionsGenerator {
     	Path path = Paths.get("D:\\Projects\\Games\\PlainMovies\\Plain.txt");
     	int qCount = 0;
     	BufferedWriter writer = Files.newBufferedWriter(path);
+    	int movieDifficultLevel = 1;
 		
 		for (MovieInfo movieInfo : moviesDataBase) {
 			map.clear();
@@ -1221,6 +1234,15 @@ public class QuestionsGenerator {
         	
 			for (Category category : movieInfo.getAllCategories()) {
 				switch(category.getCategoryName()) {
+					case "a": {
+						if (category.getCategoryFieldsSize() > 1) {
+							String diffLevelStr = category.getValue(1);
+							movieDifficultLevel = Integer.parseInt(diffLevelStr);
+						} else {
+							movieDifficultLevel = 1;
+						}
+						break;
+					}
 					case "b": {
 						addToLocalCelebrityList(category.getValue(0));
 	    				List<String> categoryQuestions = getFormedQuestions("b", "H", category.getType1Answers(), "bc", 
@@ -1383,7 +1405,7 @@ public class QuestionsGenerator {
 	    		}
 			}*/
 			
-			String sqlQry = "INSERT INTO QUIZQUESTIONS (NSTATEMENT,NOPTIONA,NOPTIONB,NOPTIONC,NOPTIOND,NOPTIONE,NOPTIONF,NOPTIONG,NOPTIONH,CORRECTOPTION,PICID,CATEGORY) VALUES('";
+			String sqlQry = "INSERT INTO QUIZQUESTIONS (NSTATEMENT,NOPTIONA,NOPTIONB,NOPTIONC,NOPTIOND,NOPTIONE,NOPTIONF,NOPTIONG,NOPTIONH,CORRECTOPTION,PICID,CATEGORY,DIFF_LEVEL) VALUES('";
 			List<String> mixedModeCategories = new ArrayList<>();
 			mixedModeCategories.add("b");
 			mixedModeCategories.add("c");
@@ -1552,11 +1574,14 @@ public class QuestionsGenerator {
 	    		strBuffer.append(-1);
 	    		strBuffer.append(",");
 	    		strBuffer.append(celebrityIdSetStr);
+	    		strBuffer.append(",");
+	    		strBuffer.append(movieDifficultLevel);
 	    		strBuffer.append(");");
 	    		
 	    		//System.out.println(strBuffer.toString());
 	    		
 	    		//Use try-with-resource to get auto-closeable writer instance
+	    		//System.out.println(movieDifficultLevel);
 	    	    writer.append(strBuffer.toString());
 	    	    writer.append("\n");
 	    	    writer.flush();

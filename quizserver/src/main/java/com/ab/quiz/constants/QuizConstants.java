@@ -28,6 +28,7 @@ public class QuizConstants {
 	public static final long GAP_BETWEEN_QUESTIONS = 60 * 1000;
 	
 	public static final int MAX_PLAYERS_PER_GAME = 10;
+	public static final int MAX_QUESTIONS_PER_GAME = 10;
 	
 	public static int TESTMODE = 1;
 	
@@ -36,6 +37,31 @@ public class QuizConstants {
 	public static long DELETE_OLD_MSGS_TIME_PERIOD_IN_MILLIS = DELETE_OLD_MSGS_TIME_PERIOD * 60 * 1000;
 	
 	public static int LOGGED_IN_USERS_COUNT_UPDATE_TIME_INTERVAL = 30;
-	public static long LOGGED_IN_USERS_COUNT_UPDATE_TIME_INTERVAL_IN_MILLIS = LOGGED_IN_USERS_COUNT_UPDATE_TIME_INTERVAL * 60 * 1000; 
+	public static long LOGGED_IN_USERS_COUNT_UPDATE_TIME_INTERVAL_IN_MILLIS = LOGGED_IN_USERS_COUNT_UPDATE_TIME_INTERVAL * 60 * 1000;
 	
+
+	public static int MIXED_MODE_QUESTION_DIFFICULTY_LEVEL = 2; // 2 - means easy
+	public static int CELEBRITY_MODE_QUESTION_DIFFICULTY_LEVEL = 1; // 2 - means easy 1 - difficult and old movie
+	public static int APP_SERVER_MODE = 2; // 1 - 8 Text and 2 Pics, 2 - 5 Text and 5 Pics, 3- 10 text and 0 pics
+	
+	public static int MIX_MODE_TEXT_QUESTIONS_COUNT = -1;
+	public static int MIX_MODE_PICS_QUESTIONS_COUNT = -1;
+	
+	public static int CEEBRITY_MODE_TEXT_QUESTIONS_COUNT = -1;
+	public static int CEEBRITY_MODE_PICS_QUESTIONS_COUNT = -1;
+	
+	public static void initialize() {
+		if (APP_SERVER_MODE == 1) {
+			MIX_MODE_TEXT_QUESTIONS_COUNT = 8;
+			CEEBRITY_MODE_TEXT_QUESTIONS_COUNT = 8;
+		} else if (APP_SERVER_MODE == 2) {
+			MIX_MODE_TEXT_QUESTIONS_COUNT = 5;
+			CEEBRITY_MODE_TEXT_QUESTIONS_COUNT = 5;
+		} else if (APP_SERVER_MODE == 3) {
+			MIX_MODE_TEXT_QUESTIONS_COUNT = 10;
+			CEEBRITY_MODE_TEXT_QUESTIONS_COUNT = 10;
+		}
+		MIX_MODE_PICS_QUESTIONS_COUNT = MAX_QUESTIONS_PER_GAME - MIX_MODE_TEXT_QUESTIONS_COUNT;
+		CEEBRITY_MODE_PICS_QUESTIONS_COUNT = MAX_QUESTIONS_PER_GAME - CEEBRITY_MODE_TEXT_QUESTIONS_COUNT;
+	}
 }

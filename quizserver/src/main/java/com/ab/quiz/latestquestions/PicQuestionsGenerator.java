@@ -65,11 +65,11 @@ public class PicQuestionsGenerator {
 		
 		formQuestions();
 		
-		System.out.println(allArtistNames.size());
-		for (String artistName : allArtistNames) {
+		//System.out.println(allArtistNames.size());
+		/*for (String artistName : allArtistNames) {
 			System.out.println(artistName);
-		}
-		printAll();
+		}*/
+		//printAll();
 	}
 	
 	private static void fillupMoviesDB(String fileName) throws Exception {
@@ -1054,15 +1054,25 @@ public class PicQuestionsGenerator {
 			map.clear();
         	finalQuestions.clear();
         	perMovieCelebrityNames.clear();
-        	
+        	int movieDifficultLevel = 1;
         	
 			for (Category category : movieInfo.getAllCategories()) {
 				switch(category.getCategoryName()) {
+					case "a": {
+						if (category.getCategoryFieldsSize() > 1) {
+							String diffLevelStr = category.getValue(1);
+							movieDifficultLevel = Integer.parseInt(diffLevelStr);
+						} else {
+							movieDifficultLevel = 1;
+						}
+						//System.out.println("movieDifficultLevel:" + movieDifficultLevel);
+						break;
+					}
 					case "img": {
 						Map<String,List<String>> mapAnswers = category.getMapAnswers();
 						
 						String imgFilePath = category.getValue(1);
-						System.out.println(imgFilePath);
+						//System.out.println(imgFilePath);
 						File imgFileObj = new File(imgFilePath);
 						String fileName = imgFileObj.getName();
 						
@@ -1128,7 +1138,8 @@ public class PicQuestionsGenerator {
 				}
 			}
 			
-			String sqlQry = "INSERT INTO QUIZQUESTIONS (NSTATEMENT,NOPTIONA,NOPTIONB,NOPTIONC,NOPTIOND,NOPTIONE,NOPTIONF,NOPTIONG,NOPTIONH,CORRECTOPTION,PICID,CATEGORY) VALUES('";
+			//System.out.println("movieDifficultLevel11:" + movieDifficultLevel);
+			String sqlQry = "INSERT INTO QUIZQUESTIONS (NSTATEMENT,NOPTIONA,NOPTIONB,NOPTIONC,NOPTIOND,NOPTIONE,NOPTIONF,NOPTIONG,NOPTIONH,CORRECTOPTION,PICID,CATEGORY,DIFF_LEVEL) VALUES('";
 			List<String> mixedModeCategories = new ArrayList<>();
 			mixedModeCategories.add("a");
 			mixedModeCategories.add("b");
@@ -1297,9 +1308,11 @@ public class PicQuestionsGenerator {
 	    		strBuffer.append(picId);
 	    		strBuffer.append(",");
 	    		strBuffer.append(celebrityIdSetStr);
+	    		strBuffer.append(",");
+	    		strBuffer.append(movieDifficultLevel);
 	    		strBuffer.append(");");
 	    		
-	    		System.out.println(strBuffer.toString());
+	    		//System.out.println(strBuffer.toString());
 	    		
 	    		//Use try-with-resource to get auto-closeable writer instance
 	    	    writer.append(strBuffer.toString());

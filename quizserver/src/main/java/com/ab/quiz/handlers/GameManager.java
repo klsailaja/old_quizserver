@@ -200,13 +200,13 @@ public class GameManager {
 				if (gameHandler.getGameDetails().getGameType() != gameType) {
 					continue;
 				}
-			} else {
+			} /*else {
 				int statusSizes = gameIdToGameStatus.size();
 				if (statusSizes == 2 * QuizConstants.GAMES_RATES_IN_ONE_SLOT_MIXED.length) {
 					// All games status is not necessary. First slot in Mixed and Celebrities are enough.
 					break;
 				}
-			}
+			}*/
 			if (userProfileId != -1) {
 				if (!gameHandler.isUserEnrolled(userProfileId)) {
 					continue;

@@ -52,6 +52,7 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
             	TestUsersTask.startUIDValue2 = uid2;
             }
 		}
+		
 		SpringApplication.run(TeluguMovieQuizApplication.class, args);
 	}
 
@@ -59,6 +60,7 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 	public void run(ApplicationArguments args) throws Exception {
 		try {
 			logger.debug("Starting the TeluguMovieQuizApplication application");
+			QuizConstants.initialize();
 			
 			ConnectionPool.getInstance();
 			

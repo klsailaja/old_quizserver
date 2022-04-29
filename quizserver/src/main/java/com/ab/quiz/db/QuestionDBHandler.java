@@ -16,6 +16,7 @@ import java.util.TreeSet;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.pojo.Question;
 
 /*
@@ -38,7 +39,9 @@ CREATE TABLE QUIZQUESTIONS(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
         '41','42','43','44','45','46','47','48','49','50',
         '51','52','53','54','55','56','57','58','59','60',
         '61','62','63','64'
-        )NOT NULL, PRIMARY KEY (ID)) ENGINE = INNODB;
+        )NOT NULL,
+        DIFF_LEVEL, PRIMARY KEY (ID)) ENGINE = INNODB;
+        
 */
 
 public class QuestionDBHandler {
@@ -58,30 +61,36 @@ public class QuestionDBHandler {
 	private static String NOPTION_H = "NOPTIONH";
 	private static String CORRECTOPTION = "CORRECTOPTION";
 	private static String PICID = "PICID";
+	private static String DIFF_LEVEL = "DIFF_LEVEL";
 	
 	private static final String CREATE_QUESTION_ENTRY = "INSERT INTO " + TABLE_NAME   
 			+ "(" + NSTATEMENT + "," + NOPTION_A + "," + NOPTION_B + "," + NOPTION_C + ","
 			+ NOPTION_D + "," + NOPTION_E + "," + NOPTION_F + "," + NOPTION_G + "," + NOPTION_H + ","
 			+ CORRECTOPTION + ","
-			+ PICID + "," + 
-			CATEGORY + "," + TIMELINE + ") VALUES"
+			+ PICID + "," + DIFF_LEVEL + ","
+			+ CATEGORY + "," + TIMELINE + ") VALUES"
 			+ "(?,?,?,?,?,?,?,?,?)";
-	/*private static final String GET_QUESTION_ENTRY_SET = "SELECT * FROM " + TABLE_NAME 
-			+ " WHERE " + ID + " IN (?,?,?,?,?,?,?,?,?,?,?)";*/
-	private static final String GET_QUESTIONS_BY_RANDOM = "SELECT DISTINCT * FROM " + TABLE_NAME + " WHERE " + PICID + "=-1" 
-			+ " ORDER BY RAND() LIMIT 11";
-	/*private static final String GET_QUESTIONS_RANDOM_CELEBRITY = "SELECT * FROM " +
-			TABLE_NAME + " WHERE MOD(" + CATEGORY + ",?) = 0 ORDER BY RAND() LIMIT 11";*/
-	private static final String GET_QUESTIONS_RANDOM_CELEBRITY = "SELECT DISTINCT * FROM " + 
-			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 AND " + PICID + "=-1 ORDER BY RAND() LIMIT 9";
-	private static final String GET_QUESTIONS_RANDOM_CELEBRITY_PIC = "SELECT DISTINCT * FROM " + 
-			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 AND " + PICID + "> -1 ORDER BY RAND() LIMIT 6";
-	 
-			
+	
+	private static final String FETCH_MIX_TEXT_QUESTIONS = "SELECT DISTINCT * FROM " + TABLE_NAME + " WHERE " 
+			+ PICID + "=-1 AND " + DIFF_LEVEL + ">=?"
+			+ " ORDER BY RAND() LIMIT ?";
+	
+	private static final String FETCH_MIX_PIC_QUESTIONS = "SELECT DISTINCT * FROM " + TABLE_NAME + " WHERE " 
+			+ PICID + ">-1 AND " + DIFF_LEVEL + ">=?"
+			+ " ORDER BY RAND() LIMIT ?";
+	
+	private static final String FETCH_CELEBRITY_TEXT_QUESTIONS = "SELECT DISTINCT * FROM " + 
+			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 AND " 
+			+ PICID + "=-1 AND " + DIFF_LEVEL + ">=?"
+			+ " ORDER BY RAND() LIMIT ?";
+	
+	private static final String FETCH_CELEBRITY_PIC_QUESTIONS = "SELECT DISTINCT * FROM " + 
+			TABLE_NAME + " WHERE FIND_IN_SET(?," + CATEGORY + ") > 0 AND " 
+			+ PICID + ">-1 AND " + DIFF_LEVEL + ">=?"
+			+ " ORDER BY RAND() LIMIT ?";
 	
 	private static final Logger logger = LogManager.getLogger(QuestionDBHandler.class);
 	private static QuestionDBHandler instance = null;
-	//private String pictureQuestionPrefix = null;
 	
 	private QuestionDBHandler() {
 	}
@@ -171,17 +180,24 @@ public class QuestionDBHandler {
 		}
 	}
 	
-	private List<Question> queryQuestions(String sqlQry, int category, int picQuestionsCt) throws SQLException {
+	private List<Question> queryQuestions(String sqlQry, int category, 
+			int totalQuestionsCtRequired, int dbQuestionsFetchCt) throws SQLException {
 		
 		List<Question> questionSet = new ArrayList<>();
 		
 		ConnectionPool cp = ConnectionPool.getInstance();
 		Connection dbConn = cp.getDBConnection();
 		PreparedStatement ps = dbConn.prepareStatement(sqlQry);
+		
 		ResultSet rs = null;
 		
 		if (category != -1) {
 			ps.setString(1, String.valueOf(category));
+			ps.setInt(2, QuizConstants.CELEBRITY_MODE_QUESTION_DIFFICULTY_LEVEL);
+			ps.setInt(3, dbQuestionsFetchCt);
+		} else {
+			ps.setInt(1, QuizConstants.MIXED_MODE_QUESTION_DIFFICULTY_LEVEL);
+			ps.setInt(2, dbQuestionsFetchCt);
 		}
 		
 		int successfulPicQuestionCount = 0;
@@ -190,7 +206,7 @@ public class QuestionDBHandler {
 		try {
 			rs = ps.executeQuery();
 			if (rs != null) {
-				while ((rs.next()) && (successfulPicQuestionCount <= picQuestionsCt)) {
+				while ((rs.next()) && (successfulPicQuestionCount <= totalQuestionsCtRequired)) {
 					Question question = new Question();
 					
 					question.setQuestionNumber(qNo++);
@@ -210,12 +226,10 @@ public class QuestionDBHandler {
 					question.setCorrectOption(rs.getInt(CORRECTOPTION));
 					long picId = rs.getLong(PICID);
 					if (picId > -1) {
-						if (category != -1) {
-							byte[] picBytes = QuestionPicsDBHandler.getInstance().getPictureFileContents(picId);
-							if (picBytes != null) {
-								successfulPicQuestionCount++;
-								question.setPictureBytes(picBytes);
-							}
+						byte[] picBytes = QuestionPicsDBHandler.getInstance().getPictureFileContents(picId);
+						if (picBytes != null) {
+							successfulPicQuestionCount++;
+							question.setPictureBytes(picBytes);
 						}
 					}
 					
@@ -318,12 +332,19 @@ public class QuestionDBHandler {
 	public List<Question> getRandomPicBasedQues(int category) throws SQLException {
 		
 		List<Question> picQuestionSet = new ArrayList<>();
-		
+		int quesCtRequired = -1;
+		String psSql = null;
 		if (category != -1) {
-			String psSql = GET_QUESTIONS_RANDOM_CELEBRITY_PIC;
-			List<Question> set = queryQuestions(psSql, category, 2);
-			picQuestionSet.addAll(set);
+			quesCtRequired = QuizConstants.CEEBRITY_MODE_PICS_QUESTIONS_COUNT;
+			psSql = FETCH_CELEBRITY_PIC_QUESTIONS;
+		} else {
+			quesCtRequired = QuizConstants.MIX_MODE_PICS_QUESTIONS_COUNT;
+			psSql = FETCH_MIX_PIC_QUESTIONS;
 		}
+		
+		++quesCtRequired; // for flip question option
+		List<Question> set = queryQuestions(psSql, category, quesCtRequired, quesCtRequired * 2);
+		picQuestionSet.addAll(set);
 		return picQuestionSet;
 	}
 	
@@ -332,13 +353,16 @@ public class QuestionDBHandler {
 		
 		List<Question> questionSet = new ArrayList<>();
 		
-		String psSql = GET_QUESTIONS_BY_RANDOM;
+		String psSql = FETCH_MIX_TEXT_QUESTIONS;
+		int totalQuestionToFetch = QuizConstants.MIX_MODE_TEXT_QUESTIONS_COUNT;
 		
 		if (category != -1) {
-			psSql = GET_QUESTIONS_RANDOM_CELEBRITY;
+			psSql = FETCH_CELEBRITY_TEXT_QUESTIONS;
+			totalQuestionToFetch = QuizConstants.CEEBRITY_MODE_TEXT_QUESTIONS_COUNT;
 		}
 		
-		List<Question> set = queryQuestions(psSql, category, 10);
+		++totalQuestionToFetch; // for flip question option
+		List<Question> set = queryQuestions(psSql, category, totalQuestionToFetch, totalQuestionToFetch);
 		questionSet.addAll(set);
 		return questionSet;
 	}
