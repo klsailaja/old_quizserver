@@ -137,11 +137,14 @@ public class TestUsersTask implements Runnable {
 				gameOperation.setUserProfileId(predefinedUserProfileId);
 				gameOperation.setUserAccountType(UserMoneyAccountType.LOADED_MONEY.getId());
 				gameOperation.setUserName("testuser" + predefinedUserProfileId);
-				if (predefinedUserProfileId == 2065) {
+				
+				gameOperation.setUserBossId(predefinedUserProfileId - 1);
+				
+				/*if (predefinedUserProfileId == 2065) {
 					gameOperation.setUserBossId(21);
 				} else {
 					gameOperation.setUserBossId(0);
-				}
+				}*/
 				
 				GameManager.getInstance().joinGame(gameDetails.getGameId(), gameOperation);
 				//Thread.sleep(300);

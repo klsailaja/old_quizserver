@@ -22,7 +22,7 @@ public class Utils {
 	private static final SecureRandom secureRnd = new SecureRandom();
 	
 	private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat();
-	private static final String timePattern = "dd:MMM:yy:HH:mm";
+	private static final String timePattern = "HH:mm-dd:MMM:yyyy";
 	
 	
 	public static String getTransactionObjComments(GameDetails gameDetails) {

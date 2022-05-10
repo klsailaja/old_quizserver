@@ -99,4 +99,8 @@ public class Question {
 	public void setQuestionStartTime(long questionStartTime) {
 		this.questionStartTime = questionStartTime;
 	}
+	
+	public String toString() {
+		return "Qno" + questionNumber;
+	}
 }

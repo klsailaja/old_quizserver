@@ -247,7 +247,7 @@ public class GamesGenerator implements Runnable {
 				if (mode == 1) {
 					flipQuestionPos = QuizConstants.MIX_MODE_PICS_QUESTIONS_COUNT;
 				}
-				logger.info("flipQuestionPos :" + flipQuestionPos + " mode :" + mode);
+				//logger.info("flipQuestionPos :" + flipQuestionPos + " mode :" + mode);
 				if (flipQuestionPos > 0) {
 					List<Question> picBasedQuestion = QuestionDBHandler.getInstance().getRandomPicBasedQues(celebId);
 					
