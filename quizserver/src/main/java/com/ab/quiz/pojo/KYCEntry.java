@@ -5,7 +5,15 @@ public class KYCEntry {
 	private long afpId;
 	private long abpId;
 	private long ppId;
+	private long lastUpdatedTime;
 	private String status;
+	
+	public long getLastUpdatedTime() {
+		return lastUpdatedTime;
+	}
+	public void setLastUpdatedTime(long lastUpdatedTime) {
+		this.lastUpdatedTime = lastUpdatedTime;
+	}
 	
 	public long getUserId() {
 		return userId;

@@ -15,6 +15,7 @@ import com.ab.quiz.pojo.KYCEntry;
   		AFP BIGINT NOT NULL DEFAULT -1,
   		ABP BIGINT NOT NULL DEFAULT -1,
   		PP BIGINT NOT NULL DEFAULT -1,
+  		UPDATEDTIME BIGINT NOT NULL,
 		STATUS VARCHAR(100) NOT NULL, PRIMARY KEY (USERID)) ENGINE = INNODB;
 	
  */
@@ -26,6 +27,7 @@ public class KYCDBHandler {
 	private static String AADHAR_FRONT_PAGE = "AFP";
 	private static String AADHAR_BACK_PAGE = "ABP";
 	private static String PAN_PAGE = "PP";
+	private static String UPDATED_TIME = "UPDATEDTIME";
 	private static String STATUS = "STATUS";
 	
 	private static final Logger logger = LogManager.getLogger(KYCDBHandler.class);
@@ -34,18 +36,20 @@ public class KYCDBHandler {
 	private static final String CREATE_KYC_ENTRY = "INSERT INTO " + TABLE_NAME
 			+ "(" + USER_PROFILE_ID + "," + AADHAR_FRONT_PAGE + "," 
 			+ AADHAR_BACK_PAGE + "," + PAN_PAGE + ","    
+			+ UPDATED_TIME + ","
 			+ STATUS + ") VALUES"
-			+ "(?,?,?,?,?)";
+			+ "(?,?,?,?,?,?)";
 	
 	private static final String GET_KYC_BY_ID = "SELECT * FROM " + TABLE_NAME + " WHERE " 
 			+ USER_PROFILE_ID + " = ?";
 	
-	private static final String UPDATE_KYC_1_BY_ID = "UPDATE " + TABLE_NAME + " SET " + AADHAR_FRONT_PAGE + "= ? WHERE " 
-						+ USER_PROFILE_ID + " = ?";
-	private static final String UPDATE_KYC_2_BY_ID = "UPDATE " + TABLE_NAME + " SET " + AADHAR_BACK_PAGE + "= ? WHERE " 
-			+ USER_PROFILE_ID + " = ?";
-	private static final String UPDATE_KYC_3_BY_ID = "UPDATE " + TABLE_NAME + " SET " + PAN_PAGE + "= ? WHERE " 
-			+ USER_PROFILE_ID + " = ?";
+	private static final String UPDATE_KYC_1_BY_ID = "UPDATE " + TABLE_NAME + " SET " + AADHAR_FRONT_PAGE + "= ?,SET "
+			+ UPDATED_TIME + "= ?" + " WHERE " + USER_PROFILE_ID + " = ?"; 
+	private static final String UPDATE_KYC_2_BY_ID = "UPDATE " + TABLE_NAME + " SET " + AADHAR_BACK_PAGE + "= ?,SET " 
+			+ UPDATED_TIME + "= ?" + " WHERE " + USER_PROFILE_ID + " = ?";
+	private static final String UPDATE_KYC_3_BY_ID = "UPDATE " + TABLE_NAME + " SET " + PAN_PAGE + "= ?,SET " 
+			+ UPDATED_TIME + "= ?" + " WHERE " + USER_PROFILE_ID + " = ?";
+
 	
 	private KYCDBHandler() {
 	}
