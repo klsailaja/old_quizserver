@@ -21,6 +21,7 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -41,12 +42,14 @@ public class WithdrawPanel extends JPanel implements ActionListener, MessageList
 	private int startNumber = 0;
 	private int lastQueryType = -1;
 	private int lastPageLength = -1;
+	private int lastQueryState = -1;
 	
 	private DefaultTableModel tableModel = new DefaultTableModel();
 	private JTable tableView;
 	private JLabel totalLabel = new JLabel();
 	private JButton prevButton = new JButton("<<Previous");
 	private JButton nextButton = new JButton("Next>>");
+	private JButton exportButton; 
 	
 	private JPopupMenu popupMenu;
     private JMenuItem menuItemView;
@@ -60,7 +63,8 @@ public class WithdrawPanel extends JPanel implements ActionListener, MessageList
 		this.parentMainFrame = frame;
 		setLayout(new BorderLayout(0, 0));
 		
-		JPanel queryPanel = new QueryPanel(this);
+		String[] wdStates = new String[]{"Open", "Closed", "Cancelled"};
+		JPanel queryPanel = new QueryPanel(wdStates, this);
 		add(queryPanel, BorderLayout.NORTH);
 		
 		Vector<String> columns = formTableColumns();
@@ -93,7 +97,7 @@ public class WithdrawPanel extends JPanel implements ActionListener, MessageList
 		JPanel tablePanel = new JPanel();
 		tablePanel.setLayout(new BorderLayout(0, 0));
 		
-		totalLabel.setText("Showing 1-10 of 50");
+		totalLabel.setText("Showing 0-0 of 0");
 		
 		tablePanel.add(totalLabel, BorderLayout.NORTH);
 		tablePanel.add(tableScrollPane, BorderLayout.CENTER);
@@ -118,9 +122,10 @@ public class WithdrawPanel extends JPanel implements ActionListener, MessageList
 		
 		buttonPanel.add(nextButton);
 		
-		JButton exportButton = new JButton("Export");
+		exportButton = new JButton("Export");
 		exportButton.setActionCommand("export");
 		exportButton.addActionListener(this);
+		exportButton.setEnabled(false);
 		
 		buttonPanel.add(exportButton);
 		
@@ -134,12 +139,14 @@ public class WithdrawPanel extends JPanel implements ActionListener, MessageList
 			startNumber = startNumber + lastPageLength;
 			String[] data = new String[1];
 			data[0] = String.valueOf(lastPageLength);
+			data[1] = String.valueOf(lastQueryState);
 			passData(lastQueryType, data);
 			
 		} else if (actionCmd.equals("prev")) {
 			startNumber = startNumber - lastPageLength;
 			String[] data = new String[1];
 			data[0] = String.valueOf(lastPageLength);
+			data[1] = String.valueOf(lastQueryState);
 			passData(lastQueryType, data);
 		} else if (actionCmd.equals("export")) {
 			Map<Integer, List<WithdrawRequest>> categorizedWDPayments = new HashMap<>();
@@ -233,6 +240,9 @@ public class WithdrawPanel extends JPanel implements ActionListener, MessageList
 						cell = row.createCell(cellid++);
 						PhonePaymentTypes phPaymentType = PhonePaymentTypes.findById(wd.getByPhone().getPaymentMethod()); 
 						cell.setCellValue(phPaymentType.name());
+						
+						cell = row.createCell(cellid++);
+						cell.setCellValue(wd.getByPhone().getAccountHolderName());
 					}
 					
 					List<WithdrawRequest> bankWDList = categorizedWDPayments.get(WithdrawReqType.BY_BANK.getId());
@@ -276,8 +286,8 @@ public class WithdrawPanel extends JPanel implements ActionListener, MessageList
 						cell = row.createCell(9);
 						cell.setCellValue("Bank A/C Holder Name");
 						
-						for (WithdrawRequest wd : phoneWDList) {
-							row = spreadsheet.createRow(rowId++);
+						for (WithdrawRequest wd : bankWDList) {
+							row = bankSheet.createRow(rowId++);
 							
 							int cellid = 0;
 							cell = row.createCell(cellid++);
@@ -304,11 +314,10 @@ public class WithdrawPanel extends JPanel implements ActionListener, MessageList
 							cell.setCellValue(df.format(wd.getOpenedTime()));
 							
 							cell = row.createCell(cellid++);
-							cell.setCellValue(wd.getByPhone().getPhNumber());
+							cell.setCellValue(wd.getByBank().getAccountNumber());
 							
 							cell = row.createCell(cellid++);
-							PhonePaymentTypes phPaymentType = PhonePaymentTypes.findById(wd.getByPhone().getPaymentMethod()); 
-							cell.setCellValue(phPaymentType.name());
+							cell.setCellValue(wd.getByBank().getIfscCode());
 						}
 					}
 					String fileNameSuffix = "WithdrawReqs_" + getDateTime() + ".xlsx"; 
@@ -316,6 +325,8 @@ public class WithdrawPanel extends JPanel implements ActionListener, MessageList
 					        new File("D:\\ExportWithdrawRequests\\" + fileNameSuffix));
 					workbook.write(out);
 					out.close();
+					JOptionPane.showMessageDialog(parentMainFrame, "Successfully exported to file :" + fileNameSuffix,
+						      "Success!", JOptionPane.INFORMATION_MESSAGE);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -323,7 +334,11 @@ public class WithdrawPanel extends JPanel implements ActionListener, MessageList
 		} else if (event.getSource() instanceof JMenuItem){
 			JMenuItem menu = (JMenuItem) event.getSource();
 			if (menuItemView == menu) {
-				System.out.println(tableView.getSelectedRow());
+				int currentRow = tableView.getSelectedRow();
+				WithdrawRequest currentWDRequest = currentWDList.get(currentRow);
+				ViewWDDetails viewWdDetails = new ViewWDDetails(currentWDRequest);
+				viewWdDetails.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+				viewWdDetails.setVisible(true);
 			} else if (menuItemUpdate == menu) {
 				int currentRow = tableView.getSelectedRow();
 				WithdrawRequest currentWDRequest = currentWDList.get(currentRow);
@@ -334,7 +349,7 @@ public class WithdrawPanel extends JPanel implements ActionListener, MessageList
 		}
 	}
 	
-	private void processDBQuery(final int operationType, final long getByIdVal) {
+	private void processDBQuery(final int operationType, final long getByIdVal, final int stateVal) {
 		final JDialog loading = new JDialog();
 		JPanel p1 = new JPanel(new BorderLayout());
 		p1.add(new JLabel("Please wait..."), BorderLayout.CENTER);
@@ -352,7 +367,7 @@ public class WithdrawPanel extends JPanel implements ActionListener, MessageList
 		    protected String doInBackground() throws InterruptedException {
 		    	try {
 		    		wdSet = WithdrawDBHandler.getInstance().getWithdrawRequests(operationType, 
-							startNumber, WithdrawReqState.OPEN.getId(), getByIdVal, lastPageLength);
+							startNumber, stateVal, getByIdVal, lastPageLength);
 		    	} catch (NotAllowedException e) {
 					e.printStackTrace();
 				} catch (SQLException e) {
@@ -388,6 +403,9 @@ public class WithdrawPanel extends JPanel implements ActionListener, MessageList
 				Vector<Vector<String>> rowData = formTableRows(wdSet);
 				tableModel.setDataVector(rowData, columns);
 				tableModel.fireTableDataChanged();
+				if (rowData.size() > 0) {
+					exportButton.setEnabled(true);
+				}
 		    }
 		};
 		worker.execute(); //here the process thread initiates
@@ -417,7 +435,8 @@ public class WithdrawPanel extends JPanel implements ActionListener, MessageList
 			wdRecordId = Long.parseLong(data[0]);
 		}
 		lastPageLength = pageLength;
-		processDBQuery(lastQueryType, wdRecordId);
+		lastQueryState = Integer.parseInt(data[1]);
+		processDBQuery(lastQueryType, wdRecordId, lastQueryState);
 	}
 	
 	private Vector<String> formTableColumns() {
