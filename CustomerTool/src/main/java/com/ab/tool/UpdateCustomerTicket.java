@@ -186,7 +186,7 @@ public class UpdateCustomerTicket extends JDialog implements ActionListener {
 					} else {
 						exceptionErrorMsg = "Core server not reachable";
 					}
-					JOptionPane.showMessageDialog(null, exceptionErrorMsg.toString(),
+					JOptionPane.showMessageDialog(this, exceptionErrorMsg.toString(),
 						      "Hey!", JOptionPane.ERROR_MESSAGE);
 				}
 				if (!exceptionThrown) {

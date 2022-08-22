@@ -25,7 +25,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingWorker;
 import javax.swing.table.DefaultTableModel;
 
-public class CustomerCarePanel extends JPanel implements ActionListener, MessageListener {
+public class KYCPanel extends JPanel implements ActionListener, MessageListener {
 	
 	private static final long serialVersionUID = 1L;
 	
@@ -44,16 +44,17 @@ public class CustomerCarePanel extends JPanel implements ActionListener, Message
     private JMenuItem menuItemView;
     private JMenuItem menuItemUpdate;
     
-    private List<CustomerTicket> currentList = new ArrayList<>();
+    private List<KYCEntry> currentList = new ArrayList<>();
     
     private JFrame parentMainFrame;
     
-    public CustomerCarePanel(JFrame frame) {
-		this.parentMainFrame = frame;
+    public KYCPanel(JFrame frame) {
+    	this.parentMainFrame = frame;
 		setLayout(new BorderLayout(0, 0));
-	
-		String[] ccStates = new String[]{"Open", "Closed", "Not A Issue", "Cancelled"};
-		JPanel queryPanel = new QueryPanel(ccStates, this);
+		
+		String[] wdStates = new String[]{"Open"};
+		
+		JPanel queryPanel = new QueryPanel(wdStates, this);
 		add(queryPanel, BorderLayout.NORTH);
 		
 		Vector<String> columns = formTableColumns();
@@ -68,8 +69,8 @@ public class CustomerCarePanel extends JPanel implements ActionListener, Message
 		tableView.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
 		popupMenu = new JPopupMenu();
-        menuItemView = new JMenuItem("View Details");
-        menuItemUpdate = new JMenuItem("Update Row");
+        menuItemView = new JMenuItem("Dummy Item");
+        menuItemUpdate = new JMenuItem("Update KYC Docs");
          
         menuItemView.addActionListener(this);
         menuItemUpdate.addActionListener(this);
@@ -112,9 +113,9 @@ public class CustomerCarePanel extends JPanel implements ActionListener, Message
 		buttonPanel.add(nextButton);
 		
 		add(buttonPanel, BorderLayout.SOUTH);
-	}
+    }
     
-	@Override
+    @Override
 	public void actionPerformed(ActionEvent event) {
 		String actionCmd = event.getActionCommand();
 		if (actionCmd.equals("next")) {
@@ -133,22 +134,18 @@ public class CustomerCarePanel extends JPanel implements ActionListener, Message
 		} else if (event.getSource() instanceof JMenuItem){
 			JMenuItem menu = (JMenuItem) event.getSource();
 			if (menuItemView == menu) {
-				int currentRow = tableView.getSelectedRow();
-				CustomerTicket currentObject = currentList.get(currentRow);
-				ViewCustomerTicket viewTk = new ViewCustomerTicket(currentObject); 
-				viewTk.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-				viewTk.setVisible(true);
+				//int currentRow = tableView.getSelectedRow();
 			} else if (menuItemUpdate == menu) {
 				int currentRow = tableView.getSelectedRow();
-				CustomerTicket currentObject = currentList.get(currentRow);
-				UpdateCustomerTicket updateTkt = new UpdateCustomerTicket(currentObject);
-				updateTkt.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-				updateTkt.setVisible(true);
+				KYCEntry currentObject = currentList.get(currentRow);
+				UpdateKYCDialog updateKYC = new UpdateKYCDialog(currentObject); 
+				updateKYC.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+				updateKYC.setVisible(true);
 			}
 		}
-	}
-	
-	private void processDBQuery(final int operationType, final long getByIdVal, final int stateVal) {
+    }
+    
+    private void processDBQuery(final int operationType, final long getByIdVal, final int stateVal) {
 		final JDialog loading = new JDialog();
 		JPanel p1 = new JPanel(new BorderLayout());
 		p1.add(new JLabel("Please wait..."), BorderLayout.CENTER);
@@ -161,12 +158,12 @@ public class CustomerCarePanel extends JPanel implements ActionListener, Message
 		loading.setModal(true);
 		
 		SwingWorker<String, Void> worker = new SwingWorker<String, Void>() {
-			CCTicketsHolder wdSet = null;
+			KYCEntriesHolder kycHolder = null; 
 		    @Override
 		    protected String doInBackground() throws InterruptedException {
 		    	try {
-		    		wdSet = CustomerCareDBHandler.getInstance().getCCTicketsFromTool(operationType, 
-							startNumber, stateVal, getByIdVal, lastPageLength);
+		    		kycHolder = KYCDBHandler.getInstance().getKYCEntriesFromTool(operationType, 
+							startNumber, getByIdVal, lastPageLength);
 		    	} catch (NotAllowedException e) {
 					e.printStackTrace();
 				} catch (SQLException e) {
@@ -179,27 +176,27 @@ public class CustomerCarePanel extends JPanel implements ActionListener, Message
 		    protected void done() {
 		    	loading.setVisible(false);
 		    	loading.dispose();
-		    	if (wdSet == null) {
+		    	if (kycHolder == null) {
 		    		return;
 		    	}
 		    	String totalPrefix = "Showing";
 		        int start;
 		        int end;
-		        if (wdSet.getTotal() == 0) {
+		        if (kycHolder.getTotal() == 0) {
 		            start = 0;
 		            end = 0;
 		        } else {
 		            start = startNumber + 1;
-		            end = startNumber + wdSet.getList().size();
+		            end = startNumber + kycHolder.getList().size();
 		        }
-		        final String totalStr = totalPrefix + start + " - " + end + " of " + wdSet.getTotal();
+		        final String totalStr = totalPrefix + start + " - " + end + " of " + kycHolder.getTotal();
 		        currentList.clear();
-		        currentList.addAll(wdSet.getList());
+		        currentList.addAll(kycHolder.getList());
 		    	totalLabel.setText(totalStr);
-				prevButton.setEnabled(wdSet.isPrevEnabled());
-				nextButton.setEnabled(wdSet.isNextEnabled());
+				prevButton.setEnabled(kycHolder.isPrevEnabled());
+				nextButton.setEnabled(kycHolder.isNextEnabled());
 				Vector<String> columns = formTableColumns();
-				Vector<Vector<String>> rowData = formTableRows(wdSet);
+				Vector<Vector<String>> rowData = formTableRows(kycHolder);
 				tableModel.setDataVector(rowData, columns);
 				tableModel.fireTableDataChanged();
 		    }
@@ -212,7 +209,7 @@ public class CustomerCarePanel extends JPanel implements ActionListener, Message
 		    e1.printStackTrace();
 		}
 	}
-	
+
 	@Override
 	public void passData(int operationType, String[] data) {
 		if (lastQueryType != operationType) {
@@ -230,12 +227,10 @@ public class CustomerCarePanel extends JPanel implements ActionListener, Message
 		} else if (operationType == QueryPanel.GET_BY_ID) {
 			try {
 				wdRecordId = Long.parseLong(data[0]);
-			}
-			catch(NumberFormatException ex) {
+			} catch(NumberFormatException ex) {
 				JOptionPane.showMessageDialog(this, "Please Enter a valid id",
 					      "Hey!", JOptionPane.ERROR_MESSAGE);
 			}
-			
 		}
 		lastPageLength = pageLength;
 		lastQueryState = Integer.parseInt(data[1]);
@@ -245,40 +240,38 @@ public class CustomerCarePanel extends JPanel implements ActionListener, Message
 	private Vector<String> formTableColumns() {
 		Vector<String> tableColumns = new Vector<String>();
 		
-		tableColumns.add("ID");
-		tableColumns.add("ReferenceID");
-		tableColumns.add("UserProfileID");
-		tableColumns.add("Request Type");
-		tableColumns.add("Open Time");
+		tableColumns.add("USERID");
+		tableColumns.add("Aadhar Front Page");
+		tableColumns.add("Aadhar Back Page");
+		tableColumns.add("PAN Page");
+		tableColumns.add("Last Updated Time");
 		tableColumns.add("Status");
 		
 		return tableColumns;
 	}
 	
-	private Vector<Vector<String>> formTableRows(CCTicketsHolder holder) {
+	private Vector<Vector<String>> formTableRows(KYCEntriesHolder kycHolder) {
 		String datePattern = "dd:MMM:yyyy-HH:mm";
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat();
 		
 		Vector<Vector<String>> rows = new Vector<>();
 		
-		List<CustomerTicket> rowsList = holder.getList();
-		for (CustomerTicket row : rowsList) {
+		List<KYCEntry> rowsList = kycHolder.getList();
+		for (KYCEntry row : rowsList) {
 			Vector<String> rowVector = new Vector<String>();
 			
-			rowVector.add(String.valueOf(row.getId()));
-			rowVector.add(row.getRefId());
 			rowVector.add(String.valueOf(row.getUserId()));
+			rowVector.add(String.valueOf(row.getAfpId()));
+			rowVector.add(String.valueOf(row.getAbpId()));
+			rowVector.add(String.valueOf(row.getPpId()));
 			
-			CustomerCareReqType reqType = CustomerCareReqType.findById(row.getRequestType()); 
-			rowVector.add(reqType.name());
-						
-			Date openDate = new Date(row.getOpenedTime());
+			System.out.println("UT" + row.getLastUpdatedTime());
+			Date openDate = new Date(row.getLastUpdatedTime());
             simpleDateFormat.applyPattern(datePattern);
             String openTimeStr = simpleDateFormat.format(openDate);
             rowVector.add(openTimeStr);
             
-            CustomerCareReqState reqState = CustomerCareReqState.findById(row.getStatus());
-            rowVector.add(reqState.name());
+            rowVector.add(row.getStatus());
             
 			rows.add(rowVector);
 		}

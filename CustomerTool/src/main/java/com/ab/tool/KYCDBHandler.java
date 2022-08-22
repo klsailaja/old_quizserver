@@ -43,20 +43,28 @@ public class KYCDBHandler {
 	private static final String GET_KYC_BY_ID = "SELECT * FROM " + TABLE_NAME + " WHERE " 
 			+ USER_PROFILE_ID + " = ?";
 	
-	private static final String UPDATE_KYC_1_BY_ID = "UPDATE " + TABLE_NAME + " SET " + AADHAR_FRONT_PAGE + "= ?,SET "
+	private static final String UPDATE_KYC_1_BY_ID = "UPDATE " + TABLE_NAME + " SET " + AADHAR_FRONT_PAGE + "= ?,"
 			+ UPDATED_TIME + "= ?" + " WHERE " + USER_PROFILE_ID + " = ?"; 
-	private static final String UPDATE_KYC_2_BY_ID = "UPDATE " + TABLE_NAME + " SET " + AADHAR_BACK_PAGE + "= ?,SET " 
+	private static final String UPDATE_KYC_2_BY_ID = "UPDATE " + TABLE_NAME + " SET " + AADHAR_BACK_PAGE + "= ?," 
 			+ UPDATED_TIME + "= ?" + " WHERE " + USER_PROFILE_ID + " = ?";
-	private static final String UPDATE_KYC_3_BY_ID = "UPDATE " + TABLE_NAME + " SET " + PAN_PAGE + "= ?,SET " 
+	private static final String UPDATE_KYC_3_BY_ID = "UPDATE " + TABLE_NAME + " SET " + PAN_PAGE + "= ?," 
 			+ UPDATED_TIME + "= ?" + " WHERE " + USER_PROFILE_ID + " = ?";
 	
 	private static final String UPDATE_COMENTS = "UPDATE " + TABLE_NAME + " SET " + STATUS + "= ?";
 	
 	private static final String GET_IMP_DATA = "SELECT * FROM " + TABLE_NAME
-			+ " WHERE (" + UPDATED_TIME + "> ? ) AND STATUS NOT LIKE '%APPROVED%' ORDER BY " +  				UPDATED_TIME + " DESC LIMIT ?, ?";
-			
+			+ " WHERE (? -" + UPDATED_TIME + ") >= " + Constants.WD_REQ_MAX_OPEN_DAYS_IN_MILLIS 
+			+ " AND STATUS NOT LIKE '%APPROVED%' ORDER BY "    				
+			+ UPDATED_TIME + " DESC LIMIT ?, ?";
 	private static final String GET_IMP_DATA_COUNT = "SELECT COUNT(*) FROM " + TABLE_NAME 
-			+ " WHERE (" + UPDATED_TIME + "> ? ) AND STATUS NOT LIKE '%APPROVED%' ";
+			+ " WHERE (? -" + UPDATED_TIME + ") >= " + Constants.WD_REQ_MAX_OPEN_DAYS_IN_MILLIS
+			+ " AND STATUS NOT LIKE '%APPROVED%' ";
+	
+	private static final String GET_DATA_BY_STATUS = "SELECT * FROM " + TABLE_NAME 
+			+ " WHERE STATUS NOT LIKE '%APPROVED%'";
+	
+	private static final String GET_DATA_BY_STATUS_COUNT = "SELECT COUNT(*) FROM " + TABLE_NAME 
+			+ " WHERE STATUS NOT LIKE '%APPROVED%'";
 
 	 
 	
@@ -258,8 +266,8 @@ public class KYCDBHandler {
 		String sql = GET_IMP_DATA;
 		
 		if (queryType == QueryPanel.ALL_RECORDS) {
-			totalSql = GET_IMP_DATA_COUNT;
-			sql = GET_IMP_DATA;
+			totalSql = GET_DATA_BY_STATUS_COUNT;
+			sql = GET_DATA_BY_STATUS;
 		} else if (queryType == QueryPanel.GET_BY_ID) {
 			totalSql = null;
 			sql = GET_KYC_BY_ID;
@@ -281,12 +289,6 @@ public class KYCDBHandler {
 		ResultSet rs = null;
 		
 		if (queryType == QueryPanel.ALL_RECORDS) {
-			long currentTime = System.currentTimeMillis();
-			totalPs.setLong(1, currentTime);
-			
-			ps.setLong(1, currentTime);
-			ps.setInt(2, startRowNumber);
-			ps.setInt(3, pageLength);
 		} else if (queryType == QueryPanel.GET_BY_ID) {
 			ps.setLong(1, reqId);
 		} else if (queryType == QueryPanel.IMPORTANT) {
@@ -303,6 +305,7 @@ public class KYCDBHandler {
 		
 		try {
 			if (totalPs != null) {
+				System.out.println("totalPs =" + totalPs.toString());
 				totalRs = totalPs.executeQuery();
 			} else {
 				int total = 1;

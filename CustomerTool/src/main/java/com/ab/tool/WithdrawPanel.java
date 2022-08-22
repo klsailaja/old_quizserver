@@ -432,7 +432,13 @@ public class WithdrawPanel extends JPanel implements ActionListener, MessageList
 		} else if (operationType == QueryPanel.ALL_RECORDS) {
 			pageLength = Integer.parseInt(data[0]);
 		} else if (operationType == QueryPanel.GET_BY_ID) {
-			wdRecordId = Long.parseLong(data[0]);
+			try {
+				wdRecordId = Long.parseLong(data[0]);
+			}
+			catch(NumberFormatException ex) {
+				JOptionPane.showMessageDialog(this, "Please Enter a valid id",
+					      "Hey!", JOptionPane.ERROR_MESSAGE);
+			}
 		}
 		lastPageLength = pageLength;
 		lastQueryState = Integer.parseInt(data[1]);

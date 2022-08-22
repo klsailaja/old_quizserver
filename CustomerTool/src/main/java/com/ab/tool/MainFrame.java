@@ -80,7 +80,7 @@ public class MainFrame extends JFrame implements TreeSelectionListener {
 		AddNewUser addNewUser = new AddNewUser(this);
 		addNewUser.init();
 		rightPanel.add("AddUser", addNewUser);
-		rightPanel.add("KYCView", new KYCPanel(this, null));
+		rightPanel.add("KYCView", new KYCPanel(this));
 		
 		mainPanel.add(rightPanel, BorderLayout.CENTER);
 		
