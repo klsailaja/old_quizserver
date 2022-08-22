@@ -43,11 +43,11 @@ public class KYCDBHandler {
 	private static final String GET_KYC_BY_ID = "SELECT * FROM " + TABLE_NAME + " WHERE " 
 			+ USER_PROFILE_ID + " = ?";
 	
-	private static final String UPDATE_KYC_1_BY_ID = "UPDATE " + TABLE_NAME + " SET " + AADHAR_FRONT_PAGE + "= ?,SET "
+	private static final String UPDATE_KYC_1_BY_ID = "UPDATE " + TABLE_NAME + " SET " + AADHAR_FRONT_PAGE + "= ?,"
 			+ UPDATED_TIME + "= ?" + " WHERE " + USER_PROFILE_ID + " = ?"; 
-	private static final String UPDATE_KYC_2_BY_ID = "UPDATE " + TABLE_NAME + " SET " + AADHAR_BACK_PAGE + "= ?,SET " 
+	private static final String UPDATE_KYC_2_BY_ID = "UPDATE " + TABLE_NAME + " SET " + AADHAR_BACK_PAGE + "= ?," 
 			+ UPDATED_TIME + "= ?" + " WHERE " + USER_PROFILE_ID + " = ?";
-	private static final String UPDATE_KYC_3_BY_ID = "UPDATE " + TABLE_NAME + " SET " + PAN_PAGE + "= ?,SET " 
+	private static final String UPDATE_KYC_3_BY_ID = "UPDATE " + TABLE_NAME + " SET " + PAN_PAGE + "= ?," 
 			+ UPDATED_TIME + "= ?" + " WHERE " + USER_PROFILE_ID + " = ?";
 
 	
@@ -78,7 +78,9 @@ public class KYCDBHandler {
 			ps.setLong(2, kycEntry.getAfpId());
 			ps.setLong(3, kycEntry.getAbpId());
 			ps.setLong(4, kycEntry.getPpId());
-			ps.setString(5, kycEntry.getStatus());
+			ps.setLong(5, System.currentTimeMillis());
+			ps.setString(6, kycEntry.getStatus());
+			
 			
 			int result = ps.executeUpdate();
 			logger.info("In createKYCEntry create op result : {}", result);
@@ -179,7 +181,8 @@ public class KYCDBHandler {
 		PreparedStatement ps = dbConn.prepareStatement(getUpdateQryType(qryType));
 		
 		ps.setLong(1, pictureId);
-		ps.setLong(2, userId);
+		ps.setLong(2, System.currentTimeMillis());
+		ps.setLong(3, userId);
 		
 		int operResult = 0;
 		
