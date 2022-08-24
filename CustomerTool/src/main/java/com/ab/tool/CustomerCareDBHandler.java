@@ -104,6 +104,7 @@ public class CustomerCareDBHandler {
 	private static final String REMOVE_TICKET_BY_ID = "DELETE FROM " + TABLE_NAME 
 			+ " WHERE " + ID + " = ? ";
 	
+	// For Customer Tool
 	private static final String GET_IMP_DATA = "SELECT * FROM " + TABLE_NAME
 			+ " WHERE (" + STATUS + " = ? ) AND (? -" + REQUEST_OPENED_TIME + ") >= " 
 			+ Constants.WD_REQ_MAX_OPEN_DAYS_IN_MILLIS + " ORDER BY " + ID + " DESC LIMIT ?, ?";

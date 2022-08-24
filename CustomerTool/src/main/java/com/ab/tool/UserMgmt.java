@@ -1,5 +1,6 @@
 package com.ab.tool;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -12,6 +13,8 @@ import java.util.StringTokenizer;
 
 
 public class UserMgmt {
+	
+	private static String OS_ROOT = "D:";
 	
 	private static String rootUserName = "rajasekhar";
 	private static String rootPasswd = "Raj@12345$";
@@ -26,8 +29,7 @@ public class UserMgmt {
 	
 	private boolean isAdmin = false;
 	
-	private String path = "D:\\Tool\\users.txt";
-	
+	private String path = OS_ROOT + File.separator + "QuizHome" + File.separator + "Tool" + File.separator + "users.txt";
 	
 	private UserMgmt() {
 	}

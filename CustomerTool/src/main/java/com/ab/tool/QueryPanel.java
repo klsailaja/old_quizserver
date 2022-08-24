@@ -74,7 +74,9 @@ public class QueryPanel extends JPanel implements ActionListener, ItemListener {
 		byIdRadio.setBounds(6, 118, 80, 23);
 		byIdRadio.addItemListener(this);
 		add(byIdRadio);
-		bg.add(byIdRadio);
+		if (UserMgmt.getInstance().isAdmin()) {
+			bg.add(byIdRadio);
+		}
 		
 		viewByIdText = new JTextField();
 		viewByIdText.setBounds(120, 117, 100, 25);
@@ -99,7 +101,11 @@ public class QueryPanel extends JPanel implements ActionListener, ItemListener {
 			int type = -1;
 			String pageLen = null;
 			int stateVal = -1;
-			if (impRadio.isSelected()) {
+			System.out.println("type" + type);
+			if (byIdRadio.isSelected()) {
+				type = GET_BY_ID;
+				pageLen = viewByIdText.getText().trim();
+			} else if (impRadio.isSelected()) {
 				type = IMPORTANT;
 				pageLen = (String)comboBox.getSelectedItem();
 			} else if (allRadio.isSelected()) {
@@ -107,13 +113,11 @@ public class QueryPanel extends JPanel implements ActionListener, ItemListener {
 				pageLen = (String)comboBox.getSelectedItem();
 				stateVal = stateCombo.getSelectedIndex();
 				stateVal++;
-			} else if (byIdRadio.isSelected()) {
-				type = GET_BY_ID;
-				pageLen = viewByIdText.getText().trim();
-			}
+			}  
 			String[] data = new String[2];
 			data[0] = pageLen;
 			data[1] = String.valueOf(stateVal);
+			System.out.println("type :" + type);
 			this.messageListener.passData(type, data);
 		}
 	}

@@ -262,6 +262,7 @@ public class KYCDBHandler {
 			long reqId, int pageLength) 
 			throws SQLException, NotAllowedException {
 		
+		System.out.println("getKYCEntriesFromTool :" + queryType + ":" + QueryPanel.GET_BY_ID);
 		String totalSql = GET_IMP_DATA_COUNT;
 		String sql = GET_IMP_DATA;
 		

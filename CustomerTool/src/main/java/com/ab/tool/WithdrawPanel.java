@@ -37,6 +37,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class WithdrawPanel extends JPanel implements ActionListener, MessageListener {
 	
+	private static final String EXPORT_FILE_PATH = "D:" + File.separator + "QuizHome" 
+			+ File.separator + "ExportWithdrawRequests" + File.separator;
+	
 	private static final long serialVersionUID = 1L;
 	
 	private int startNumber = 0;
@@ -322,7 +325,7 @@ public class WithdrawPanel extends JPanel implements ActionListener, MessageList
 					}
 					String fileNameSuffix = "WithdrawReqs_" + getDateTime() + ".xlsx"; 
 					FileOutputStream out = new FileOutputStream(
-					        new File("D:\\ExportWithdrawRequests\\" + fileNameSuffix));
+					        new File(EXPORT_FILE_PATH + fileNameSuffix));
 					workbook.write(out);
 					out.close();
 					JOptionPane.showMessageDialog(parentMainFrame, "Successfully exported to file :" + fileNameSuffix,

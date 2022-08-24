@@ -57,7 +57,9 @@ public class MainFrame extends JFrame implements TreeSelectionListener {
 		
 		rootNode.add(withdrawReqs);
 		rootNode.add(customerReqs);
-		rootNode.add(addUserNode);
+		if (UserMgmt.getInstance().isAdmin()) {
+			rootNode.add(addUserNode);
+		}
 		rootNode.add(kycViewNode);
 		
 		tree = new JTree(rootNode);
