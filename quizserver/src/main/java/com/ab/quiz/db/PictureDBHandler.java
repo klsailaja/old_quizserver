@@ -32,6 +32,8 @@ import com.ab.quiz.pojo.Picture;
 
 public class PictureDBHandler {
 	
+	private static String OS_ROOT = "D:";
+	
 	private static String TABLE_NAME = "PICTURES";
 	
 	private static String ID = "ID";
@@ -42,7 +44,8 @@ public class PictureDBHandler {
 	
 	private static final Logger logger = LogManager.getLogger(PictureDBHandler.class);
 	
-	private static final String PIC_HOME = "D:" + File.separator + "CustomerCare";
+	private static final String PIC_HOME = OS_ROOT + File.separator + "QuizHome" + File.separator + "CustomerCare";
+	
 	
 	private static final String CREATE_PIC_ENTRY = "INSERT INTO " + TABLE_NAME  
 			+ "(" + PIC_TYPE + "," + PIC_PATH + ") VALUES"

@@ -16,7 +16,7 @@ import com.ab.quiz.pojo.KYCEntry;
   		ABP BIGINT NOT NULL DEFAULT -1,
   		PP BIGINT NOT NULL DEFAULT -1,
   		UPDATEDTIME BIGINT NOT NULL,
-		STATUS VARCHAR(100) NOT NULL, PRIMARY KEY (USERID)) ENGINE = INNODB;
+		STATUS VARCHAR(200) NOT NULL, PRIMARY KEY (USERID)) ENGINE = INNODB;
 	
  */
 
@@ -142,6 +142,7 @@ public class KYCDBHandler {
 					kycEntry.setAbpId(rs.getLong(AADHAR_BACK_PAGE));
 					kycEntry.setPpId(rs.getLong(PAN_PAGE));
 					kycEntry.setStatus(rs.getString(STATUS));
+					kycEntry.setLastUpdatedTime(rs.getLong(UPDATED_TIME));
 				}
 			}
 		} catch (SQLException ex) {

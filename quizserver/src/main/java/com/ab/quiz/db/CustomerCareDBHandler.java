@@ -25,6 +25,7 @@ import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.pojo.CCTicketsHolder;
 import com.ab.quiz.pojo.CustomerTicket;
 
+
 /*
 CREATE TABLE CUSTOMERCAREREQS(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT, 
 		REFID VARCHAR(10) NOT NULL,
@@ -109,7 +110,6 @@ public class CustomerCareDBHandler {
 	
 	private static final String REMOVE_TICKET_BY_ID = "DELETE FROM " + TABLE_NAME 
 			+ " WHERE " + ID + " = ? ";
-	
 	
 	private static final Logger logger = LogManager.getLogger(CustomerCareDBHandler.class);
 	

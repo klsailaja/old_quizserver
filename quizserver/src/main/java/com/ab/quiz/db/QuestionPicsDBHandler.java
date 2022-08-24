@@ -26,6 +26,9 @@ CREATE TABLE QUESTIONPICS(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 */
 
 public class QuestionPicsDBHandler {
+	
+	private static String OS_ROOT = "D:";
+	
 	private static String TABLE_NAME = "QUESTIONPICS";
 	
 	private static String ID = "ID";
@@ -35,7 +38,7 @@ public class QuestionPicsDBHandler {
 	
 	private static final Logger logger = LogManager.getLogger(QuestionPicsDBHandler.class);
 	
-	private static final String PIC_HOME = "D:" + File.separator + "QuestionPics";
+	private static final String PIC_HOME = OS_ROOT + File.separator + "QuizHome" + File.separator + "QuestionPics";
 	
 	private static final String MAX_WITHDRAW_REQ_ID = "SELECT MAX(ID) FROM " + TABLE_NAME;
 	
@@ -98,12 +101,11 @@ public class QuestionPicsDBHandler {
 	
 	public long createPictureDBEntry(String fileNamePrefix, byte[] fileContents) throws SQLException {
 		
-		String dirName = "MOVIE_QUES_PICS";
 		long maxId = getMaxWithdrawReqId();
 		maxId++;
 		
 		String actualFileName = fileNamePrefix + "_" + maxId + ".jpg";
-		String completeFielPath = PIC_HOME + File.separator + dirName + File.separator + actualFileName;
+		String completeFielPath = PIC_HOME + File.separator + actualFileName;
 		
 		boolean fileCreationResult = false;
 		try (FileOutputStream fos = new FileOutputStream(completeFielPath)) {
@@ -209,8 +211,7 @@ public class QuestionPicsDBHandler {
 			return null;
 		}
 		
-		String dirName = "MOVIE_QUES_PICS";
-		String completeFielPath = PIC_HOME + File.separator + dirName + File.separator + pictureObject.getFilePath();
+		String completeFielPath = PIC_HOME + File.separator + pictureObject.getFilePath();
 		
 		try {
 			BufferedImage bImage = ImageIO.read(new File(completeFielPath));
