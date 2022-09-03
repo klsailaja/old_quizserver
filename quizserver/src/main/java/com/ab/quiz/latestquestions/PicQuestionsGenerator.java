@@ -183,22 +183,23 @@ public class PicQuestionsGenerator {
 		{  
 			File file = new File(fileName);  
 			FileInputStream fis = new FileInputStream(file);   //obtaining bytes from the file  
-			//creating Workbook instance that refers to .xlsx file  
-			XSSFWorkbook wb = new XSSFWorkbook(fis);   
-			XSSFSheet sheet = wb.getSheetAt(0);     //creating a Sheet object to retrieve object  
-			Iterator<Row> itr = sheet.iterator();    //iterating over excel file  
-			while (itr.hasNext())                 
-			{  
-				Row row = itr.next();
-				StringBuffer lineStrBuffer = new StringBuffer(); 
-				Iterator<Cell> cellIterator = row.cellIterator();   //iterating over each column  
-				while (cellIterator.hasNext())   
+			try (//creating Workbook instance that refers to .xlsx file  
+			XSSFWorkbook wb = new XSSFWorkbook(fis)) {
+				XSSFSheet sheet = wb.getSheetAt(0);     //creating a Sheet object to retrieve object  
+				Iterator<Row> itr = sheet.iterator();    //iterating over excel file  
+				while (itr.hasNext())                 
 				{  
-					Cell cell = cellIterator.next();
-					lineStrBuffer.append(cell.getStringCellValue());
-					lineStrBuffer.append(";");
+					Row row = itr.next();
+					StringBuffer lineStrBuffer = new StringBuffer(); 
+					Iterator<Cell> cellIterator = row.cellIterator();   //iterating over each column  
+					while (cellIterator.hasNext())   
+					{  
+						Cell cell = cellIterator.next();
+						lineStrBuffer.append(cell.getStringCellValue());
+						lineStrBuffer.append(";");
+					}
+					fileContents.add(lineStrBuffer.toString());
 				}
-				fileContents.add(lineStrBuffer.toString());
 			}  
 		}  
 		catch(Exception e)  
@@ -1319,7 +1320,7 @@ public class PicQuestionsGenerator {
 	    	    writer.append("\n");
 	    	    writer.flush();
 	    	    qCount++;
-		    	//System.out.println("qCount :" + qCount);
+		    	System.out.println("qCount :" + qCount);
 	    	}
 		}
 	}

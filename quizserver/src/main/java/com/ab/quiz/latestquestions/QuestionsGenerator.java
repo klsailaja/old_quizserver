@@ -3,7 +3,6 @@ package com.ab.quiz.latestquestions;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,17 +12,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
-import java.util.Map.Entry;
 
 public class QuestionsGenerator {
 	
@@ -304,23 +301,24 @@ public class QuestionsGenerator {
 		{  
 			File file = new File(fileName);  
 			FileInputStream fis = new FileInputStream(file);   //obtaining bytes from the file  
-			//creating Workbook instance that refers to .xlsx file  
-			XSSFWorkbook wb = new XSSFWorkbook(fis);   
-			XSSFSheet sheet = wb.getSheetAt(0);     //creating a Sheet object to retrieve object  
-			Iterator<Row> itr = sheet.iterator();    //iterating over excel file  
-			while (itr.hasNext())                 
-			{  
-				Row row = itr.next();
-				StringBuffer lineStrBuffer = new StringBuffer(); 
-				Iterator<Cell> cellIterator = row.cellIterator();   //iterating over each column  
-				while (cellIterator.hasNext())   
+			try (//creating Workbook instance that refers to .xlsx file  
+			XSSFWorkbook wb = new XSSFWorkbook(fis)) {
+				XSSFSheet sheet = wb.getSheetAt(0);     //creating a Sheet object to retrieve object  
+				Iterator<Row> itr = sheet.iterator();    //iterating over excel file  
+				while (itr.hasNext())                 
 				{  
-					Cell cell = cellIterator.next();
-					lineStrBuffer.append(cell.getStringCellValue());
-					lineStrBuffer.append(":");
+					Row row = itr.next();
+					StringBuffer lineStrBuffer = new StringBuffer(); 
+					Iterator<Cell> cellIterator = row.cellIterator();   //iterating over each column  
+					while (cellIterator.hasNext())   
+					{  
+						Cell cell = cellIterator.next();
+						lineStrBuffer.append(cell.getStringCellValue());
+						lineStrBuffer.append(":");
+					}
+					int pos = lineStrBuffer.lastIndexOf(":");
+					fileContents.add(lineStrBuffer.substring(0, pos).toString());
 				}
-				int pos = lineStrBuffer.lastIndexOf(":");
-				fileContents.add(lineStrBuffer.substring(0, pos).toString());
 			}  
 		}  
 		catch(Exception e)  
@@ -1560,8 +1558,8 @@ public class QuestionsGenerator {
 	    		strBuffer.append("1");
 	    		strBuffer.append(",");
 	    		
-	    		int randomSeed = getRandomNumber(1,10);
-	    		int picId = 1;
+	    		//int randomSeed = getRandomNumber(1,10);
+	    		/*int picId = 1;
 	    		if ((randomSeed % 2) == 0) {
 	    			picId = randomSeed;
 	    		} else {
@@ -1570,7 +1568,7 @@ public class QuestionsGenerator {
 	    			} else {
 	    				picId = randomSeed;
 	    			}
-	    		}
+	    		}*/
 	    		strBuffer.append(-1);
 	    		strBuffer.append(",");
 	    		strBuffer.append(celebrityIdSetStr);
@@ -1586,7 +1584,7 @@ public class QuestionsGenerator {
 	    	    writer.append("\n");
 	    	    writer.flush();
 	    	    qCount++;
-		    	//System.out.println("qCount :" + qCount);
+		    	System.out.println("qCount :" + qCount);
 	    	}
 		}
 	}
@@ -1681,7 +1679,7 @@ public class QuestionsGenerator {
 		return categoryList; 
 	}
 	
-	private static void fillFromExtraOptions(String categoryStr, List<String> tokens) {
+	/*private static void fillFromExtraOptions(String categoryStr, List<String> tokens) {
 		List<String> extraOptionsList = extraOptionsMap.get(categoryStr);
 		int totalTokensCt = 3;
 		int fillCt = totalTokensCt - tokens.size();
@@ -1697,7 +1695,7 @@ public class QuestionsGenerator {
 				}
 			}
 		}
-	}
+	}*/
 	
 	private static int getRandomNumber(int min, int max) {
         return min + (int)(Math.random() * (max - min));
@@ -1705,7 +1703,7 @@ public class QuestionsGenerator {
 	
 	
 	
-	private static void writeToExcelFile(String fileName) throws Exception {
+	/*private static void writeToExcelFile(String fileName) throws Exception {
 		
 		try (XSSFWorkbook workbook = new XSSFWorkbook()) {
 			// spreadsheet object
@@ -1757,5 +1755,5 @@ public class QuestionsGenerator {
 			workbook.write(out);
 			out.close();
 		}
-	}
+	}*/
 }
