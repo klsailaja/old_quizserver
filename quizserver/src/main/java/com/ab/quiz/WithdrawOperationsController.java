@@ -11,12 +11,18 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.db.PictureDBHandler;
+import com.ab.quiz.db.VerifyWDOTPDBHandler;
 import com.ab.quiz.exceptions.InternalException;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.WDHandler;
+import com.ab.quiz.helper.LazyScheduler;
+import com.ab.quiz.pojo.Mail;
+import com.ab.quiz.pojo.OTPDetails;
 import com.ab.quiz.pojo.WithdrawRequestInput;
 import com.ab.quiz.pojo.WithdrawRequestsHolder;
+import com.ab.quiz.tasks.SendMailTask;
 
 @RestController
 public class WithdrawOperationsController extends BaseController {
@@ -86,4 +92,82 @@ public class WithdrawOperationsController extends BaseController {
 			throw new InternalException("Server Error in getReceiptContents");
 		}
 	}
+	
+	@RequestMapping(value = "/wd/sendcode", method = RequestMethod.POST, produces = "application/json")
+	public @ResponseBody String wDGenerateOTP(@RequestBody String eMail) throws NotAllowedException,
+		InternalException {
+		
+		eMail = eMail.trim();
+		eMail = eMail.replace("\"", "");
+		logger.info("This is in wDGenerateOTP {}", eMail);
+		
+		try {
+			com.ab.quiz.pojo.OTPDetails otpDBEntry = VerifyWDOTPDBHandler.getInstance().getWDOTPDetailsByMailId(eMail);
+			boolean exists = ((otpDBEntry.getMailId() != null) && otpDBEntry.getMailId().equals(eMail)); 
+			
+			String passwd = VerifyWDOTPDBHandler.getInstance().getRandomPasswd(4);
+			String passwdHash = VerifyWDOTPDBHandler.getPasswordHash(passwd);
+			
+			OTPDetails otpDetails = new OTPDetails();
+			otpDetails.setMailId(eMail);
+			otpDetails.setOtp_hash(passwdHash);
+			
+			boolean dbAddOrUpdate = false;
+			if (!exists) {
+				dbAddOrUpdate = VerifyWDOTPDBHandler.getInstance().createWDOTPForVerify(otpDetails);
+			} else {
+				int updateRowCount = VerifyWDOTPDBHandler.getInstance().updateRecordWithWDOTP(eMail, passwdHash);
+				dbAddOrUpdate = (updateRowCount > 0);
+			}
+			if (dbAddOrUpdate) {
+				
+				Mail mail = new Mail();
+		        
+				mail.setMailFrom(QuizConstants.FROM_MAIL_ID);
+				
+				mail.setMailTo(eMail);
+				mail.setMailSubject(QuizConstants.VERIFY_MAIL_ID_SUBJECT);
+				
+				String mailContents = String.format(QuizConstants.VERIFY_MAIL_CONTENTS, passwd); 
+				mail.setMailContent(mailContents);
+				
+				LazyScheduler.getInstance().submit(new SendMailTask(mail));
+			}
+			
+			return String.valueOf(true);
+		} catch(SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
+			logger.error("Error in verifyUserIdGenerateOTP for {}", eMail);
+			logger.error(ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
+			throw new InternalException("Server Error in verifyUserIdGenerateOTP");
+		}
+	}
+	
+	@RequestMapping(value = "/wd/verify", method = RequestMethod.POST, produces = "application/json")
+	public @ResponseBody String verifyOTP(@RequestBody OTPDetails otpDetails)
+			throws NotAllowedException, InternalException {
+		
+		String eMail = otpDetails.getMailId().trim();
+		String passwdHash = otpDetails.getOtp_hash().trim();
+		
+		try {
+			OTPDetails dbEntry = VerifyWDOTPDBHandler.getInstance().getWDOTPDetailsByMailId(eMail);
+			if (dbEntry.getMailId() != null) {
+				if (dbEntry.getMailId().equals(eMail)) {
+					if (dbEntry.getOtp_hash().equals(passwdHash)) {
+						VerifyWDOTPDBHandler.getInstance().deleteWDOTPRecord(eMail);
+						return String.valueOf(true);
+					}
+				}
+			}
+			return String.valueOf(false);
+		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
+			logger.error("Error while WD OTP Verify process", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
+			throw new InternalException("Server Error while WD OTP Verify process");
+		}
+	}
+		
 }

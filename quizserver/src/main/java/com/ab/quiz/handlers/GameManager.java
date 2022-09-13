@@ -372,6 +372,21 @@ public class GameManager {
 		String userName = gameOper.getUserName();
 		
 		if (gameHandler.getGameDetails().getTicketRate() == 0) {
+			if ((currentCount + 1) > 3) {
+				int systemUserIdOffset = 0;
+				if (gameHandler.getGameDetails().getGameType() == 2) {
+					systemUserIdOffset = 10;
+				}
+				int[] systemUserIds = new int[]{1, 2, 3};
+				for (int wdIndex = 0; wdIndex < systemUserIds.length; wdIndex++) {
+					long withdrawSystemUserId = systemUserIdOffset + systemUserIds[wdIndex];
+					if (gameHandler.isUserEnrolled(withdrawSystemUserId)) {
+						boolean systemUserUnjoinRes = gameHandler.withdraw(withdrawSystemUserId);
+						logger.info("UnJoin result of System User with uid {} : {}", withdrawSystemUserId, systemUserUnjoinRes);
+						break;
+					}
+				}
+			}
 			boolean res = gameHandler.join(gameOper.getUserProfileId(), gameOper.getUserAccountType(), 0, userName);
 			return res;
 		}
@@ -472,6 +487,23 @@ public class GameManager {
 		try {
 			long tktRate = gameHandler.getGameDetails().getTicketRate();
 			if (tktRate == 0) {
+				int currentCount = gameHandler.getEnrolledUserCount();
+				if ((currentCount - 1) < 3) {
+					int systemUserIdOffset = 0;
+					if (gameHandler.getGameDetails().getGameType() == 2) {
+						systemUserIdOffset = 10;
+					}
+					int[] systemUserIds = new int[]{1, 2, 3};
+					for (int wdIndex = 0; wdIndex < systemUserIds.length; wdIndex++) {
+						long withdrawSystemUserId = systemUserIdOffset + systemUserIds[wdIndex];
+						if (!gameHandler.isUserEnrolled(withdrawSystemUserId)) {
+							boolean systemUserjoinRes = gameHandler.join(withdrawSystemUserId, UserMoneyAccountType.LOADED_MONEY.getId(), 0, 
+									"Systemuser" + withdrawSystemUserId);
+							logger.info("Join result of System User with uid {} : {}", withdrawSystemUserId, systemUserjoinRes);
+							break;
+						}
+					}
+				}
 				return gameHandler.withdraw(gameOper.getUserProfileId());
 			}
 			

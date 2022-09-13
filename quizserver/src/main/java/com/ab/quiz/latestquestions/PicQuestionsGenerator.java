@@ -255,7 +255,7 @@ public class PicQuestionsGenerator {
 		return tokenList;
 	}
 	
-	private static void printAll() {
+	/*private static void printAll() {
 		for (MovieInfo movieInfo : moviesDataBase) {
 			List<Category> categoryList = movieInfo.getAllCategories();
 			
@@ -263,7 +263,7 @@ public class PicQuestionsGenerator {
 				System.out.println(category);
 			}
 		}
-	}
+	}*/
 	
 	private static void fillupAnswers() {
 		

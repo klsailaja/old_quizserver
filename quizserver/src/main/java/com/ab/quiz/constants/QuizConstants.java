@@ -2,6 +2,24 @@ package com.ab.quiz.constants;
 
 public class QuizConstants {
 	
+	public static final String ERROR_PREFIX_START = "ERROR_START:***********************";
+	
+	public static final String ERROR_PREFIX_END = "ERROR_END:***********************";
+	
+	public static final String FROM_MAIL_ID = "satyahasini25@gmail.com";
+	
+	public static final String VERIFY_MAIL_ID_SUBJECT = "4-digit Money Withdrawal Code";
+	
+	public static final String VERIFY_MAIL_ID_SENDER_NAME = "TeluguQuiz";
+	
+	public static final String VERIFY_MAIL_ID_BODY = "Your 4-digit verification code : %s";
+	
+	public static final String VERIFY_MAIL_CONTENTS = "<html><p>Your 4-digit withdrawal code : <b>%s</b>" 
+				+ "<br><br>Thanks<br>"
+				+ VERIFY_MAIL_ID_SENDER_NAME
+				+ "</p></html>";
+
+	
 	public static final int SPECIAL_CODE_MAX_COUNT = 100;
 	public static int MY_SERVER_ID = 1;
 	
