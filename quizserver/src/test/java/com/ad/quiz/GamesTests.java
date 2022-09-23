@@ -22,14 +22,14 @@ public class GamesTests extends AbstractTest {
    
    @Test
    public void getFutureGameist() throws Exception {
-	   for (int i = 1; i <= 10; i++) {
+	   for (int i = 1; i <= 2; i++) {
 		   TestScheduler.getInstance().submit(new User(i));
 	   }
    }
    
 	private void fetchFutureGames() throws Exception {
 		   System.out.println("In Games");	
-		   String uri = "/game/1/future";
+		   String uri = "/game/1/future/-1/1";
 		   MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.get(uri)
 		         .accept(MediaType.APPLICATION_JSON_VALUE)).andReturn();
 		      
@@ -50,7 +50,7 @@ public class GamesTests extends AbstractTest {
 		public void run() {
 			try {
 				System.out.println(i + "::" + Thread.currentThread().getName());
-				Thread.sleep(200);
+				Thread.sleep(500);
 				fetchFutureGames();
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
