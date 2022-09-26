@@ -160,6 +160,14 @@ public class Utils {
 		long totalAmt = (totalOurShare * 2 * 288);
 		System.out.println("totalAmt :" + totalAmt);
 		
+		long totalLanguages = 5;
+		long totalModes = 2;
+		long totalTimeCovers = 2;
+		long totalServers = 30;
+		long finalTotalPerDay = totalAmt * totalModes * totalTimeCovers * totalServers * totalLanguages;    
+		System.out.println("totalAmt finally:" + finalTotalPerDay);
+		
+		
 		/*System.out.println(getBossMoney(55));
 		System.out.println(getBossMoney(102));
 		//
