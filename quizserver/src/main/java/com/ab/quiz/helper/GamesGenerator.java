@@ -264,10 +264,10 @@ public class GamesGenerator implements Runnable {
 					
 					picBasedQuestion.clear();
 				}
-				logger.info("quizQuestions size is {}", quizQuestions.size());
+				/*logger.info("quizQuestions size is {}", quizQuestions.size());
 				for (Question ques : quizQuestions) {
 					logger.info(ques);
-				}
+				}*/
 				//
 				long gap = 0;
 				int quesNumber = 1;
