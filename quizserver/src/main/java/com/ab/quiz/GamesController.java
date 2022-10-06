@@ -69,7 +69,9 @@ public class GamesController extends BaseController {
 	public @ResponseBody List<GameDetails> getEnrolledGames(@PathVariable("gametype") int gametype, 
 			@PathVariable("userProfileId") long userProfileId) {
 		logger.info("Call to getEnrolledGames() with {}", gametype);
-		return GameManager.getInstance().getEnrolledGames(gametype, userProfileId);
+		List<GameDetails> enrolledGames = GameManager.getInstance().getEnrolledGames(gametype, userProfileId);
+		logger.info("Call to getEnrolledGames() with type {} and size {}", gametype, enrolledGames.size());
+		return enrolledGames;
 	}
 	
 	@RequestMapping(value = "/past/{userProfileId}/{startRowNo}", method = RequestMethod.GET)
