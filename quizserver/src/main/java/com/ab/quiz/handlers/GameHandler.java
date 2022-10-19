@@ -44,7 +44,7 @@ public class GameHandler {
 	// This map maintains the UserId Vs Boss Id
 	private Map<Long, Long> userIdVsBossId = new HashMap<>();
 	
-	private Map<Long, Boolean> userCreditedStatus = new HashMap<>();
+	private Map<Long, Integer> userCreditedStatus = new HashMap<>();
 	private boolean isGameCancellationDone;
 	
 	
@@ -125,12 +125,26 @@ public class GameHandler {
 		}
 	}
 	
-	public Map<Long, Boolean> getRevertedStatus() {
+	public String getEnrolledUserIdsStr() {
+		
+		StringBuilder strBuilder = new StringBuilder();
+		
+		Set<Map.Entry<Long, PlayerSummary>> setValues = userProfileIdVsSummary.entrySet();
+		logger.info("Cancelled Games: " + setValues.size());
+		
+		for (Map.Entry<Long, PlayerSummary> entry : setValues) {
+			strBuilder.append(entry.getKey());
+			strBuilder.append(",");
+		}
+		return strBuilder.toString();
+	}
+	
+	public Map<Long, Integer> getRevertedStatus() {
 		return userCreditedStatus;
 	}
 	
-	public void putRevertedStatus(long uid, boolean result) {
-		userCreditedStatus.put(uid, result);
+	public void putRevertedStatus(long uid, Integer state) {
+		userCreditedStatus.put(uid, state);
 	}
 	
 	public void cancelGame(UsersCompleteMoneyDetails moneyDetails, List<Long> cancelledUserIds) throws SQLException, Exception {
@@ -296,5 +310,12 @@ public class GameHandler {
 	public void setGameCancellationDone(boolean isGameCancellationDone) {
 		this.isGameCancellationDone = isGameCancellationDone;
 	}
-
+	
+	public void setMoneyRevertStatus(int state) {
+		// -1 - processing, 1 - fail, 2 - success
+		Set<Map.Entry<Long, PlayerSummary>> setValues = userProfileIdVsSummary.entrySet();
+		for (Map.Entry<Long, PlayerSummary> eachEntry : setValues) {
+			userCreditedStatus.put(eachEntry.getKey(), state);
+		}
+	}
 }

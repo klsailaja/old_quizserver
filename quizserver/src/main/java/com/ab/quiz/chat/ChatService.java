@@ -48,11 +48,9 @@ public class ChatService implements Runnable {
 	public List<Chat> getMessages(long start, long end) {
 		List<Chat> chatList = new ArrayList<>();
 		lock.readLock().lock();
-		//long currentTime = System.currentTimeMillis();
 		
-		
-		Predicate<Chat> betweenStartEnd = msg -> (msg.getSentTimeStamp() >= start && msg.getSentTimeStamp() <= end);  
-				//&& (msg.getGameStartTime() != -1 && currentTime < msg.getGameStartTime()));
+		Predicate<Chat> betweenStartEnd = msg -> (msg.getSentTimeStamp() >= start && msg.getSentTimeStamp() <= end)  
+				&& (msg.getGameStartTime() != -1 && msg.getSentTimeStamp() < msg.getGameStartTime());
 		
 		chatList = list.stream().filter(betweenStartEnd).collect(Collectors.toList());
 		lock.readLock().unlock();

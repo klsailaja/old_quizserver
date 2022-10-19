@@ -131,7 +131,7 @@ public class Utils {
 	}
 	
 	public static void main(String[] args) {
-		int[] rates = {10, 20, 50, 75, 100, 50, 75, 100, 125, 150};
+		int[] rates = {10, 20, 50, 50, 100, 50, 75, 100, 125, 150};
 		int[] players = {3,4,5,6,7,8,9,10};
 		int totalOurShare = 0;
 		int avgShare = 0;
@@ -161,7 +161,7 @@ public class Utils {
 		System.out.println("totalAmt :" + totalAmt);
 		
 		long totalLanguages = 5;
-		long totalModes = 2;
+		long totalModes = 3;
 		long totalTimeCovers = 2;
 		long totalServers = 30;
 		long finalTotalPerDay = totalAmt * totalModes * totalTimeCovers * totalServers * totalLanguages;    

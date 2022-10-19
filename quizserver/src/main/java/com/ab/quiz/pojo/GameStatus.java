@@ -7,7 +7,7 @@ public class GameStatus {
 	int currentCount;
 	int gameStatus;
 	int viewId;
-	Map <Long, Boolean> userAccountRevertStatus;
+	Map <Long, Integer> userAccountRevertStatus;
 	
 	public int getViewId() {
 		return viewId;
@@ -34,10 +34,10 @@ public class GameStatus {
 	public void setGameStatus(int gameStatus) {
 		this.gameStatus = gameStatus;
 	}
-	public Map<Long, Boolean> getUserAccountRevertStatus() {
+	public Map<Long, Integer> getUserAccountRevertStatus() {
 		return userAccountRevertStatus;
 	}
-	public void setUserAccountRevertStatus(Map<Long, Boolean> userAccountRevertStatus) {
+	public void setUserAccountRevertStatus(Map<Long, Integer> userAccountRevertStatus) {
 		this.userAccountRevertStatus = userAccountRevertStatus;
 	}
 }

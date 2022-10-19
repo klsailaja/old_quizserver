@@ -122,18 +122,14 @@ public class GamesController extends BaseController {
 		}
 	}
 	
-	@RequestMapping(value = "/{gametype}/allstatus", method = RequestMethod.GET, produces = "application/json") 
-	public @ResponseBody GameStatusHolder getAllGamesStatus(@PathVariable("gametype") int gametype) 
+	@RequestMapping(value = "/{gametype}/cgstatus", method = RequestMethod.GET, produces = "application/json")
+	public @ResponseBody GameStatusHolder getCancelGamesStatus(@PathVariable("gametype") int gametype) 
 			throws NotAllowedException, InternalException {
-		logger.debug("In getAllGamesStatus...{}", gametype);
+		logger.info("In getCancelGamesStatus...{}", gametype);
 		try {
-			return GameManager.getInstance().getAllGamesStatus(gametype);
-		}
-		catch(SQLException ex) {
-			logger.error("Exception in getAllGamesStatus", ex);
-			throw new InternalException(ex.getMessage());
+			return GameManager.getInstance().cancelGames(gametype);
 		} catch(Exception ex) {
-			logger.error("Error while fetching getAllGamesStatus" , ex);
+			logger.error("Error while fetching getCancelGamesStatus" , ex);
 			String errMessage = "Check beckend connectvity";
             boolean isAPIException = false;
 			if (ex instanceof HttpClientErrorException) {
@@ -147,6 +143,18 @@ public class GamesController extends BaseController {
             }
 			logger.error("Error message is {} : apiexception is {}", errMessage, isAPIException);
 			throw new NotAllowedException(errMessage);
+		}
+	}
+	
+	@RequestMapping(value = "/{gametype}/allstatus", method = RequestMethod.GET, produces = "application/json") 
+	public @ResponseBody GameStatusHolder getAllGamesStatus(@PathVariable("gametype") int gametype) 
+			throws NotAllowedException, InternalException {
+		logger.debug("In getAllGamesStatus...{}", gametype);
+		try {
+			return GameManager.getInstance().getAllGamesStatus(gametype);
+		} catch(Exception ex) {
+			logger.error("Error while fetching getAllGamesStatus" , ex);
+			throw new NotAllowedException(ex.getMessage());
 		}
 	}
 	
