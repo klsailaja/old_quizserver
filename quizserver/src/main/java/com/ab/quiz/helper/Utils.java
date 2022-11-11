@@ -4,7 +4,10 @@ import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
 
 import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.MyTransaction;
@@ -22,7 +25,13 @@ public class Utils {
 	private static final SecureRandom secureRnd = new SecureRandom();
 	
 	private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat();
-	private static final String timePattern = "HH:mm-dd:MMM:yyyy";
+	private static final String timePattern = "dd/MMM/yyyy/HH/mm";
+	
+	private static final String GAME_START_TIME_KEY = "GAME_START_TIME";
+	private static final String GAME_SERVER_ID = "GAME_SERVER_ID";
+	private static final String GAME_CLIENT_ID = "GAME_CLIENT_ID";
+	private static final String TKT_RATE = "TKT_RATE";
+	private static final String AMOUNT = "AMOUNT";
 	
 	
 	public static String getTransactionObjComments(GameDetails gameDetails) {
@@ -130,8 +139,53 @@ public class Utils {
 		return (profit/25);
 	}
 	
+	public static String fillExtraDetailsForTransactions(long gameStartTime, long serverId,
+			int clientId, int tktRate, int amount) {
+		
+		HashMap<String,String> extraValues = new HashMap<>();
+		
+		simpleDateFormat.applyPattern(timePattern);
+		String dateStr = simpleDateFormat.format(new Date(gameStartTime));
+		
+		extraValues.put(GAME_START_TIME_KEY, dateStr);
+		extraValues.put(GAME_SERVER_ID, String.valueOf(serverId));
+		extraValues.put(GAME_CLIENT_ID, String.valueOf(clientId));
+		extraValues.put(TKT_RATE, String.valueOf(tktRate));
+		extraValues.put(AMOUNT, String.valueOf(amount));
+		
+		return encodeCCExtraValues(extraValues);
+	}
+	
+	public static String encodeCCExtraValues(HashMap<String,String> extraValues) {
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (Map.Entry<String, String> mapEntry : extraValues.entrySet()) {
+            String key = mapEntry.getKey();
+            String value = mapEntry.getValue();
+            stringBuilder.append(key);
+            stringBuilder.append("=");
+            stringBuilder.append(value);
+            stringBuilder.append(";");
+        }
+        return stringBuilder.toString();
+    }
+
+    public static HashMap<String,String> decodeCCExtraValues(String extraValues) {
+        extraValues = extraValues.trim();
+        StringTokenizer firstTokenizer = new StringTokenizer(extraValues, ";");
+        HashMap<String, String> extraValuesMap = new HashMap<>();
+        while (firstTokenizer.hasMoreTokens()) {
+            StringTokenizer secondTokenizer = new StringTokenizer(firstTokenizer.nextToken(), "=");
+            String key = secondTokenizer.nextToken();
+            String value = secondTokenizer.nextToken();
+            extraValuesMap.put(key, value);
+       }
+       return extraValuesMap;
+    }
+	
 	public static void main(String[] args) {
-		int[] rates = {10, 20, 50, 50, 100, 50, 75, 100, 125, 150};
+		int[] rates = {20, 20, 50, 50, 100, 25, 50, 75, 100, 125};
 		int[] players = {3,4,5,6,7,8,9,10};
 		int totalOurShare = 0;
 		int avgShare = 0;

@@ -149,7 +149,7 @@ public class GamesController extends BaseController {
 	@RequestMapping(value = "/{gametype}/allstatus", method = RequestMethod.GET, produces = "application/json") 
 	public @ResponseBody GameStatusHolder getAllGamesStatus(@PathVariable("gametype") int gametype) 
 			throws NotAllowedException, InternalException {
-		logger.debug("In getAllGamesStatus...{}", gametype);
+		logger.info("In getAllGamesStatus...{}", gametype);
 		try {
 			return GameManager.getInstance().getAllGamesStatus(gametype);
 		} catch(Exception ex) {

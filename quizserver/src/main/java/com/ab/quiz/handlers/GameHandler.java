@@ -125,18 +125,16 @@ public class GameHandler {
 		}
 	}
 	
-	public String getEnrolledUserIdsStr() {
-		
-		StringBuilder strBuilder = new StringBuilder();
+	public List<Long> getEnrolledUserIds() {
 		
 		Set<Map.Entry<Long, PlayerSummary>> setValues = userProfileIdVsSummary.entrySet();
-		logger.info("Cancelled Games: " + setValues.size());
+		
+		List<Long> enrolledUids = new ArrayList<>();
 		
 		for (Map.Entry<Long, PlayerSummary> entry : setValues) {
-			strBuilder.append(entry.getKey());
-			strBuilder.append(",");
+			enrolledUids.add(entry.getKey());
 		}
-		return strBuilder.toString();
+		return enrolledUids;
 	}
 	
 	public Map<Long, Integer> getRevertedStatus() {
@@ -167,6 +165,7 @@ public class GameHandler {
 			
 			MyTransaction transaction = Utils.getTransactionPojo(userProfileId, gameDetails.getStartTime(), 
 					gameDetails.getTicketRate(), TransactionType.CREDITED.getId(), accountUsed, -1, -1, comments, null);
+			
 			
 			MoneyTransaction cancelTransaction = new MoneyTransaction();
 			cancelTransaction.setUserProfileId(userProfileId);
@@ -263,6 +262,10 @@ public class GameHandler {
 			return true;
 		}
 		return false;
+	}
+	
+	public boolean isFreeGame() {
+		return gameDetails.getTicketRate() == 0;
 	}
 	
 	public PaymentProcessor getPaymentHandler() {

@@ -79,6 +79,10 @@ public class PaymentProcessor {
 						amountWon, TransactionType.CREDITED.getId(), 
 						UserMoneyAccountType.WINNING_MONEY.getId(), -1, -1, transactionDesc, null);
 				transaction.setIsWin(1);
+				String extraDetails = Utils.fillExtraDetailsForTransactions(gameStartTime, gameDetails.getGameId(), 
+						gameDetails.getTempGameId(), gameDetails.getTicketRate(), amountWon);
+				transaction.setExtraDetails(extraDetails);
+				
 				
 				MoneyTransaction moneyTransaction = new MoneyTransaction();
 				moneyTransaction.setAccountType(UserMoneyAccountType.WINNING_MONEY);
@@ -111,11 +115,13 @@ public class PaymentProcessor {
 				transaction = Utils.getTransactionPojo(userProfileId, gameDetails.getStartTime(), 
 						bossShare, TransactionType.DEBITED.getId(), 
 						UserMoneyAccountType.WINNING_MONEY.getId(), -1, -1, transactionDesc, null);
+				transaction.setExtraDetails(extraDetails);
 				
 				MyTransaction transaction1 = Utils.getTransactionPojo(bossUserProfileId, gameDetails.getStartTime(), 
 								bossShare, TransactionType.CREDITED.getId(), 
 								UserMoneyAccountType.REFERAL_MONEY.getId(), -1, -1, bossCmts, null);
 				transaction1.setIsWin(1);
+				transaction1.setExtraDetails(extraDetails);
 				
 				moneyTransaction = new MoneyTransaction();
 				moneyTransaction.setAccountType(UserMoneyAccountType.WINNING_MONEY);

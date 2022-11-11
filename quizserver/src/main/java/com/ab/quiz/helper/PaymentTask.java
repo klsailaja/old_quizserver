@@ -25,7 +25,6 @@ public class PaymentTask implements Runnable {
 	
 	@Override
 	public void run() {
-		
 		if (completedGames == null) {
 			return;
 		}
@@ -38,13 +37,24 @@ public class PaymentTask implements Runnable {
 		}
 		
 		long maxId = -1;
+		List<Long> tobePaidGameIds = new ArrayList<>();
 		List<Long> completedGameIds = new ArrayList<>();
+		for (GameHandler completedGame : completedGames) {
+			Long gameId = completedGame.getGameDetails().getGameId();
+			completedGameIds.add(gameId);
+			if (gameId > maxId) {
+				maxId = gameId;
+			}
+			if (!completedGame.isGameCancelled()) {
+				tobePaidGameIds.add(gameId);
+			}
+		}
 		
-		BatchPaymentProcessor batchPaymentProcessor = new BatchPaymentProcessor();
+		List<PaymentGameDetails> paymentGameDetails = new ArrayList<>();
+		
+		BatchPaymentProcessor batchPaymentProcessor = new BatchPaymentProcessor(completedGames);
 		
 		long paymentTimeTaken = System.currentTimeMillis();
-		
-		batchPaymentProcessor.setGameSlotsStartTime(completedGames.get(0).getGameDetails().getStartTime());
 		
 		for (GameHandler completedGame : completedGames) {
 			
@@ -75,24 +85,29 @@ public class PaymentTask implements Runnable {
 				batchPaymentProcessor.addUserBossIds(gamePlayers);
 				// Bulk processing End
 				completedGame.getGameDetails().setStatus(0);
+				PaymentGameDetails pgd = new PaymentGameDetails(completedGame.getGameDetails().getGameId(),
+						completedGame.getGameDetails().getTempGameId(), 
+						actualWinUserIds, 
+						completedGame.getGameDetails().getStartTime());
+				paymentGameDetails.add(pgd);
 			}
-			
-			Long gameId = completedGame.getGameDetails().getGameId(); 
-			if (gameId > maxId) {
-				maxId = gameId;
-			}
-			completedGameIds.add(gameId);
 		}
 		
-		logger.debug("completed game list {}", completedGameIds);
+		logger.info("Completed game list {}", completedGameIds);
+		logger.info("Payment to be done game list {}", tobePaidGameIds);
 		
-		batchPaymentProcessor.run();
+		if (paymentGameDetails.size() > 0) {
+			batchPaymentProcessor.setCompletedGameIds(tobePaidGameIds);
+			batchPaymentProcessor.setPaymentGD(paymentGameDetails);
+			batchPaymentProcessor.run();
+		}
 		
 		logger.info("Time taken for processing payments {}" , (System.currentTimeMillis() - paymentTimeTaken)/1000);
 		
 		LazyScheduler.getInstance().submit(new UpdateMaxGameIdTask(maxId));
-		LazyScheduler.getInstance().submit(new HistoryGameSaveTask(completedGames));
+		if (paymentGameDetails.size() > 0) {
+			LazyScheduler.getInstance().submit(new HistoryGameSaveTask(completedGames));
+		}
 		LazyScheduler.getInstance().submit(new DeleteCompletedGamesTask(completedGameIds), 3, TimeUnit.MINUTES);
-		
 	}
 }

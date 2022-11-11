@@ -21,6 +21,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.constants.CustomerCareReqState;
 import com.ab.quiz.constants.PictureType;
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.pojo.CCTicketsHolder;
 import com.ab.quiz.pojo.CustomerTicket;
@@ -473,7 +474,7 @@ public class CustomerCareDBHandler {
 	
 	public long createCCTicket(CustomerTicket ticket) throws SQLException {
 		
-		long maxReqId = getMaxCCReqId() + 1;;
+		long maxReqId = getMaxCCReqId() + 1;
 		ConnectionPool cp = null;
 		Connection dbConn = null;
 		PreparedStatement ps = null;
@@ -647,5 +648,86 @@ public class CustomerCareDBHandler {
 		holder.setList(dataList);
 		
 		return holder;
+	}
+	
+	public void createTicketsInBulk(List<CustomerTicket> list, int batchSize) throws SQLException {
+		String tag = "CreateTickets:";
+		logger.info("{} The Tickets size is: {}", tag, list.size());
+		long maxReqId = getMaxCCReqId() + 1;
+		
+		ConnectionPool cp = null;
+		Connection dbConn = null;
+		PreparedStatement ps = null;
+		
+		int totalFailureCount = 0;
+		int totalSuccessCount = 0;
+		
+		try {
+			cp = ConnectionPool.getInstance();
+			dbConn = cp.getDBConnection();
+			dbConn.setAutoCommit(false);
+			
+			ps = dbConn.prepareStatement(CREATE_TICKET_ENTRY);
+			int index = 0;
+			
+			for (CustomerTicket ticket : list) {
+				int idStrLen = String.valueOf(maxReqId).length();
+				int remainingLen = REFERENCE_MAX_LEN - idStrLen;
+				
+				String refId = getReferenceNumber(remainingLen, maxReqId++);
+				ps.setString(1, refId);
+				ps.setLong(2, ticket.getUserId());
+				ps.setInt(3, ticket.getRequestType());
+				ps.setLong(4, System.currentTimeMillis());
+				ps.setInt(5, CustomerCareReqState.OPEN.getId());
+				ps.setLong(6, -1);
+				ps.setLong(7, -1);
+				ps.setLong(8, -1);
+				ps.setString(9, ticket.getExtraDetails());
+				ps.setNull(10, Types.NULL);
+			
+				ps.addBatch();
+				index++;
+				
+				if (index % batchSize == 0) {
+					int results[] = ps.executeBatch();
+					dbConn.setAutoCommit(false);
+					dbConn.commit();
+					for (int result : results) {
+						if (result == 1) {
+							++totalSuccessCount;
+						} else {
+							++totalFailureCount;
+						}
+					}
+				}
+			}
+			if (index > 0) {
+				int results[] = ps.executeBatch();
+				dbConn.setAutoCommit(false);
+				dbConn.commit();
+				for (int result : results) {
+					if (result == 1) {
+						++totalSuccessCount;
+					} else {
+						++totalFailureCount;
+					}
+				}
+			}
+			logger.info("End of createTicketsInBulk with success row count {} : failure row count {}", 
+					totalSuccessCount, totalFailureCount);
+		} catch(SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
+			logger.error("Error in creating createTicketsInBulk ", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
+			throw ex;
+		} finally {
+			if (ps != null) {
+				ps.close();
+			}
+			if (dbConn != null) {
+				dbConn.close();
+			}
+		}
 	}
 }
