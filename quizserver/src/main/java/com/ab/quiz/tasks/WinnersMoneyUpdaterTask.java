@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.common.GetTask;
 import com.ab.quiz.common.Request;
+import com.ab.quiz.common.TAGS;
 import com.ab.quiz.constants.CustomerCareReqType;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.constants.WinMoneyCreditStatus;
@@ -33,7 +34,7 @@ public class WinnersMoneyUpdaterTask implements Runnable {
 	private HashMap<Long,Integer> slotGamePlayedTimeVsRetryCount = new HashMap<>();
 	private Map<Long, List<Long>> slotGameStartTimeVsGameIds = new HashMap<>();
 	private Map<Long, List<PaymentGameDetails>> slotGamesStartTimeVsPaymentGD = new HashMap<>();
-	private String tag = "WinnerPayment";
+	private String tag = TAGS.WIN_MONEY;
 	
 	private WinnersMoneyUpdaterTask() {
 	}
@@ -77,8 +78,10 @@ public class WinnersMoneyUpdaterTask implements Runnable {
 				timeStr = simpleDateFormat.format(new Date(timeLong));
 				printInReadFormat.put(timeStr, thisServerStatus[index].getCreditedStatus());
 			}
-			logger.info("Money Credited Status for {} : {}", serverPrefixTrackKey, moneyCreditedSatus);
-			logger.info("Money Credited Status for {} : {}", serverPrefixTrackKey, printInReadFormat);
+			logger.info("{} Money Credited Status for {} : {}", TAGS.WIN_MONEY, 
+					serverPrefixTrackKey, moneyCreditedSatus);
+			logger.info("{} Money Credited Status for {} : {}", TAGS.WIN_MONEY, 
+					serverPrefixTrackKey, printInReadFormat);
 			
 			Set<Map.Entry<Long, List<Long>>> slotVsGameIdsSet = slotGameStartTimeVsGameIds.entrySet();
 			List<Long> todelKeys = new ArrayList<>();
@@ -106,7 +109,9 @@ public class WinnersMoneyUpdaterTask implements Runnable {
 					slotGamePlayedTimeVsRetryCount.put(eachEntry.getKey(), retryCount);
 					if (retryCount == 4) {
 						logger.error(QuizConstants.ERROR_PREFIX_START);
-						logger.info("Submitted slot payment record but retries timedout for game time {} and game ids {}", new Date(eachEntry.getKey()), eachEntry.getValue());
+						logger.info("{} Submitted slot payment record but retries timedout for game time {} and game ids {}",
+								TAGS.WIN_MONEY,
+								new Date(eachEntry.getKey()), eachEntry.getValue());
 						logger.error(QuizConstants.ERROR_PREFIX_END);
 						moneyCreditedSatus.put(strBuilder.toString(), WinMoneyCreditStatus.ALL_FAIL.getId());
 						todelKeys.add(eachEntry.getKey());
@@ -114,7 +119,9 @@ public class WinnersMoneyUpdaterTask implements Runnable {
 					}
 				} else if (status == WinMoneyCreditStatus.ALL_FAIL.getId()) {
 					logger.error(QuizConstants.ERROR_PREFIX_START);
-					logger.info("Submitted slot payment record but all are failed for game time {} and game ids {}", new Date(eachEntry.getKey()), eachEntry.getValue());
+					logger.info("{} Submitted slot payment record but all are failed for game time {} and game ids {}",
+							TAGS.WIN_MONEY,
+							new Date(eachEntry.getKey()), eachEntry.getValue());
 					logger.error(QuizConstants.ERROR_PREFIX_END);
 					moneyCreditedSatus.put(strBuilder.toString(), WinMoneyCreditStatus.ALL_FAIL.getId());	
 					todelKeys.add(eachEntry.getKey());
@@ -144,7 +151,9 @@ public class WinnersMoneyUpdaterTask implements Runnable {
 			}
 		} catch(Exception ex) {
 			logger.error(QuizConstants.ERROR_PREFIX_START);
-			logger.error("Exception in run method while fetching the winners money update records from backend", ex);
+			logger.error("{} Exception in run method while fetching the winners money update records from backend", 
+					TAGS.WIN_MONEY);
+			logger.error(ex);
 			logger.error(QuizConstants.ERROR_PREFIX_END);
 			Set<Long> slotVsGameIdsSet = slotGameStartTimeVsGameIds.keySet();
 			for (Long eachEntry : slotVsGameIdsSet) {
@@ -210,10 +219,10 @@ public class WinnersMoneyUpdaterTask implements Runnable {
 		
 		} catch(Exception ex) {
 			logger.error(QuizConstants.ERROR_PREFIX_START);
-			logger.error("Exception while fetching the winners money update records from backend", ex);
+			logger.error("{} Exception while fetching the winners money update records from backend", tag);
+			logger.error(ex);
 			logger.error(QuizConstants.ERROR_PREFIX_END);
 		}
-		
 	}
 }
 

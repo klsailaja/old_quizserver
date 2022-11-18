@@ -18,6 +18,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.constants.PictureType;
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.pojo.Picture;
 
 /* 
@@ -177,7 +178,9 @@ public class QuestionPicsDBHandler {
 				}
 			}
 		} catch(SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("SQL Exception in getPicture() for {}", id, ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (rs != null) {

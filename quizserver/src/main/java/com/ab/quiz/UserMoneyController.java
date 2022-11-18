@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ab.quiz.common.GetTask;
 import com.ab.quiz.common.PostTask;
 import com.ab.quiz.common.Request;
+import com.ab.quiz.common.TAGS;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
@@ -43,7 +44,9 @@ public class UserMoneyController extends BaseController {
 			UserMoney userMoney = (UserMoney) getUserMoneyTask.execute();
 			return userMoney;
 		} catch (Exception ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception in getUserMoney", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw new InternalException("Server Error in getUserMoney");
 		}
 	}
@@ -57,7 +60,9 @@ public class UserMoneyController extends BaseController {
 			UserMoney userMoney = (UserMoney) getUserMoneyTask.execute();
 			return userMoney;
 		} catch (Exception ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception in getFullMoneyTask", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw new InternalException("Server Error in getFullMoneyTask");
 		}
 	}
@@ -68,6 +73,9 @@ public class UserMoneyController extends BaseController {
 			throws InternalException {
 		
 		UsersCompleteMoneyDetails completeDetails = new UsersCompleteMoneyDetails();
+		String logTag = TAGS.UPDATE_USER + " AddMoneyFromUser : sid : " 
+				+ QuizConstants.MY_SERVER_ID + " : uid :" + userProfileId;
+		completeDetails.setLogTag(logTag);
 		
 		List<MoneyTransaction> loadMoneyTransactions = new ArrayList<>();
 		
@@ -92,7 +100,10 @@ public class UserMoneyController extends BaseController {
 			}
 			return clientResult;
 		} catch (Exception ex) {
-			logger.error("Exception in loadMoney", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_START);
+			logger.error("{} Exception in loadMoney", logTag);
+			logger.error("Exception is: ", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw new InternalException("Server Error in loadMoney");
 		}
 	}

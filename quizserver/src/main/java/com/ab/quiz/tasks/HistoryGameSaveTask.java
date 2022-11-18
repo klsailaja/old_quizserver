@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.common.PostTask;
 import com.ab.quiz.common.Request;
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.db.GameHistoryDBHandler;
 import com.ab.quiz.handlers.GameHandler;
 import com.ab.quiz.pojo.GamePlayers;
@@ -90,7 +91,9 @@ public class HistoryGameSaveTask implements Runnable {
 			GameHistoryDBHandler.getInstance().bulkInsertGameResults(allGameResults, 20);
 			GameHistoryDBHandler.getInstance().bulkInsertGamePlayers(allGamePlayers, 50);
 		} catch (SQLException e) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("SQLException while doing bulk insert of game results and game players", e);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 		}
 		
 		PostTask<UpdateTime, String> postTimes = Request.updateUserLastLoggedInTime();
@@ -101,9 +104,9 @@ public class HistoryGameSaveTask implements Runnable {
 		try {
 			postTimes.execute();
 		} catch (Exception ex) {
-			logger.error("*********************************************");
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception in updateUserLastLoggedInTime", ex);
-			logger.error("*********************************************");
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 		}
 	}
 }

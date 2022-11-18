@@ -21,6 +21,7 @@ import org.apache.logging.log4j.Logger;
 import com.ab.quiz.common.PostTask;
 import com.ab.quiz.common.Request;
 import com.ab.quiz.constants.PictureType;
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.WithdrawReqState;
@@ -155,7 +156,9 @@ public class WithdrawDBHandler {
 			
 			return result;
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Error in deleteRecords ", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (ps != null) {
@@ -189,7 +192,9 @@ public class WithdrawDBHandler {
 				}
 			}
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("SQL Exception in getMaxWithdrawReqId()", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (idRs != null) {
@@ -223,7 +228,9 @@ public class WithdrawDBHandler {
 				}
 			}
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("SQLException in getOldWithdrawReceiptIds()", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (rs != null) {
@@ -272,7 +279,9 @@ public class WithdrawDBHandler {
 				
 			}
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("SQLException in getWithdrawReqByRefId()", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (rs != null) {
@@ -358,7 +367,9 @@ public class WithdrawDBHandler {
 			return true;
 			 
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Error while executing closeWithDrawRequest ", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (updateWDStatePS != null) {
@@ -404,7 +415,9 @@ public class WithdrawDBHandler {
 				return false;
 			}
 		} catch(Exception ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error(ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw new NotAllowedException("Backend issue");
 		}
 
@@ -429,7 +442,9 @@ public class WithdrawDBHandler {
 			return true;
 			 
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Error while executing cancelWithdrawRequest ", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (updateWDStatePS != null) {
@@ -490,7 +505,9 @@ public class WithdrawDBHandler {
 			
 			return (result >= 1);
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Error creating createWithDrawReq ", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (ps != null) {

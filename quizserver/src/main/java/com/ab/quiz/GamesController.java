@@ -42,7 +42,7 @@ public class GamesController extends BaseController {
 	@RequestMapping(value = "/{gametype}/future/{lastGameId}/{slotSize}", method = RequestMethod.GET, produces = "application/json")
 	public @ResponseBody List<GameDetails> getFutureGames(@PathVariable("gametype") int gametype, 
 			@PathVariable("lastGameId") long lastGameId, @PathVariable("slotSize") int slotSize) {
-		logger.info("Call to getFutureGames() with {} : {} : {}", gametype, lastGameId, slotSize);
+		//logger.info("Call to getFutureGames() with {} : {} : {}", gametype, lastGameId, slotSize);
 		List<GameDetails> futureGames = GameManager.getInstance().getFutureGames(gametype);
 		
 		List<GameDetails> returnFutureGames = new ArrayList<>();
@@ -56,30 +56,30 @@ public class GamesController extends BaseController {
 				returnFutureGames.add(gd);
 				count++;
 				if (count == maxSize) {
-					logger.info("Call to getFutureGames() with maxSize returned with {} ", returnFutureGames.size());
+					//logger.info("Call to getFutureGames() with maxSize returned with {} ", returnFutureGames.size());
 					return returnFutureGames;
 				}
 			}
 		}
-		logger.info("Call to getFutureGames() plain returned with {} ", returnFutureGames.size());
+		//logger.info("Call to getFutureGames() plain returned with {} ", returnFutureGames.size());
 		return returnFutureGames;
 	}
 
 	@RequestMapping(value = "/{gametype}/enrolled/{userProfileId}", method = RequestMethod.GET)
 	public @ResponseBody List<GameDetails> getEnrolledGames(@PathVariable("gametype") int gametype, 
 			@PathVariable("userProfileId") long userProfileId) {
-		logger.info("Call to getEnrolledGames() with {}", gametype);
+		//logger.info("Call to getEnrolledGames() with {}", gametype);
 		List<GameDetails> enrolledGames = GameManager.getInstance().getEnrolledGames(gametype, userProfileId);
-		logger.info("Call to getEnrolledGames() with type {} and size {}", gametype, enrolledGames.size());
+		//logger.info("Call to getEnrolledGames() with type {} and size {}", gametype, enrolledGames.size());
 		return enrolledGames;
 	}
 	
 	@RequestMapping(value = "/past/{userProfileId}/{startRowNo}", method = RequestMethod.GET)
 	public @ResponseBody UserHistoryGameDetails getHistoryGames(@PathVariable("userProfileId") long userProfileId, 
 			@PathVariable("startRowNo") int startRowNo) throws SQLException {
-		logger.info("Call to getHistoryGames() with userProfileId {}", userProfileId);
+		//logger.info("Call to getHistoryGames() with userProfileId {}", userProfileId);
 		UserHistoryGameDetails userGameDetails = GameManager.getInstance().getHistoryGames(userProfileId, startRowNo);
-		logger.info("Call to getHistoryGames() returned with {}", userGameDetails.getHistoryGames().size());
+		//logger.info("Call to getHistoryGames() returned with {}", userGameDetails.getHistoryGames().size());
 		return userGameDetails;
 	}
 	
@@ -97,41 +97,20 @@ public class GamesController extends BaseController {
 	
 	@RequestMapping(value = "/{gameId}/status", method = RequestMethod.GET, produces = "application/json")
 	public @ResponseBody GameStatus getGameStatus(@PathVariable("gameId") long gameId) throws NotAllowedException, InternalException {
-		try {
-			return GameManager.getInstance().getGameStatus(gameId);
-		}
-		catch(SQLException ex) {
-			logger.error("SQLException in getGameStatus", ex);
-			throw new InternalException(ex.getMessage());
-		}
-		catch(Exception ex) {
-			logger.error("Error in getGameStatus" , ex);
-			String errMessage = "Check beckend connectvity";
-            boolean isAPIException = false;
-			if (ex instanceof HttpClientErrorException) {
-                HttpClientErrorException clientExp = (HttpClientErrorException) ex;
-                errMessage = clientExp.getResponseBodyAsString();
-                isAPIException = true;
-            } else if (ex instanceof HttpServerErrorException) {
-                HttpServerErrorException serverExp = (HttpServerErrorException) ex;
-                errMessage = serverExp.getResponseBodyAsString();
-                isAPIException = true;
-            }
-			logger.error("Error message is {} : apiexception is {}", errMessage, isAPIException);
-			throw new NotAllowedException(errMessage);
-		}
+		return GameManager.getInstance().getGameStatus(gameId);
 	}
 	
+	// cgstatus means cancel game status
 	@RequestMapping(value = "/{gametype}/cgstatus", method = RequestMethod.GET, produces = "application/json")
 	public @ResponseBody GameStatusHolder getCancelGamesStatus(@PathVariable("gametype") int gametype) 
 			throws NotAllowedException, InternalException {
-		logger.info("In getCancelGamesStatus...{}", gametype);
 		try {
 			return GameManager.getInstance().cancelGames(gametype);
 		} catch(Exception ex) {
 			logger.error("Error while fetching getCancelGamesStatus" , ex);
 			String errMessage = "Check beckend connectvity";
             boolean isAPIException = false;
+            logger.error(QuizConstants.ERROR_PREFIX_START);
 			if (ex instanceof HttpClientErrorException) {
                 HttpClientErrorException clientExp = (HttpClientErrorException) ex;
                 errMessage = clientExp.getResponseBodyAsString();
@@ -142,6 +121,7 @@ public class GamesController extends BaseController {
                 isAPIException = true;
             }
 			logger.error("Error message is {} : apiexception is {}", errMessage, isAPIException);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw new NotAllowedException(errMessage);
 		}
 	}
@@ -149,39 +129,13 @@ public class GamesController extends BaseController {
 	@RequestMapping(value = "/{gametype}/allstatus", method = RequestMethod.GET, produces = "application/json") 
 	public @ResponseBody GameStatusHolder getAllGamesStatus(@PathVariable("gametype") int gametype) 
 			throws NotAllowedException, InternalException {
-		logger.info("In getAllGamesStatus...{}", gametype);
-		try {
-			return GameManager.getInstance().getAllGamesStatus(gametype);
-		} catch(Exception ex) {
-			logger.error("Error while fetching getAllGamesStatus" , ex);
-			throw new NotAllowedException(ex.getMessage());
-		}
+		return GameManager.getInstance().getAllGamesStatus(gametype);
 	}
 	
 	@RequestMapping(value = "/{gametype}/enrolled/{userProfileId}/status", method = RequestMethod.GET, produces = "application/json") 
 	public @ResponseBody GameStatusHolder getUserEnrolledGamesStatus(@PathVariable("gametype") int gametype,
 			@PathVariable("userProfileId") long userProfileId) throws NotAllowedException, InternalException {
-		try {
-			return GameManager.getInstance().getUserEnrolledGamesStatus(gametype,userProfileId);
-		} catch (SQLException ex) {
-			logger.error("Exception in getUserEnrolledGamesStatus", ex);
-			throw new InternalException(ex.getMessage());
-		} catch(Exception ex) {
-			logger.error("Error while fetching getUserEnrolledGamesStatus" , ex);
-			String errMessage = "Check beckend connectvity";
-            boolean isAPIException = false;
-			if (ex instanceof HttpClientErrorException) {
-                HttpClientErrorException clientExp = (HttpClientErrorException) ex;
-                errMessage = clientExp.getResponseBodyAsString();
-                isAPIException = true;
-            } else if (ex instanceof HttpServerErrorException) {
-                HttpServerErrorException serverExp = (HttpServerErrorException) ex;
-                errMessage = serverExp.getResponseBodyAsString();
-                isAPIException = true;
-            }
-			logger.error("Error message is {} : apiexception is {}", errMessage, isAPIException);
-			throw new NotAllowedException(errMessage);
-		}
+		return GameManager.getInstance().getUserEnrolledGamesStatus(gametype,userProfileId);
 	}
 	
 	@RequestMapping(value = "/{gameId}/join", method = RequestMethod.POST, produces = "application/json")
@@ -192,7 +146,9 @@ public class GamesController extends BaseController {
 			Boolean result = GameManager.getInstance().joinGame(gameId, gameOper);
 			return Boolean.toString(result);
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception in join method", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw new InternalException(ex.getMessage());
 		}
 	}
@@ -205,7 +161,9 @@ public class GamesController extends BaseController {
 			Boolean result = GameManager.getInstance().unjoin(gameId, gameOper);
 			return Boolean.toString(result);
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception in unjoin method", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw new InternalException(ex.getMessage());
 		}
 	}

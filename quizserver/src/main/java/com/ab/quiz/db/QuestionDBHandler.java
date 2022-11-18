@@ -110,7 +110,6 @@ public class QuestionDBHandler {
 	
 	public void createQuestionsInBulk(List<Question> questionsList, int batchSize) throws SQLException {
 		
-		System.out.println("questions.size() :" + questionsList.size());
 		ConnectionPool cp = null;
 		Connection dbConn = null;
 		PreparedStatement ps = null;
@@ -168,7 +167,9 @@ public class QuestionDBHandler {
 			logger.info("questions creation in bulk with success row count {} : failure row count {}", 
 					totalSuccessCount, totalFailureCount);
 		} catch(SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Error creating questions in bulk mode", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (ps != null) {
@@ -313,7 +314,9 @@ public class QuestionDBHandler {
 				}
 			}
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("SQLException in getRandomQues()", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (rs != null) {

@@ -8,6 +8,8 @@ import java.sql.SQLException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.constants.QuizConstants;
+
 /*
 CREATE TABLE SPECIALCODEINFO(ID INT UNSIGNED NOT NULL AUTO_INCREMENT, 
 		COUNT INT NOT NULL, PRIMARY KEY (ID)) ENGINE = INNODB;
@@ -59,10 +61,10 @@ public class ReferalDBHandler {
 				}
 			}
 		} catch (SQLException ex) {
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception while getting the special code used count {}");
 			logger.error("SQLException in getSpecialCodeUsedCount()", ex);
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (rs != null) {
@@ -93,10 +95,10 @@ public class ReferalDBHandler {
 			}
 		}
 		catch(SQLException ex) {
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception while incrementCount");
 			logger.error("SQLException in ", ex);
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (ps != null) {

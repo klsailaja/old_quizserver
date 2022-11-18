@@ -21,6 +21,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.constants.PictureType;
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.pojo.Picture;
 
@@ -174,7 +175,9 @@ public class PictureDBHandler {
 				}
 			}
 		} catch(SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("SQL Exception in getPicture() for {}", id, ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (rs != null) {
@@ -265,10 +268,10 @@ public class PictureDBHandler {
 			}
 		}
 		catch(SQLException ex) {
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception while updatePictureEntry for {}", oldId);
 			logger.error("SQLException in ", ex);
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (ps != null) {
@@ -314,10 +317,10 @@ public class PictureDBHandler {
 			}
 		}
 		catch(SQLException ex) {
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception while deletePictureEntry for {}", picId);
 			logger.error("SQLException in ", ex);
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (ps != null) {

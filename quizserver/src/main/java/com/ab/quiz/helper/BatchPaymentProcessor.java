@@ -12,6 +12,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.common.PostTask;
 import com.ab.quiz.common.Request;
+import com.ab.quiz.common.TAGS;
 import com.ab.quiz.constants.CustomerCareReqType;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.handlers.GameHandler;
@@ -60,6 +61,9 @@ public class BatchPaymentProcessor {
 			long startTime = System.currentTimeMillis();
 			
 			UsersCompleteMoneyDetails winnerMoneyDetails = new UsersCompleteMoneyDetails();
+			String logTag = TAGS.UPDATE_USER + " WinnersMoney : sid : " 
+					+ QuizConstants.MY_SERVER_ID + " : SlotTime :" + new Date(gameSlotsStartTime).toString();
+			winnerMoneyDetails.setLogTag(logTag);
 			List<MoneyTransaction> winUsersTransactions = new ArrayList<>();
 
 			for (PaymentProcessor processor : paymentProcessors) {
@@ -89,7 +93,7 @@ public class BatchPaymentProcessor {
 	            String ccExtraDetails = CCUtils.encodeCCExtraValues(ccExtraDetailMap);
 	            List<Long> enrolledUids = cancelGH.getEnrolledUserIds(); 
 	            for (Long uid : enrolledUids) {
-	            	ccTickets.add(CCUtils.createdCCTicket(CustomerCareReqType.CANCELLED_GAME_MONEY_NOT_ADDED.getId(), 
+	            	ccTickets.add(CCUtils.createdCCTicket(CustomerCareReqType.WIN_MONEY_NOT_ADDED.getId(), 
 	            			uid, ccExtraDetails));
 	            }
 			}

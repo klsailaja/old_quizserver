@@ -21,17 +21,17 @@ public class ChatController extends BaseController {
 	
 	@RequestMapping(value = "/{start}/{end}", method = RequestMethod.GET, produces = "application/json")
 	public @ResponseBody List<Chat> getChatMessages(@PathVariable("start") long startTime, @PathVariable("end") long endTime) {
-		logger.info("Call to getChatMessages()");
+		logger.debug("Call to getChatMessages()");
 		List<Chat> msgsList = ChatServiceHandler.getInstance().getMessages(startTime, endTime);
-		logger.info("Call to getChatMessages() returned with {}", msgsList.size());
+		//logger.info("Call to getChatMessages() returned with {}", msgsList.size());
 		return msgsList;
 	}
 	
 	@RequestMapping(value="/new", method = RequestMethod.POST, produces = "application/json")
 	public @ResponseBody Boolean post(@RequestBody Chat chatMsg) {
-		logger.info("chat post called with {}", chatMsg.getSenderName());
+		//logger.info("chat post called with {}", chatMsg.getSenderName());
 		Boolean result = ChatServiceHandler.getInstance().postMessage(chatMsg);
-		logger.info("chat post returned with {}", result);
+		//logger.info("chat post returned with {}", result);
 		return result;
 	}
 	

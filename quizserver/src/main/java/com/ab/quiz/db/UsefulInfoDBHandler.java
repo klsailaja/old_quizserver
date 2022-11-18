@@ -8,6 +8,8 @@ import java.sql.SQLException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.constants.QuizConstants;
+
 public class UsefulInfoDBHandler {
 	
 	private static final Logger logger = LogManager.getLogger(UsefulInfoDBHandler.class);
@@ -48,10 +50,10 @@ public class UsefulInfoDBHandler {
 				}
 			}
 		} catch (SQLException ex) {
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception while getting the getPicQuestionPrefix");
 			logger.error("SQLException in getPicQuestionPrefix", ex);
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (rs != null) {

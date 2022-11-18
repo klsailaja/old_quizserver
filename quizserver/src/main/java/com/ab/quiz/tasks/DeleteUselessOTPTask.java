@@ -3,6 +3,7 @@ package com.ab.quiz.tasks;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.db.VerifyWDOTPDBHandler;
 
 public class DeleteUselessOTPTask implements Runnable {
@@ -18,7 +19,9 @@ public class DeleteUselessOTPTask implements Runnable {
 			logger.info("Deleted Old Transactions Records size {}", delCt);
 		}
 		catch(Exception ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception while deleting the DeleteUselessOTPTask ", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 		}
 	}
 }

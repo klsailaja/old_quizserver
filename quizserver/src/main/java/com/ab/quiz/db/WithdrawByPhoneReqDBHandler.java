@@ -9,6 +9,7 @@ import java.sql.Statement;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.pojo.WithdrawReqByPhone;
 
 /*
@@ -77,7 +78,9 @@ public class WithdrawByPhoneReqDBHandler {
 				}
 			}
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("SQLException while getting the phone withdraw request details by id ", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (rs != null) {
@@ -132,7 +135,9 @@ public class WithdrawByPhoneReqDBHandler {
 			return withdrawReqId;
 		}
 		catch(SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Error creating withdraw req by phone ", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (rs != null) {

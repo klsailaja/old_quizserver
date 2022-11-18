@@ -217,7 +217,7 @@ public class Utils {
 		long totalLanguages = 5;
 		long totalModes = 3;
 		long totalTimeCovers = 2;
-		long totalServers = 30;
+		long totalServers = 20;
 		long finalTotalPerDay = totalAmt * totalModes * totalTimeCovers * totalServers * totalLanguages;    
 		System.out.println("totalAmt finally:" + finalTotalPerDay);
 		

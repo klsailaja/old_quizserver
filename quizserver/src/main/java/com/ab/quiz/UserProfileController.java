@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ab.quiz.common.GetTask;
 import com.ab.quiz.common.PostTask;
 import com.ab.quiz.common.Request;
+import com.ab.quiz.common.TAGS;
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.db.WithdrawDBHandler;
 import com.ab.quiz.exceptions.InternalException;
 import com.ab.quiz.exceptions.NotAllowedException;
@@ -33,14 +35,17 @@ public class UserProfileController extends BaseController {
 	
 	@RequestMapping(value = "/loggedin/count", method = RequestMethod.GET, produces = "application/json") 
 	public @ResponseBody long getLoggedInUserCount() throws InternalException {
-		
+		logger.debug("{} getLoggedInUserCount", TAGS.LOGGED_IN_USER_COUNT);
 		GetTask<Long> loggedInCountTask = Request.getLoggedInUsersCtTask();
 		long count = -1;
 		try {
 			count = (long) loggedInCountTask.execute();
+			logger.debug("{} getLoggedInUserCount value : {}", TAGS.LOGGED_IN_USER_COUNT, count);
 			return count;
 		} catch (Exception ex) {
-			logger.error("Exception while getting the logged in count from core server", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_START);
+			logger.error("{} Exception while getting the logged in count from core server", TAGS.LOGGED_IN_USER_COUNT, ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw new InternalException("Server Error while getting the logged-in users count");
 		}
 	}
@@ -66,7 +71,7 @@ public class UserProfileController extends BaseController {
 	@RequestMapping(value="/user/logout/{id}", method = RequestMethod.GET, produces = "application/json")
 	public @ResponseBody String logout(@PathVariable("id") long id) throws InternalException {
 		
-		logger.info("logout called with {} ", id);
+		logger.debug("logout called with {} ", id);
 		GetTask<String> logoutTask = Request.getLogoutTask(id);
 		String result = String.valueOf(false);
 		try {
@@ -84,7 +89,7 @@ public class UserProfileController extends BaseController {
 	public @ResponseBody UserProfile forgotPassword(@RequestBody LoginData loginData) 
 			throws NotAllowedException, InternalException {
 		
-		logger.info("forgotPassword is called with {}", loginData.getMailAddress());
+		logger.info("{} forgotPassword is called with {}", TAGS.FORGOT_PASSWD, loginData.getMailAddress());
 		UserProfile userProfile = new UserProfile();
 		PostTask<LoginData, UserProfile> forgotPasswdTask = Request.forgotPasswordTask();
 		forgotPasswdTask.setPostObject(loginData);
@@ -93,7 +98,10 @@ public class UserProfileController extends BaseController {
 			userProfile = (UserProfile) forgotPasswdTask.execute();
 			return userProfile;
 		} catch (Exception ex) {
-			logger.error("Exception in forgotPassword", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_START);
+			logger.error("{} Exception in forgotPassword", TAGS.FORGOT_PASSWD);
+			logger.error("Exception is: ", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw new InternalException("Server Error in forgotPassword");
 		}
 	}
@@ -103,7 +111,8 @@ public class UserProfileController extends BaseController {
 	public @ResponseBody UserProfile updateUserProfile(@RequestBody UserProfile userProfile)
 			throws NotAllowedException, InternalException {
 		
-		logger.info("updateUserProfile is called with {}", userProfile.getEmailAddress().trim());
+		logger.info("{} updateUserProfile is called with {}", TAGS.UPDATE_USER, 
+				userProfile.getEmailAddress().trim());
 		UserProfile newUserProfile = new UserProfile();
 		PostTask<UserProfile, UserProfile> updateProfileTask = Request.updateProfileTask();
 		updateProfileTask.setPostObject(userProfile);
@@ -112,7 +121,10 @@ public class UserProfileController extends BaseController {
 			newUserProfile = (UserProfile) updateProfileTask.execute();
 			return newUserProfile;
 		} catch (Exception ex) {
-			logger.error("Exception in updateUserProfile", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_START);
+			logger.error("{} Exception in updateUserProfile", TAGS.UPDATE_USER);
+			logger.error("Exception is: ", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw new InternalException("Server Error in updateUserProfile");
 		}
 	}
@@ -121,15 +133,17 @@ public class UserProfileController extends BaseController {
 	public @ResponseBody ReferalDetails getUserReferals(@PathVariable("myreferalcode") String referalCode,
 			@PathVariable("pageNum") int pageNum) throws InternalException {
 		
-		logger.info("getUserReferals is called with code {} : pageNo {}", referalCode, pageNum);
+		logger.debug("getUserReferals is called with code {} : pageNo {}", referalCode, pageNum);
 		GetTask<ReferalDetails> getReferalsTask = Request.userReferralTask(referalCode, pageNum);
 		
 		try {
 			ReferalDetails referalDetails = (ReferalDetails) getReferalsTask.execute();
-			logger.info("Referals list size is {} for referal code {}", referalDetails.getReferalList().size(), referalCode);
+			logger.debug("Referals list size is {} for referal code {}", referalDetails.getReferalList().size(), referalCode);
 			return referalDetails;
 		} catch (Exception ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception in getUserReferals", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw new InternalException("Server Error in getUserReferals");
 		}
 		
@@ -141,15 +155,17 @@ public class UserProfileController extends BaseController {
 	public @ResponseBody TransactionsHolder getTransactions(@PathVariable("userProfileId") long userProfileId,
 			@PathVariable("pageNum") int pageNum, @PathVariable("accType") int accType) throws InternalException, NotAllowedException {
 		
-		logger.info("getTransactions is called with user id {} : pageNo {}", userProfileId, pageNum);
+		logger.debug("getTransactions is called with user id {} : pageNo {}", userProfileId, pageNum);
 		GetTask<TransactionsHolder> getTransactionsTask = Request.getTransactionsTask(userProfileId, pageNum, accType);
 		
 		try {
 			TransactionsHolder transactionsDetails = (TransactionsHolder) getTransactionsTask.execute();
-			logger.info("Transactions list size is {} for user profile id {}", transactionsDetails.getTransactionsList().size(), userProfileId);
+			logger.debug("Transactions list size is {} for user profile id {}", transactionsDetails.getTransactionsList().size(), userProfileId);
 			return transactionsDetails;
 		} catch (Exception ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception in getTransactionsList", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw new InternalException("Server Error in getTransactionsList");
 		}
 	}
@@ -163,7 +179,7 @@ public class UserProfileController extends BaseController {
 			diff = diff * -1;
 		}
 		logger.info("Time difference is {}", diff);
-		if (diff <= 15000) {
+		if (diff <= QuizConstants.SERVER_CLIENT_TIME_DIFF_IN_SECS) {
 			return "true";
 		}
 		return "false";
@@ -257,7 +273,9 @@ public class UserProfileController extends BaseController {
 			logger.info("combinedMsgs {}", combinedMsgs.size());
 			return combinedMsgs;
 		} catch (Exception ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception in getRecentWinWDMessages", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw new InternalException("Server Error in getRecentWinWDMessages");
 		}
 	}

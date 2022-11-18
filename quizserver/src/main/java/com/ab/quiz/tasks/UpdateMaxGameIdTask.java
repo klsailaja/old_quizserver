@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.db.LastGameIdDBHandler;
 
 public class UpdateMaxGameIdTask implements Runnable {
@@ -26,7 +27,9 @@ public class UpdateMaxGameIdTask implements Runnable {
 			boolean result = LastGameIdDBHandler.getInstance().updateLastGameId(maxGameId);
 			logger.debug("The result after updating the max game id is {}", result);		
 		} catch (SQLException e) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception while updating max game id " + maxGameId, e);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 		} 
 	}
 }

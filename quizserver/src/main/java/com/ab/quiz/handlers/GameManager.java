@@ -21,6 +21,7 @@ import org.springframework.web.client.HttpServerErrorException;
 
 import com.ab.quiz.common.PostTask;
 import com.ab.quiz.common.Request;
+import com.ab.quiz.common.TAGS;
 import com.ab.quiz.constants.CustomerCareReqType;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.constants.TransactionType;
@@ -80,7 +81,7 @@ public class GameManager {
 		logger.info("New games are added. The size is {}", gameIdToGameHandler.size());
 	}
 	
-	public void deleteCompletedGames(List<Long> completedGameIds) {
+	public void deleteCompletedGames(List<Long> completedGameIds, String tag) {
 		
 		lock.writeLock().lock();
 		
@@ -90,7 +91,7 @@ public class GameManager {
 		
 		lock.writeLock().unlock();
 		
-		logger.info("Completed games are deleted. Now the size is {}", gameIdToGameHandler.size());
+		logger.info("{} Completed games are deleted. Now the size is {}", tag, gameIdToGameHandler.size());
 	}
 	
 	public List<GameDetails> getFutureGames(int gametype) {
@@ -165,7 +166,7 @@ public class GameManager {
 		return gameHandler.getGameDetails();
 	}
 	
-	public GameStatus getGameStatus(long gameId) throws NotAllowedException, SQLException, Exception {
+	public GameStatus getGameStatus(long gameId) throws NotAllowedException {
 		GameHandler gameHandler = gameIdToGameHandler.get(gameId);
 		if (gameHandler == null) {
 			throw new NotAllowedException("Game not found with id " + gameId);
@@ -192,7 +193,7 @@ public class GameManager {
 	}
 	
 	public GameStatusHolder cancelGames (int gameType) throws Exception {
-		String tag = "CancelGames:";
+		String tag = TAGS.CANCEL_GAMES;
 		logger.info("{} The args passed are gameType: {}", tag, gameType);
 		HashMap <Long, GameStatus> gameIdToGameStatus = new HashMap<>();
 		
@@ -238,15 +239,24 @@ public class GameManager {
 				List<CustomerTicket> ccTickets = new ArrayList<>();
 				
 				UsersCompleteMoneyDetails completeDetails = new UsersCompleteMoneyDetails();
+				String logTag = TAGS.UPDATE_USER + " CancelGames : sid : " 
+						+ QuizConstants.MY_SERVER_ID + " : SlotTime :";
+				
 				List<MoneyTransaction> cancelledGameUsersMoneyTrans = new ArrayList<>(); 
 				completeDetails.setUsersMoneyTransactionList(cancelledGameUsersMoneyTrans);
 				List<Long> cancelledUserIds = new ArrayList<>();
 				
 				logger.info("{} The below games are cancelled. Trying to pay the tkt rate to players", tag);
+				boolean logTagFirstTime = true;
 				for (GameHandler cancelGameHandler : cancelledGames) {
 					if (!cancelGameHandler.isGameCancellationDone()) {
 						if (!cancelGameHandler.isFreeGame()) {
-							GameDetails cancelledGameDetails = cancelGameHandler.getGameDetails(); 
+							GameDetails cancelledGameDetails = cancelGameHandler.getGameDetails();
+							if (logTagFirstTime) {
+								logTagFirstTime = false;
+								logTag = logTag + new Date(cancelledGameDetails.getStartTime()).toString();
+								completeDetails.setLogTag(logTag);
+							}
 							logger.info("{} The game server id: {} client id: {} game tkt rate: {} enrolled user ids {}", tag, 
 									cancelledGameDetails.getGameId(), cancelledGameDetails.getTempGameId(),
 								cancelledGameDetails.getTicketRate(), cancelGameHandler.getEnrolledUserIds()); 
@@ -356,7 +366,7 @@ public class GameManager {
 		return holder;
 	}
 	
-	private GameStatusHolder getGamesStatus(int gameType, long userProfileId) throws Exception {
+	private GameStatusHolder getGamesStatus(int gameType, long userProfileId) {
 		// Discard completed state games
 		// Include Locked, In-Progress, Future
 		HashMap <Long, GameStatus> gameIdToGameStatus = new HashMap<>();
@@ -396,15 +406,15 @@ public class GameManager {
 		holder.setVal(gameIdToGameStatus);
 		
 		lock.readLock().unlock();
-		logger.info("End of getGamesStatus:" + gameIdToGameStatus);
+		//logger.info("End of getGamesStatus:" + gameIdToGameStatus);
 		return holder;
 	}
 	
-	public GameStatusHolder getUserEnrolledGamesStatus(int gameType,long userProfileId) throws SQLException, Exception {
+	public GameStatusHolder getUserEnrolledGamesStatus(int gameType,long userProfileId) {
 		return getGamesStatus(gameType,userProfileId);
 	}
 	
-	public GameStatusHolder getAllGamesStatus(int gameType) throws Exception {
+	public GameStatusHolder getAllGamesStatus(int gameType) {
 		return getGamesStatus(gameType, -1);
 	}
 	

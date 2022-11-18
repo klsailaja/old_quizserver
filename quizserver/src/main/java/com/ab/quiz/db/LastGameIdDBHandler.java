@@ -8,6 +8,8 @@ import java.sql.SQLException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.constants.QuizConstants;
+
 /*
 CREATE TABLE LASTGAMEDETAILS (ID INT UNSIGNED NOT NULL, 
 		GAMELASTID BIGINT NOT NULL , PRIMARY KEY (ID)) ENGINE = INNODB;
@@ -58,7 +60,9 @@ public class LastGameIdDBHandler {
 				}
 			}
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("SQLException in getLastGameId()", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (rs != null) {
@@ -91,7 +95,9 @@ public class LastGameIdDBHandler {
 			logger.info("The updated row count is {}", (resultCount > 0));
 		}
 		catch(SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Error updating in updateLastGameId", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (ps != null) {

@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.common.TAGS;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.db.CustomerCareDBHandler;
 import com.ab.quiz.pojo.CustomerTicket;
@@ -18,7 +19,7 @@ public class CreateCustomerTickets implements Runnable {
 	}
 	
 	public void run() {
-		String tag = "CreateTickets:";
+		String tag = TAGS.CREATE_CUSTOMER_TKT;
 		logger.info("{} This is in CreateCustomerTickets", tag);
 		try {
 			CustomerCareDBHandler.getInstance().createTicketsInBulk(tkts, 20);

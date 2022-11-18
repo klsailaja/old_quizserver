@@ -14,6 +14,8 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.constants.QuizConstants;
+
 /*
 CREATE TABLE WITHDRAWRECEIPT(ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 		TYPE INT SIGNED NOT NULL,
@@ -86,7 +88,9 @@ public class WithdrawReceiptDBHandler {
 			return -1;
 			
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("SQL Exception in createWDReceipt()", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (rs != null) {
@@ -124,7 +128,9 @@ public class WithdrawReceiptDBHandler {
 			}
 			return null;
 		} catch(SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("SQL Exception in getReceiptContents()", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (rs != null) {
@@ -198,9 +204,9 @@ public class WithdrawReceiptDBHandler {
 					totalSuccessCount, totalFailureCount);
 			logger.info("Time taken to process this query in Millis : {}", (System.currentTimeMillis() - startTime));
 		} catch(SQLException ex) {
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Error deleting Receipt records entries in bulk mode", ex);
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (psPlayer != null) {

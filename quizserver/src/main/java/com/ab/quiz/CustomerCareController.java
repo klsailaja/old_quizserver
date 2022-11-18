@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.ab.quiz.common.TAGS;
 import com.ab.quiz.constants.PictureType;
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.db.CustomerCareDBHandler;
 import com.ab.quiz.db.PictureDBHandler;
 import com.ab.quiz.exceptions.InternalException;
@@ -31,14 +33,18 @@ public class CustomerCareController extends BaseController {
 			produces = "application/json")
 	public @ResponseBody CCTicketsHolder getCCReqs(@PathVariable("userProfileId") long userProfileId,
 			@PathVariable("pageNum") int pageNum, @PathVariable("status") int status) throws InternalException, NotAllowedException {
-		logger.info("getCCReqs is called with user id {} : pageNo {}", userProfileId, pageNum);
+		logger.info("{} getCCReqs is called with user id {} : pageNo {}", TAGS.FETCH_CUSTOMER_TKTS, 
+				userProfileId, pageNum);
 		try {
 			CCHandler handler = CCHandler.getInstance();
 			CCTicketsHolder ccReqsHolder = handler.getWithdrawDataSet(userProfileId, pageNum, status); 
-			logger.info("CC Requests list size is {} for user profile id {}", ccReqsHolder.getList().size(), userProfileId);
+			logger.info("{} CC Requests list size is {} for user profile id {}", TAGS.FETCH_CUSTOMER_TKTS,
+					ccReqsHolder.getList().size(), userProfileId);
 			return ccReqsHolder;
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception in getCCReqs", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw new InternalException("Server Error in getCCReqs");
 		}
 	}
@@ -49,10 +55,12 @@ public class CustomerCareController extends BaseController {
 		try {
 			CCHandler handler = CCHandler.getInstance();
 			long ccTkt = handler.placeCustomerCareTicket(customerTicket);
-			logger.info("createCustomerTicket request result is {}", ccTkt);
+			logger.info("{} createCustomerTicket request result is {}", TAGS.CREATE_CUSTOMER_TKT, ccTkt);
 			return ccTkt;
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception in createCustomerTicket", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw new InternalException("Server Error in createCustomerTicket");
 		}
 	}
@@ -60,9 +68,9 @@ public class CustomerCareController extends BaseController {
 	@RequestMapping(value = "/ccimg", method = RequestMethod.POST, headers = "Content-Type=multipart/form-data")
 	public @ResponseBody Boolean createCCImg(@RequestParam("user-file") MultipartFile file) 
 			throws NotAllowedException, InternalException {
-		
+		logger.info("{} Image Upload in Create Customer Ticket", TAGS.CREATE_CUSTOMER_TKT);
 		String fileName = file.getOriginalFilename();
-        logger.info("File name: " + fileName);
+        //logger.info("File name: " + fileName);
         Document problemPic = null;
         
         CustomerTicket dbCCTkts = null;
@@ -84,7 +92,9 @@ public class CustomerCareController extends BaseController {
 	        	}
 	        }
         } catch(SQLException ex) {
+        	logger.error(QuizConstants.ERROR_PREFIX_START);
         	logger.error("SQLException while getting the Customer Ticket with id {}", ccTktId);
+        	logger.error(QuizConstants.ERROR_PREFIX_END);
         	return false;
         }
 
@@ -99,7 +109,9 @@ public class CustomerCareController extends BaseController {
 					problemPic.setDocType(PictureType.TICKET_OPENED.getId());
 					
 				} catch (Exception e) {
+					logger.error(QuizConstants.ERROR_PREFIX_START);
 					logger.error("error processing uploaded file", e);
+					logger.error(QuizConstants.ERROR_PREFIX_END);
 					isImgCreationError = true;
 				}
 			}
@@ -115,7 +127,9 @@ public class CustomerCareController extends BaseController {
 				}
 			} catch (Exception e) {
 				isImgCreationError = true;
+				logger.error(QuizConstants.ERROR_PREFIX_START);
 				logger.error("Exception while creating the picture for customer id : {}", ccTktIdStr);
+				logger.error(QuizConstants.ERROR_PREFIX_END);
 			}
 		}
 		if (isImgCreationError) {
@@ -123,7 +137,9 @@ public class CustomerCareController extends BaseController {
 				try {
 					CustomerCareDBHandler.getInstance().removeTicketById(ccTktId);
 				} catch (Exception e) {
+					logger.error(QuizConstants.ERROR_PREFIX_START);
 					logger.error("Exception while deleting the customer ticket with id : {}", ccTktIdStr);
+					logger.error(QuizConstants.ERROR_PREFIX_END);
 				}
 			}
 			return false;
@@ -133,7 +149,9 @@ public class CustomerCareController extends BaseController {
 					CustomerCareDBHandler.getInstance().updateTicketById(ccTktId, problemPicId);
 					return true;
 				} catch (Exception e) {
+					logger.error(QuizConstants.ERROR_PREFIX_START);
 					logger.error("Exception while updateTicketById with id : {} and {}", ccTktIdStr, problemPicId);
+					logger.error(QuizConstants.ERROR_PREFIX_END);
 				}
 			}
 			
@@ -149,13 +167,17 @@ public class CustomerCareController extends BaseController {
 		logger.info("cancelCCReq is called with userProfileId {} and ccRefId {}", userProfileId, ccrefid);
 		try {
 			boolean result = CCHandler.getInstance().cancelCustomerCareTicket(userProfileId, ccrefid);
-			logger.info("cancelCCReq request result is {}", result);
+			//logger.info("cancelCCReq request result is {}", result);
 			return new Boolean(result);
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception in cancelCCReq", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw new InternalException("Server Error in cancelCCReq");
 		} catch (Exception ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception in cancelCCReq", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw new InternalException("Server Error in cancelCCReq");
 		}
 	}
@@ -164,13 +186,15 @@ public class CustomerCareController extends BaseController {
 	public @ResponseBody byte[] getReceiptContents(@PathVariable("id") long id) 
 			throws NotAllowedException, InternalException {
 		
-		logger.info("getReceiptContents is called with id {} ", id);
+		logger.info("{} getReceiptContents is called with id {} ", TAGS.CUSTOMER_TKT_RECEIPT, id);
 		try {
 			byte[] receiptBytes = PictureDBHandler.getInstance().getPictureFileContents(id);
-			logger.info("CC getReceiptContents request result is {}", receiptBytes.length);
+			//logger.info("CC getReceiptContents request result is {}", receiptBytes.length);
 			return receiptBytes;
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception in getReceiptContents", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw new InternalException("Server Error in getReceiptContents");
 		}
 	}

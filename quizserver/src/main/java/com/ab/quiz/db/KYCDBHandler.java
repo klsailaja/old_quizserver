@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.pojo.KYCEntry;
 
 /*
@@ -90,7 +91,9 @@ public class KYCDBHandler {
 			}
 			return false;
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Error creating createKYCEntry ", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (ps != null) {
@@ -146,7 +149,9 @@ public class KYCDBHandler {
 				}
 			}
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("SQLException in getKYCEntryById()", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (rs != null) {
@@ -195,10 +200,10 @@ public class KYCDBHandler {
 			}
 		}
 		catch(SQLException ex) {
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception while updateKYCEntry for {} : {}", userId, pictureId);
 			logger.error("SQLException in ", ex);
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (ps != null) {

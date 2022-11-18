@@ -106,18 +106,15 @@ public class GamesGenerator implements Runnable {
 		
 		long repeatedTaskInterval = QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS; 
 				
-		//long initailDelay = firstGameTime - System.currentTimeMillis() + QuizConstants.TIME_GAP_BETWEEN_SLOTS_IN_MILLIS
-		//		- QuizConstants.START_PAYMENTS_BEFORE_COMPLETION_TIME_OFFSET;
-		
 		resultProcessor = new Thread(this);
 		resultProcessor.setDaemon(true);
 		resultProcessor.start();
 		
-		/*LazyScheduler.getInstance().submitRepeatedTask(this, initailDelay, 
-					repeatedTaskInterval, TimeUnit.MILLISECONDS);*/
+		/*long gameCancellerTaskDelay = firstGameTime - System.currentTimeMillis()
+				- QuizConstants.GAME_BEFORE_LOCK_PERIOD_IN_MILLIS + 1 * 1000;*/
 		
-		long gameCancellerTaskDelay = firstGameTime - System.currentTimeMillis()
-				- QuizConstants.GAME_BEFORE_LOCK_PERIOD_IN_MILLIS + 1 * 1000;
+		int waitTime = 1 + (int)(Math.random() * (10 - 1));
+		long gameCancellerTaskDelay = firstGameTime - System.currentTimeMillis() + waitTime * 1000; 
 		
 		LazyScheduler.getInstance().submitRepeatedTask(new CheckCancellerTask(mode), gameCancellerTaskDelay, 
 				repeatedTaskInterval, TimeUnit.MILLISECONDS);
@@ -175,9 +172,9 @@ public class GamesGenerator implements Runnable {
 		}
 	}
 	
-	public void addNextGameSet(List<GameHandler> inMemGames) {
+	public void addNextGameSet(List<GameHandler> inMemGames, String tag) {
 		nextGameSet.addAll(inMemGames);
-		logger.debug("In Memory game set size {}", nextGameSet.size());
+		logger.info("{} In Memory game set size {}", tag, nextGameSet.size());
 	}
 	
 	public List<GameHandler> generateGameData(int slotCount) throws SQLException {

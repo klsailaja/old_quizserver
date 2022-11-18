@@ -10,6 +10,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.pojo.GameHistoryTempPOJO;
 import com.ab.quiz.pojo.GamePlayers;
 import com.ab.quiz.pojo.GameResults;
@@ -133,9 +134,9 @@ public class GameHistoryDBHandler {
 			}
 			
 		} catch (SQLException ex) {
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("SQLException in deleteRecords()", ex);
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (rs != null) {
@@ -207,9 +208,9 @@ public class GameHistoryDBHandler {
 					totalSuccessCount, totalFailureCount);
 			logger.info("Time taken to process this query in Millis : {}", (System.currentTimeMillis() - startTime));
 		} catch(SQLException ex) {
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Error updating game status entries in bulk mode", ex);
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (ps != null) {
@@ -280,9 +281,9 @@ public class GameHistoryDBHandler {
 					totalSuccessCount, totalFailureCount);
 			logger.info("Time taken to process this query in Millis : {}", (System.currentTimeMillis() - startTime));
 		} catch(SQLException ex) {
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Error deleting game players entries in bulk mode", ex);
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (psPlayer != null) {
@@ -356,9 +357,9 @@ public class GameHistoryDBHandler {
 					totalSuccessCount, totalFailureCount);
 			logger.info("Time taken to process this query in Millis : {}", (System.currentTimeMillis() - startTime));
 		} catch(SQLException ex) {
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Error creating game players entries in bulk mode", ex);
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (psPlayer != null) {
@@ -438,9 +439,9 @@ public class GameHistoryDBHandler {
 					totalSuccessCount, totalFailureCount);
 			
 		} catch(SQLException ex) {
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Error creating game history entries in bulk mode", ex);
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		} finally {
 			if (ps != null) {
@@ -475,9 +476,9 @@ public class GameHistoryDBHandler {
 				}
 			}
 		} catch (SQLException ex) {
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("SQLException in getUserPlayedGameIds()", ex);
-			logger.error("******************************");
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 			throw ex;
 		}
 		finally {
@@ -518,7 +519,9 @@ public class GameHistoryDBHandler {
 				}
 			}
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("SQLException in getting history open records details", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 		} finally {
 			if (rs != null) {
 				rs.close();
@@ -598,7 +601,9 @@ public class GameHistoryDBHandler {
 				}
 			}
 		} catch (SQLException ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("SQLException in getting history game details", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
 		} finally {
 			if (totalRs != null) {
 				totalRs.close();
@@ -621,65 +626,6 @@ public class GameHistoryDBHandler {
 		logger.info("In Game History results. Returned size is {}", gameResultSet.size());
 		return historyGameDetails;
 	}
-	
-	/*
-	public boolean createGameHistoryWithPlayers(GameResults gameResults, List<GamePlayers> playersList) 
-			throws SQLException {
-		
-		ConnectionPool cp = null;
-		Connection dbConn = null;
-		PreparedStatement ps = null;
-		PreparedStatement psPlayer = null;
-		
-		try {
-			cp = ConnectionPool.getInstance();
-			dbConn = cp.getDBConnection();
-			ps = dbConn.prepareStatement(CREATE_GAME_HISTORY);
-			
-			ps.setLong(1, gameResults.getGameId());
-			ps.setLong(2, gameResults.getGamePlayedTime());
-			ps.setInt(3, gameResults.getTktRate());
-			ps.setString(4, gameResults.getCelebrityName());
-			ps.setString(5, gameResults.getWinnersList());
-			
-			int createResult = ps.executeUpdate();
-			logger.debug("Created a game entry, The result is {}", createResult);
-			
-			if (createResult > 0) {
-				psPlayer = dbConn.prepareStatement(CREATE_PLAYER_HISTORY);
-				
-				boolean finalResult = true;
-				for (GamePlayers gamePlayer : playersList) {
-					psPlayer.setLong(1, gamePlayer.getGameId());
-					psPlayer.setLong(2, gamePlayer.getUserId());
-					psPlayer.addBatch();
-				}
-				int[] inserted = psPlayer.executeBatch();
-				for (int result : inserted) {
-					if (result <= 0) {
-						finalResult = false;
-						logger.error("Could not insert the record for {}", result);
-					}
-				}
-				return finalResult;
-			}
-		} catch(SQLException ex) {
-			logger.error("Error creating game history and players entry", ex);
-			throw ex;
-		} finally {
-			if (psPlayer != null) {
-				psPlayer.close();
-			}
-			if (ps != null) {
-				ps.close();
-			}
-			if (dbConn != null) {
-				dbConn.close();
-			}
-		}
-		return false;
-	} */
-
 	
 	public static void main(String[] args) throws SQLException {
 		
