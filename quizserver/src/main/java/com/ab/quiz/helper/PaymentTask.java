@@ -1,6 +1,8 @@
 package com.ab.quiz.helper;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -9,15 +11,26 @@ import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.ab.quiz.common.TAGS;
+import com.ab.quiz.constants.CustomerCareReqType;
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.handlers.GameHandler;
+import com.ab.quiz.pojo.MoneyTransaction;
+import com.ab.quiz.pojo.MoneyUpdaterGameDetails;
+import com.ab.quiz.pojo.UsersCompleteMoneyDetails;
 import com.ab.quiz.tasks.DeleteCompletedGamesTask;
 import com.ab.quiz.tasks.HistoryGameSaveTask;
 import com.ab.quiz.tasks.UpdateMaxGameIdTask;
 
 public class PaymentTask implements Runnable {
 	
-	private List<GameHandler> completedGames;
 	private static final Logger logger = LogManager.getLogger(PaymentTask.class);
+	
+	private List<GameHandler> completedGames;
+	private List<PaymentProcessor> paymentProcessors = new ArrayList<>();
+	private Map<Long, Long> userIdVsBossId = new HashMap<>();
+	private int realGamesPlayedCount = 0;
+	
 	
 	public PaymentTask(List<GameHandler> completedGames) {
 		this.completedGames = completedGames;
@@ -39,21 +52,23 @@ public class PaymentTask implements Runnable {
 		long maxId = -1;
 		List<Long> tobePaidGameIds = new ArrayList<>();
 		List<Long> completedGameIds = new ArrayList<>();
+		
 		for (GameHandler completedGame : completedGames) {
 			Long gameId = completedGame.getGameDetails().getGameId();
 			completedGameIds.add(gameId);
+			
 			if (gameId > maxId) {
 				maxId = gameId;
 			}
+			
 			if (!completedGame.isGameCancelled()) {
 				tobePaidGameIds.add(gameId);
 			}
 		}
 		
-		List<PaymentGameDetails> paymentGameDetails = new ArrayList<>();
+		realGamesPlayedCount = tobePaidGameIds.size(); 
 		
-		BatchPaymentProcessor batchPaymentProcessor = new BatchPaymentProcessor(completedGames);
-		
+		long gameSlotsStartTime = -1;
 		long paymentTimeTaken = System.currentTimeMillis();
 		
 		for (GameHandler completedGame : completedGames) {
@@ -65,7 +80,10 @@ public class PaymentTask implements Runnable {
 			PaymentProcessor pp = completedGame.getPaymentHandler();
 			if (pp != null) {
 				
-				batchPaymentProcessor.addPaymentProcessor(pp);
+				if (gameSlotsStartTime == -1) {
+					gameSlotsStartTime = completedGame.getGameDetails().getStartTime();
+				}
+				paymentProcessors.add(pp);
 				
 				List<Long> actualWinUserIds = pp.getWinnerUserIdSet();
 				Map<Long, Long> gamePlayers = completedGame.getUserIdToBossIdDetails();
@@ -82,30 +100,40 @@ public class PaymentTask implements Runnable {
 				}
 				
 			
-				batchPaymentProcessor.addUserBossIds(gamePlayers);
+				userIdVsBossId.putAll(gamePlayers);
 				// Bulk processing End
 				completedGame.getGameDetails().setStatus(0);
-				PaymentGameDetails pgd = new PaymentGameDetails(completedGame.getGameDetails().getGameId(),
-						completedGame.getGameDetails().getTempGameId(), 
-						actualWinUserIds, 
-						completedGame.getGameDetails().getStartTime());
-				paymentGameDetails.add(pgd);
 			}
+			
+			UsersCompleteMoneyDetails winnerMoneyDetails = new UsersCompleteMoneyDetails();
+			String logTag = TAGS.WIN_MONEY + " WinnersMoney : sid : " 
+					+ QuizConstants.MY_SERVER_ID + " : SlotTime :" + new Date(gameSlotsStartTime).toString();
+			winnerMoneyDetails.setLogTag(logTag);
+			List<MoneyTransaction> winUsersTransactions = new ArrayList<>();
+			List<MoneyUpdaterGameDetails> moneyUpdaterGDListObjs = new ArrayList<>();
+
+			for (PaymentProcessor processor : paymentProcessors) {
+				processor.processPayments(userIdVsBossId, winUsersTransactions, moneyUpdaterGDListObjs);
+			}
+			
+			winnerMoneyDetails.setUsersMoneyTransactionList(winUsersTransactions);
+			String trackKey = "server" + QuizConstants.MY_SERVER_ID + "-win-" + String.valueOf(gameSlotsStartTime);
+			winnerMoneyDetails.setTrackStatusKey(trackKey);
+			
+			MoneyUpdateRequest request = new MoneyUpdateRequest(CustomerCareReqType.WIN_MONEY_NOT_ADDED.getId(),
+					gameSlotsStartTime,
+					winnerMoneyDetails, moneyUpdaterGDListObjs);
+			request.run();
 		}
 		
-		logger.info("Completed game list {}", completedGameIds);
-		logger.info("Payment to be done game list {}", tobePaidGameIds);
+		logger.info("{} Completed game list {}", TAGS.WIN_MONEY, completedGameIds);
+		logger.info("{} Payment to be done game list size {} and game ids {}", TAGS.WIN_MONEY, 
+				tobePaidGameIds.size(), tobePaidGameIds);
 		
-		if (paymentGameDetails.size() > 0) {
-			batchPaymentProcessor.setCompletedGameIds(tobePaidGameIds);
-			batchPaymentProcessor.setPaymentGD(paymentGameDetails);
-			batchPaymentProcessor.run();
-		}
-		
-		logger.info("Time taken for processing payments {}" , (System.currentTimeMillis() - paymentTimeTaken)/1000);
+		logger.info("{} Time taken for processing payments {}" , TAGS.WIN_MONEY, (System.currentTimeMillis() - paymentTimeTaken)/1000);
 		
 		LazyScheduler.getInstance().submit(new UpdateMaxGameIdTask(maxId));
-		if (paymentGameDetails.size() > 0) {
+		if (realGamesPlayedCount > 0) {
 			LazyScheduler.getInstance().submit(new HistoryGameSaveTask(completedGames));
 		}
 		LazyScheduler.getInstance().submit(new DeleteCompletedGamesTask(completedGameIds), 3, TimeUnit.MINUTES);

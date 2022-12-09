@@ -12,6 +12,7 @@ import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
 import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.MoneyTransaction;
+import com.ab.quiz.pojo.MoneyUpdaterGameDetails;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.PlayerSummary;
 
@@ -40,7 +41,8 @@ public class PaymentProcessor {
 	}
 	
 	public void processPayments(Map<Long, Long> userIdVsBossId, 
-			List<MoneyTransaction> winUsersTransactions) {
+			List<MoneyTransaction> winUsersTransactions, 
+			List<MoneyUpdaterGameDetails> moneyUpdaterGDList) {
 		
 		logger.info("*******************************************************");
 		logger.info("Batching payments for GameId#:" + gameDetails.getGameId() + ": client GameId#" + gameDetails.getTempGameId());
@@ -93,6 +95,15 @@ public class PaymentProcessor {
 				
 				winUsersTransactions.add(moneyTransaction);
 				
+				MoneyUpdaterGameDetails mugdObj = new MoneyUpdaterGameDetails();
+				mugdObj.setGameServerId(gameDetails.getGameId());
+				mugdObj.setGameClientId(gameDetails.getTempGameId());
+				mugdObj.setGameStartTime(gameDetails.getStartTime());
+				mugdObj.setUserId(userProfileId);
+				mugdObj.setAmount(amountWon);
+				
+				moneyUpdaterGDList.add(mugdObj);
+				
 				Long bossProfileId = userIdVsBossId.get(userProfileId);
 				if ((bossProfileId == 0) || (bossProfileId == null)) {
 					logger.info("Boss Referal code is null. Returning for userProfileId : {}", userProfileId);
@@ -132,6 +143,15 @@ public class PaymentProcessor {
 				
 				winUsersTransactions.add(moneyTransaction);
 				
+				mugdObj = new MoneyUpdaterGameDetails();
+				mugdObj.setGameServerId(gameDetails.getGameId());
+				mugdObj.setGameClientId(gameDetails.getTempGameId());
+				mugdObj.setGameStartTime(gameDetails.getStartTime());
+				mugdObj.setUserId(userProfileId);
+				mugdObj.setAmount(bossShare * -1);
+				
+				moneyUpdaterGDList.add(mugdObj);
+				
 				moneyTransaction = new MoneyTransaction();
 				moneyTransaction.setAccountType(UserMoneyAccountType.REFERAL_MONEY);
 				moneyTransaction.setOperType(UserMoneyOperType.ADD);
@@ -140,6 +160,15 @@ public class PaymentProcessor {
 				moneyTransaction.setTransaction(transaction1);
 				
 				winUsersTransactions.add(moneyTransaction);
+				
+				mugdObj = new MoneyUpdaterGameDetails();
+				mugdObj.setGameServerId(gameDetails.getGameId());
+				mugdObj.setGameClientId(gameDetails.getTempGameId());
+				mugdObj.setGameStartTime(gameDetails.getStartTime());
+				mugdObj.setUserId(bossUserProfileId);
+				mugdObj.setAmount(bossShare);
+				
+				moneyUpdaterGDList.add(mugdObj);
 				
 			} catch (Exception ex) {
 				logger.error("For user profile id " + userProfileId);

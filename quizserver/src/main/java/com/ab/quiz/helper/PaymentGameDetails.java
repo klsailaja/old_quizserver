@@ -8,6 +8,7 @@ public class PaymentGameDetails {
 	long clientGameId;
 	long gameStartTime;
 	List<Long> enrolledUids = new ArrayList<>();
+	List<Integer> amounts = new ArrayList<>();
 	
 	public PaymentGameDetails(long serverGameId, long clientGameId, List<Long> enrolledUids,
 			long gameStartTime) {

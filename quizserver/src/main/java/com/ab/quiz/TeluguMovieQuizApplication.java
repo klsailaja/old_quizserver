@@ -12,6 +12,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import com.ab.quiz.tasks.DeleteUselessOTPTask;
+import com.ab.quiz.tasks.MoneyUpdaterResponseHandler;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.db.ConnectionPool;
 import com.ab.quiz.helper.GamesGenerator;
@@ -19,7 +20,7 @@ import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.helper.WinMsgHandler;
 import com.ab.quiz.tasks.DeleteOldRecords;
 import com.ab.quiz.tasks.TestUsersTask;
-import com.ab.quiz.tasks.WinnersMoneyUpdaterTask;
+
 
 @SpringBootApplication
 public class TeluguMovieQuizApplication implements ApplicationRunner {
@@ -114,7 +115,7 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 			
 			LazyScheduler.getInstance().submitRepeatedTask(new DeleteOldRecords(), initialDelay, 
 					24 * 60 * 1000, TimeUnit.MILLISECONDS);
-			LazyScheduler.getInstance().submitRepeatedTask(WinnersMoneyUpdaterTask.getInstance(), 0, 
+			LazyScheduler.getInstance().submitRepeatedTask(MoneyUpdaterResponseHandler.getInstance(), 0, 
 					1 * 60 * 1000, TimeUnit.MILLISECONDS);
 			LazyScheduler.getInstance().submitRepeatedTask(new DeleteUselessOTPTask(), initialDelay, 
 					24 * 60 * 1000, TimeUnit.MILLISECONDS);

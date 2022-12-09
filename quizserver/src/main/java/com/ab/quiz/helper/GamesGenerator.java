@@ -110,11 +110,11 @@ public class GamesGenerator implements Runnable {
 		resultProcessor.setDaemon(true);
 		resultProcessor.start();
 		
-		/*long gameCancellerTaskDelay = firstGameTime - System.currentTimeMillis()
-				- QuizConstants.GAME_BEFORE_LOCK_PERIOD_IN_MILLIS + 1 * 1000;*/
+		long gameCancellerTaskDelay = firstGameTime - System.currentTimeMillis()
+				- QuizConstants.GAME_BEFORE_LOCK_PERIOD_IN_MILLIS + 1 * 1000;
 		
-		int waitTime = 1 + (int)(Math.random() * (10 - 1));
-		long gameCancellerTaskDelay = firstGameTime - System.currentTimeMillis() + waitTime * 1000; 
+		/*int waitTime = 1 + (int)(Math.random() * (10 - 1));
+		long gameCancellerTaskDelay = firstGameTime - System.currentTimeMillis() + waitTime * 1000;*/ 
 		
 		LazyScheduler.getInstance().submitRepeatedTask(new CheckCancellerTask(mode), gameCancellerTaskDelay, 
 				repeatedTaskInterval, TimeUnit.MILLISECONDS);
@@ -167,7 +167,9 @@ public class GamesGenerator implements Runnable {
 				LazyScheduler.getInstance().submit(new InMemGameGeneratorTask(this));
 			}
 			catch (Exception ex) {
+				logger.error(QuizConstants.ERROR_PREFIX_START);
 				logger.error("Exception in the periodic task execution", ex);
+				logger.error(QuizConstants.ERROR_PREFIX_END);
 			}
 		}
 	}

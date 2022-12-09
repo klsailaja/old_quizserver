@@ -23,16 +23,17 @@ import com.ab.quiz.common.PostTask;
 import com.ab.quiz.common.Request;
 import com.ab.quiz.common.TAGS;
 import com.ab.quiz.constants.CustomerCareReqType;
+import com.ab.quiz.constants.MoneyCreditStatus;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
-import com.ab.quiz.constants.WinMoneyCreditStatus;
 import com.ab.quiz.db.GameHistoryDBHandler;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.helper.CCUtils;
 import com.ab.quiz.helper.CelebritySpecialHandler;
 import com.ab.quiz.helper.LazyScheduler;
+import com.ab.quiz.helper.MoneyUpdateRequest;
 import com.ab.quiz.helper.Utils;
 import com.ab.quiz.pojo.CelebrityFullDetails;
 import com.ab.quiz.pojo.CustomerTicket;
@@ -42,6 +43,7 @@ import com.ab.quiz.pojo.GameStatus;
 import com.ab.quiz.pojo.GameStatusHolder;
 import com.ab.quiz.pojo.KYCEntry;
 import com.ab.quiz.pojo.MoneyTransaction;
+import com.ab.quiz.pojo.MoneyUpdaterGameDetails;
 import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.PlayerAnswer;
 import com.ab.quiz.pojo.PlayerSummary;
@@ -192,8 +194,129 @@ public class GameManager {
 		return gameStatus;
 	}
 	
+	public void processCancelGamesRefund(int gameType) throws Exception {
+		String tag = TAGS.REFUND_MONEY;
+		logger.info("{} The args passed are gameType: {}", tag, gameType);
+		
+		lock.readLock().lock();
+		
+		Set<Map.Entry<Long, GameHandler>> setValues = gameIdToGameHandler.entrySet();
+		long currentTime = System.currentTimeMillis();
+		List<GameHandler> cancelledGames = new ArrayList<>();
+		
+		for (Map.Entry<Long, GameHandler> eachEntry : setValues) {
+			GameHandler gameHandler = eachEntry.getValue();
+			if (gameType != -1) {
+				if (gameHandler.getGameDetails().getGameType() != gameType) {
+					continue;
+				}
+			}
+			
+			long startTime = gameHandler.getGameDetails().getStartTime();
+			long diff = -1;
+			if (currentTime < startTime) {
+				diff = startTime - currentTime;
+				if (diff > QuizConstants.GAME_BEFORE_LOCK_PERIOD_IN_MILLIS) {
+					continue;
+				}
+			} else {
+				diff = startTime - currentTime;
+			}
+			if (diff <= 10 * 60 * 1000) {
+				if (gameHandler.getEnrolledUserCount() < 3) {
+					if (!gameHandler.isGameCancellationDone()) {
+						if (!gameHandler.isFreeGame()) {
+							cancelledGames.add(gameHandler);
+							continue;
+						}
+					}
+				}
+			}
+		}
+		
+		lock.readLock().unlock();
+		
+		if (cancelledGames.size() > 0) {
+			synchronized (this) {
+				logger.info("{} Total cancelled games size {}", tag, cancelledGames.size());
+				
+				List<Long> cancelledGameIds = new ArrayList<>();
+				
+				Map<Long, UsersCompleteMoneyDetails> slotTimeVsCompleteDetails = 
+						new HashMap<>();
+				Map<Long, List<MoneyUpdaterGameDetails>> slotTimeVsRefundDetails = 
+						new HashMap<>();
+				
+				/*UsersCompleteMoneyDetails completeDetails = new UsersCompleteMoneyDetails();
+				List<MoneyTransaction> cancelledGameUsersMoneyTrans = new ArrayList<>(); 
+				completeDetails.setUsersMoneyTransactionList(cancelledGameUsersMoneyTrans);*/
+				
+				List<Long> cancelledUserIds = new ArrayList<>();
+				
+				for (GameHandler cancelGameHandler : cancelledGames) {
+					if (!cancelGameHandler.isGameCancellationDone()) {
+						if (!cancelGameHandler.isFreeGame()) {
+							
+							GameDetails cancelledGameDetails = cancelGameHandler.getGameDetails();
+							cancelGameHandler.setGameCancellationDone(true);
+							cancelGameHandler.getGameDetails().setStatus(-1);
+							
+							UsersCompleteMoneyDetails completeDetails = 
+									slotTimeVsCompleteDetails.get(cancelledGameDetails.getStartTime());
+							if (completeDetails == null) {
+								completeDetails = new UsersCompleteMoneyDetails();
+								List<MoneyTransaction> cancelledGameUsersMoneyTrans = new ArrayList<>();
+								completeDetails.setUsersMoneyTransactionList(cancelledGameUsersMoneyTrans);
+							}
+							cancelGameHandler.cancelGame(completeDetails, cancelledUserIds);
+							slotTimeVsCompleteDetails.put(cancelledGameDetails.getStartTime(), completeDetails);
+							cancelledGameIds.add(cancelledGameDetails.getGameId());
+							
+							List<Long> enrolledUids = cancelGameHandler.getEnrolledUserIds(); 
+				            for (Long uid : enrolledUids) {
+				            	MoneyUpdaterGameDetails refundMoneyObj = new MoneyUpdaterGameDetails();
+				            	
+				            	refundMoneyObj.setGameStartTime(cancelledGameDetails.getStartTime());
+				            	refundMoneyObj.setGameServerId(cancelledGameDetails.getGameId());
+				            	refundMoneyObj.setGameClientId(cancelledGameDetails.getTempGameId());
+				            	refundMoneyObj.setAmount(cancelledGameDetails.getTicketRate());
+				            	refundMoneyObj.setUserId(uid);
+				            	
+				            	List<MoneyUpdaterGameDetails> cancelGamesMoneyUpdaterList =
+				            			slotTimeVsRefundDetails.get(cancelledGameDetails.getStartTime());
+				            	if (cancelGamesMoneyUpdaterList == null) {
+				            		cancelGamesMoneyUpdaterList = new ArrayList<MoneyUpdaterGameDetails>(); 
+				            	}
+				            	cancelGamesMoneyUpdaterList.add(refundMoneyObj);
+				            	slotTimeVsRefundDetails.put(cancelledGameDetails.getStartTime(), cancelGamesMoneyUpdaterList);
+				            }
+						}
+					}
+				}
+				if (slotTimeVsRefundDetails.size() > 0) {
+					logger.info("{} Tobe refunded cancelled games size {}", tag, cancelledGames.size());
+					logger.info("{} cancelledUserIds to revert:{}", tag, cancelledUserIds);
+					Set<Map.Entry<Long, List<MoneyUpdaterGameDetails>>> entrySet = 
+							slotTimeVsRefundDetails.entrySet();
+					for (Map.Entry<Long, List<MoneyUpdaterGameDetails>> eachEntry : entrySet) {
+						UsersCompleteMoneyDetails completeDetails = slotTimeVsCompleteDetails.get(eachEntry.getKey());
+						String logTag = TAGS.REFUND_MONEY + " CancelGamesMoney : sid : " 
+								+ QuizConstants.MY_SERVER_ID + " : SlotTime :" + new Date(eachEntry.getKey()).toString();
+						completeDetails.setLogTag(logTag);
+						String trackKey = "server" + QuizConstants.MY_SERVER_ID + "-refund-" + String.valueOf(eachEntry.getKey());
+						completeDetails.setTrackStatusKey(trackKey);
+						MoneyUpdateRequest refundReq = 
+								new MoneyUpdateRequest(CustomerCareReqType.CANCELLED_GAME_MONEY_NOT_ADDED.getId(),
+										eachEntry.getKey(), completeDetails, eachEntry.getValue());
+						refundReq.run();
+					}
+				}
+			}
+		}
+	}
+	
 	public GameStatusHolder cancelGames (int gameType) throws Exception {
-		String tag = TAGS.CANCEL_GAMES;
+		String tag = TAGS.REFUND_MONEY;
 		logger.info("{} The args passed are gameType: {}", tag, gameType);
 		HashMap <Long, GameStatus> gameIdToGameStatus = new HashMap<>();
 		
@@ -299,9 +422,9 @@ public class GameManager {
 						exceptionThrown = true;
 						for (GameHandler cancelGameHandler : cancelledGames) {
 							if (cancelGameHandler.isFreeGame()) {
-								cancelGameHandler.setMoneyRevertStatus(WinMoneyCreditStatus.ALL_SUCCESS.getId());
+								cancelGameHandler.setMoneyRevertStatus(MoneyCreditStatus.ALL_SUCCESS.getId());
 							} else {
-								cancelGameHandler.setMoneyRevertStatus(WinMoneyCreditStatus.ALL_FAIL.getId());
+								cancelGameHandler.setMoneyRevertStatus(MoneyCreditStatus.ALL_FAIL.getId());
 							}
 						}
 					}
@@ -313,14 +436,14 @@ public class GameManager {
 						
 						for (int index = 0; index < updateResults.size(); index ++) {
 							long canceledUserId = cancelledUserIds.get(index);
-							int revertState = WinMoneyCreditStatus.ALL_FAIL.getId(); 
+							int revertState = MoneyCreditStatus.ALL_FAIL.getId(); 
 							if ( updateResults.get(index) > 0 ) {
-								revertState = WinMoneyCreditStatus.ALL_SUCCESS.getId(); 
+								revertState = MoneyCreditStatus.ALL_SUCCESS.getId(); 
 							}
 							for (GameHandler cancelGameHandler : cancelledGames) {
 								if (cancelGameHandler.isUserEnrolled(canceledUserId)) {
 									cancelGameHandler.putRevertedStatus(canceledUserId, revertState);
-									if (revertState == WinMoneyCreditStatus.ALL_FAIL.getId()) {
+									if (revertState == MoneyCreditStatus.ALL_FAIL.getId()) {
 										HashMap<String,String> ccExtraDetailMap = new HashMap<>();
 							            ccExtraDetailMap.put(CCUtils.ISSUE_DATE_KEY, 
 							            		new Date(cancelGameHandler.getGameDetails().getStartTime()).toString());

@@ -84,11 +84,11 @@ public class Utils {
 		
 		double totalAmount = ticketRate * playerCount;
 		if (totalAmount <= 200.00) {
-			addedBrainsShare = 8.0;
+			addedBrainsShare = 10.0;
 		} else if ((totalAmount > 200.00) && (totalAmount <= 500.00)) {
 			addedBrainsShare = 10.0;
 		} else {
-			addedBrainsShare = 18.0;
+			addedBrainsShare = 15.0;
 		}
 		double totalPrizeMoney = totalAmount - (totalAmount * addedBrainsShare)/100;
 		totalPrizeMoney = totalPrizeMoney - winnerCount * ticketRate;

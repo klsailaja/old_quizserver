@@ -1,5 +1,6 @@
 package com.ab.quiz.helper;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -13,6 +14,14 @@ import com.ab.quiz.pojo.PlayerAnswer;
 public class Test {
 	
 	public void method1() {
+		
+		Calendar calendar = Calendar.getInstance();
+		int minutes = calendar.get(Calendar.MINUTE);
+		int seconds = calendar.get(Calendar.SECOND);
+		int excessMinutes = minutes - (minutes/5) * 5;
+		int excessSeconds = seconds - (seconds/5) * 5;
+		//calendar.add(Calendar.DATE, oldWDReceipts);
+		long time = calendar.getTimeInMillis();
 		
 		System.out.println(System.currentTimeMillis());
 		

@@ -10,6 +10,7 @@ public class MoneyTransaction {
 	private long userProfileId;
 	private long amount;
 	private MyTransaction transaction;
+	private int uniqueId;
 	
 	public MoneyTransaction() {
 		
@@ -54,5 +55,11 @@ public class MoneyTransaction {
 	}
 	public void setTransaction(MyTransaction transaction) {
 		this.transaction = transaction;
+	}
+	public int getUniqueId() {
+		return uniqueId;
+	}
+	public void setUniqueId(int uniqueId) {
+		this.uniqueId = uniqueId;
 	}
 }

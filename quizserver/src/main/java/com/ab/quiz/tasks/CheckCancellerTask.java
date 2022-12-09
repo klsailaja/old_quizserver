@@ -11,7 +11,7 @@ public class CheckCancellerTask implements Runnable {
 	
 	private int mode;
 	private static final Logger logger = LogManager.getLogger(CheckCancellerTask.class);
-	private String tag = TAGS.CANCEL_GAMES;
+	private String tag = TAGS.REFUND_MONEY;
 	
 	public CheckCancellerTask(int mode) {
 		this.mode = mode;
@@ -20,7 +20,7 @@ public class CheckCancellerTask implements Runnable {
 	public void run() {
 		logger.info("{} This is in GameCheckCancellerTask {}", tag, mode);
 		try {
-			GameManager.getInstance().cancelGames(mode);
+			GameManager.getInstance().processCancelGamesRefund(mode);
 		} catch (Exception ex) {
 			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("{} Exception in GameCancellerTask", tag, ex);

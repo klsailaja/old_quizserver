@@ -8,6 +8,7 @@ public class UsersCompleteMoneyDetails {
 	private List<MoneyTransaction> usersMoneyTransactionList;
 	private int kycDocsStatus;  // 1 means approved
 	private String logTag;
+	private int operationType;
 	
 	public boolean isCheckMoney() {
 		return checkMoney;
@@ -40,5 +41,12 @@ public class UsersCompleteMoneyDetails {
 	}
 	public void setLogTag(String logTag) {
 		this.logTag = logTag;
+	}
+	
+	public int getOperationType() {
+		return operationType;
+	}
+	public void setOperationType(int operationType) {
+		this.operationType = operationType;
 	}
 }

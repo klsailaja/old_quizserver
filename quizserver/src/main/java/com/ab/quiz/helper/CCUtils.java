@@ -9,7 +9,9 @@ import com.ab.quiz.pojo.CustomerTicket;
 public class CCUtils {
 	
 	public static final String ISSUE_DATE_KEY = "PLAYED_DATE";
-    public static final String ISSUE_GAMEID_KEY = "GAME_ID";
+    public static final String ISSUE_GAMEID_KEY = "GAME_CLIENT_ID";
+    public static final String ISSUE_GAMEID_SERVER_KEY = "GAME_SERVER_ID";
+    public static final String ISSUE_AMT_KEY = "AMT";
 	
     public static String encodeCCExtraValues(HashMap<String,String> extraValues) {
 
