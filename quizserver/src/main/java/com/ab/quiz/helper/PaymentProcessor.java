@@ -98,7 +98,6 @@ public class PaymentProcessor {
 				MoneyUpdaterGameDetails mugdObj = new MoneyUpdaterGameDetails();
 				mugdObj.setGameServerId(gameDetails.getGameId());
 				mugdObj.setGameClientId(gameDetails.getTempGameId());
-				mugdObj.setGameStartTime(gameDetails.getStartTime());
 				mugdObj.setUserId(userProfileId);
 				mugdObj.setAmount(amountWon);
 				
@@ -146,7 +145,6 @@ public class PaymentProcessor {
 				mugdObj = new MoneyUpdaterGameDetails();
 				mugdObj.setGameServerId(gameDetails.getGameId());
 				mugdObj.setGameClientId(gameDetails.getTempGameId());
-				mugdObj.setGameStartTime(gameDetails.getStartTime());
 				mugdObj.setUserId(userProfileId);
 				mugdObj.setAmount(bossShare * -1);
 				
@@ -164,7 +162,6 @@ public class PaymentProcessor {
 				mugdObj = new MoneyUpdaterGameDetails();
 				mugdObj.setGameServerId(gameDetails.getGameId());
 				mugdObj.setGameClientId(gameDetails.getTempGameId());
-				mugdObj.setGameStartTime(gameDetails.getStartTime());
 				mugdObj.setUserId(bossUserProfileId);
 				mugdObj.setAmount(bossShare);
 				

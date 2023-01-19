@@ -12,6 +12,7 @@ public class GameIdGenerator {
 	private static GameIdGenerator instance = null;
 	private long lastGameId;
 	private int tempGameId;
+	private int moneyUpdateRequestId = 0;
 	
 	private GameIdGenerator() {
 	}
@@ -45,5 +46,13 @@ public class GameIdGenerator {
 		}
 		++tempGameId;
 		return tempGameId;
+	}
+	
+	public int getMoneyUpdateReuestId() {
+		if (moneyUpdateRequestId >= 100) {
+			moneyUpdateRequestId = 0;
+		}
+		++moneyUpdateRequestId;
+		return moneyUpdateRequestId;
 	}
 }

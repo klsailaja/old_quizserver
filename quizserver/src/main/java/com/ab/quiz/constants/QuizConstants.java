@@ -57,7 +57,7 @@ public class QuizConstants {
 	
 	public static final int MAX_QUESTIONS_PER_GAME = 10;
 	
-	public static int TESTMODE = 1;
+	public static int TESTMODE = 0;
 	
 	// Chat Related settings
 	public static int DELETE_OLD_MSGS_TIME_PERIOD = 30;
@@ -96,5 +96,14 @@ public class QuizConstants {
 		}
 		MIX_MODE_PICS_QUESTIONS_COUNT = MAX_QUESTIONS_PER_GAME - MIX_MODE_TEXT_QUESTIONS_COUNT;
 		CEEBRITY_MODE_PICS_QUESTIONS_COUNT = MAX_QUESTIONS_PER_GAME - CEEBRITY_MODE_TEXT_QUESTIONS_COUNT;
+	}
+	
+	private static boolean backend_server_down = false;
+	
+	public static void setBackServerStatus(boolean status) {
+		backend_server_down = status;
+	}
+	public static boolean getBackServerStatus() {
+		return backend_server_down;
 	}
 }

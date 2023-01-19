@@ -24,6 +24,7 @@ import com.ab.quiz.common.Request;
 import com.ab.quiz.common.TAGS;
 import com.ab.quiz.constants.CustomerCareReqType;
 import com.ab.quiz.constants.MoneyCreditStatus;
+import com.ab.quiz.constants.MoneyPayBackMode;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
@@ -32,10 +33,12 @@ import com.ab.quiz.db.GameHistoryDBHandler;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.helper.CCUtils;
 import com.ab.quiz.helper.CelebritySpecialHandler;
+import com.ab.quiz.helper.GameIdGenerator;
 import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.helper.MoneyUpdateRequest;
 import com.ab.quiz.helper.Utils;
 import com.ab.quiz.pojo.CelebrityFullDetails;
+import com.ab.quiz.pojo.ClientSlotMoneyStatusGiver;
 import com.ab.quiz.pojo.CustomerTicket;
 import com.ab.quiz.pojo.GameDetails;
 import com.ab.quiz.pojo.GameOperation;
@@ -247,10 +250,6 @@ public class GameManager {
 				Map<Long, List<MoneyUpdaterGameDetails>> slotTimeVsRefundDetails = 
 						new HashMap<>();
 				
-				/*UsersCompleteMoneyDetails completeDetails = new UsersCompleteMoneyDetails();
-				List<MoneyTransaction> cancelledGameUsersMoneyTrans = new ArrayList<>(); 
-				completeDetails.setUsersMoneyTransactionList(cancelledGameUsersMoneyTrans);*/
-				
 				List<Long> cancelledUserIds = new ArrayList<>();
 				
 				for (GameHandler cancelGameHandler : cancelledGames) {
@@ -276,7 +275,6 @@ public class GameManager {
 				            for (Long uid : enrolledUids) {
 				            	MoneyUpdaterGameDetails refundMoneyObj = new MoneyUpdaterGameDetails();
 				            	
-				            	refundMoneyObj.setGameStartTime(cancelledGameDetails.getStartTime());
 				            	refundMoneyObj.setGameServerId(cancelledGameDetails.getGameId());
 				            	refundMoneyObj.setGameClientId(cancelledGameDetails.getTempGameId());
 				            	refundMoneyObj.setAmount(cancelledGameDetails.getTicketRate());
@@ -299,15 +297,26 @@ public class GameManager {
 					Set<Map.Entry<Long, List<MoneyUpdaterGameDetails>>> entrySet = 
 							slotTimeVsRefundDetails.entrySet();
 					for (Map.Entry<Long, List<MoneyUpdaterGameDetails>> eachEntry : entrySet) {
+						
 						UsersCompleteMoneyDetails completeDetails = slotTimeVsCompleteDetails.get(eachEntry.getKey());
-						String logTag = TAGS.REFUND_MONEY + " CancelGamesMoney : sid : " 
-								+ QuizConstants.MY_SERVER_ID + " : SlotTime :" + new Date(eachEntry.getKey()).toString();
+						completeDetails.setServerId(QuizConstants.MY_SERVER_ID);
+						completeDetails.setRequestId(GameIdGenerator.getInstance().getMoneyUpdateReuestId());
+						completeDetails.setOperationType(MoneyPayBackMode.REFUND_CANCEL_GAMES.getId());
+						
+						String logTag = TAGS.REFUND_MONEY + " CancelGamesMoney : sid : " + QuizConstants.MY_SERVER_ID 
+								+ " : RequestId :" + completeDetails.getRequestId()
+								+ " : SlotTime :" + new Date(eachEntry.getKey()).toString();
 						completeDetails.setLogTag(logTag);
-						String trackKey = "server" + QuizConstants.MY_SERVER_ID + "-refund-" + String.valueOf(eachEntry.getKey());
-						completeDetails.setTrackStatusKey(trackKey);
+						
+						ClientSlotMoneyStatusGiver clientServer = new ClientSlotMoneyStatusGiver();
+						clientServer.setGameSlotTime(eachEntry.getKey());
+						clientServer.setSlotMoneyGD(eachEntry.getValue());
+						
 						MoneyUpdateRequest refundReq = 
 								new MoneyUpdateRequest(CustomerCareReqType.CANCELLED_GAME_MONEY_NOT_ADDED.getId(),
-										eachEntry.getKey(), completeDetails, eachEntry.getValue());
+										completeDetails);
+						refundReq.setClientMoneyStatusGiver(clientServer);
+						refundReq.setFreeGameMoneyStatusGiver(null);
 						refundReq.run();
 					}
 				}
@@ -543,6 +552,10 @@ public class GameManager {
 	
 	public boolean joinGame(long gameId, GameOperation gameOper) 
 			throws NotAllowedException, SQLException {
+		
+		if (QuizConstants.getBackServerStatus()) {
+			throw new NotAllowedException("Server is down. Please try after some time");
+		}
 		
 		// Step 1 : Get the GameHandller see if exists
 		// Step 2: See if any other game he is enrolled for the same time

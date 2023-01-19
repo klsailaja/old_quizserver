@@ -13,8 +13,10 @@ import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.common.TAGS;
 import com.ab.quiz.constants.CustomerCareReqType;
+import com.ab.quiz.constants.MoneyPayBackMode;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.handlers.GameHandler;
+import com.ab.quiz.pojo.ClientSlotMoneyStatusGiver;
 import com.ab.quiz.pojo.MoneyTransaction;
 import com.ab.quiz.pojo.MoneyUpdaterGameDetails;
 import com.ab.quiz.pojo.UsersCompleteMoneyDetails;
@@ -68,8 +70,20 @@ public class PaymentTask implements Runnable {
 		
 		realGamesPlayedCount = tobePaidGameIds.size(); 
 		
-		long gameSlotsStartTime = -1;
 		long paymentTimeTaken = System.currentTimeMillis();
+		
+		UsersCompleteMoneyDetails winnerMoneyCompleteDetails = new UsersCompleteMoneyDetails();
+		winnerMoneyCompleteDetails.setServerId(QuizConstants.MY_SERVER_ID);
+		winnerMoneyCompleteDetails.setRequestId(GameIdGenerator.getInstance().getMoneyUpdateReuestId());
+		winnerMoneyCompleteDetails.setOperationType(MoneyPayBackMode.WIN_MONEY.getId());
+		
+		MoneyUpdateRequest request = new MoneyUpdateRequest(CustomerCareReqType.WIN_MONEY_NOT_ADDED.getId(),
+				winnerMoneyCompleteDetails);
+		
+		List<MoneyUpdaterGameDetails> moneyUpdaterGDListObjs = new ArrayList<>();
+		List<MoneyUpdaterGameDetails> freeGameGDListObjs = new ArrayList<>();
+		long gameSlotsStartTime = -1;
+
 		
 		for (GameHandler completedGame : completedGames) {
 			
@@ -78,11 +92,30 @@ public class PaymentTask implements Runnable {
 		
 			// Bulk processing changes start
 			PaymentProcessor pp = completedGame.getPaymentHandler();
-			if (pp != null) {
-				
+			if (pp == null) {
 				if (gameSlotsStartTime == -1) {
 					gameSlotsStartTime = completedGame.getGameDetails().getStartTime();
 				}
+				if (completedGame.isFreeGame()) {
+					List<Long> freeGameEnrolleduids = completedGame.getEnrolledUserIds();
+					for (Long freegameUid : freeGameEnrolleduids) {
+						if (freegameUid > 20) {
+							MoneyUpdaterGameDetails mugd = new MoneyUpdaterGameDetails();
+							mugd.setGameServerId(completedGame.getGameDetails().getGameId());
+							mugd.setGameClientId(completedGame.getGameDetails().getTempGameId());
+							mugd.setUserId(freegameUid);
+							mugd.setAmount(0);
+							
+							freeGameGDListObjs.add(mugd);
+						}
+					}
+				}
+			}
+			else if (pp != null) {
+				if (gameSlotsStartTime == -1) {
+					gameSlotsStartTime = completedGame.getGameDetails().getStartTime();
+				}
+				
 				paymentProcessors.add(pp);
 				
 				List<Long> actualWinUserIds = pp.getWinnerUserIdSet();
@@ -105,27 +138,35 @@ public class PaymentTask implements Runnable {
 				completedGame.getGameDetails().setStatus(0);
 			}
 			
-			UsersCompleteMoneyDetails winnerMoneyDetails = new UsersCompleteMoneyDetails();
-			String logTag = TAGS.WIN_MONEY + " WinnersMoney : sid : " 
-					+ QuizConstants.MY_SERVER_ID + " : SlotTime :" + new Date(gameSlotsStartTime).toString();
-			winnerMoneyDetails.setLogTag(logTag);
+			
+			String logTag = TAGS.WIN_MONEY + " WinnersMoney : sid : " + QuizConstants.MY_SERVER_ID 
+					+ " : RequestId :" + winnerMoneyCompleteDetails.getRequestId()  
+					+ " : SlotTime :" + new Date(gameSlotsStartTime).toString();
+			winnerMoneyCompleteDetails.setLogTag(logTag);
+			
 			List<MoneyTransaction> winUsersTransactions = new ArrayList<>();
-			List<MoneyUpdaterGameDetails> moneyUpdaterGDListObjs = new ArrayList<>();
+			
 
 			for (PaymentProcessor processor : paymentProcessors) {
 				processor.processPayments(userIdVsBossId, winUsersTransactions, moneyUpdaterGDListObjs);
 			}
 			
-			winnerMoneyDetails.setUsersMoneyTransactionList(winUsersTransactions);
-			String trackKey = "server" + QuizConstants.MY_SERVER_ID + "-win-" + String.valueOf(gameSlotsStartTime);
-			winnerMoneyDetails.setTrackStatusKey(trackKey);
-			
-			MoneyUpdateRequest request = new MoneyUpdateRequest(CustomerCareReqType.WIN_MONEY_NOT_ADDED.getId(),
-					gameSlotsStartTime,
-					winnerMoneyDetails, moneyUpdaterGDListObjs);
-			request.run();
+			winnerMoneyCompleteDetails.setUsersMoneyTransactionList(winUsersTransactions);
 		}
 		
+		ClientSlotMoneyStatusGiver clientServer = new ClientSlotMoneyStatusGiver();
+		clientServer.setGameSlotTime(gameSlotsStartTime);
+		clientServer.setSlotMoneyGD(moneyUpdaterGDListObjs);
+		
+		ClientSlotMoneyStatusGiver freeGameServer = new ClientSlotMoneyStatusGiver();
+		freeGameServer.setGameSlotTime(gameSlotsStartTime);
+		freeGameServer.setSlotMoneyGD(freeGameGDListObjs);
+		
+		request.setClientMoneyStatusGiver(clientServer);
+		request.setFreeGameMoneyStatusGiver(freeGameServer);
+		
+		request.run();
+
 		logger.info("{} Completed game list {}", TAGS.WIN_MONEY, completedGameIds);
 		logger.info("{} Payment to be done game list size {} and game ids {}", TAGS.WIN_MONEY, 
 				tobePaidGameIds.size(), tobePaidGameIds);

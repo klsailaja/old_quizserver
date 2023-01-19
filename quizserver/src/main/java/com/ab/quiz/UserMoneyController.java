@@ -2,6 +2,7 @@ package com.ab.quiz;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -17,11 +18,14 @@ import com.ab.quiz.common.GetTask;
 import com.ab.quiz.common.PostTask;
 import com.ab.quiz.common.Request;
 import com.ab.quiz.common.TAGS;
+import com.ab.quiz.constants.MoneyPayBackMode;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
 import com.ab.quiz.exceptions.InternalException;
 import com.ab.quiz.exceptions.NotAllowedException;
+import com.ab.quiz.pojo.MoneyStatusInput;
+import com.ab.quiz.pojo.MoneyStatusOutput;
 import com.ab.quiz.pojo.MoneyTransaction;
 import com.ab.quiz.pojo.TransferRequest;
 import com.ab.quiz.pojo.UserMoney;
@@ -108,9 +112,26 @@ public class UserMoneyController extends BaseController {
 		}
 	}
 	
-	@RequestMapping(value = "/money/update/{trackKey}", method = RequestMethod.GET, produces = "application/json")
-	public @ResponseBody int getGamesSlotMoneyStatus(@PathVariable("trackKey") String trackKey) throws InternalException {
-		String newTrackKey = "server" + QuizConstants.MY_SERVER_ID + "-" + trackKey;
-		return MoneyUpdaterResponseHandler.getInstance().getWinMoneyCreditedStatus(newTrackKey);
+	@RequestMapping(value = "/money/update", method = RequestMethod.POST, produces = "application/json")
+	public @ResponseBody MoneyStatusOutput getGamesSlotMoneyStatus(@RequestBody MoneyStatusInput statusInput) 
+			throws InternalException {
+		String tag = TAGS.WIN_MONEY;
+		if (statusInput.getOperType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+			tag = TAGS.REFUND_MONEY;
+		}
+		logger.info("{} Slot Money Status Query received for uid : {} game start time : {}", tag, 
+				statusInput.getUid(),  
+				new Date(statusInput.getGameSlotTime()));
+		try {
+			MoneyStatusOutput output = MoneyUpdaterResponseHandler.getInstance().getStatus(statusInput);
+			logger.info("{} status : {} and msg : {}", tag, output.getStatus(), output.getMessage());
+			return output;
+		} catch(Exception ex) {
+			logger.error(QuizConstants.ERROR_PREFIX_START);
+			logger.error("{} Exception in getGamesSlotMoneyStatus", tag);
+			logger.error("Exception is: ", ex);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
+			throw new InternalException("Server Error in getGamesSlotMoneyStatus");
+		}
 	}
 }

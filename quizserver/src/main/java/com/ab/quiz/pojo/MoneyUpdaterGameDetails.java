@@ -1,7 +1,6 @@
 package com.ab.quiz.pojo;
 
 public class MoneyUpdaterGameDetails {
-	private long gameStartTime;
 	private long gameServerId;
 	private int gameClientId;
 	private long userId;
@@ -9,12 +8,6 @@ public class MoneyUpdaterGameDetails {
 	private int uniqueId;
 	private int creditResult;
 	
-	public long getGameStartTime() {
-		return gameStartTime;
-	}
-	public void setGameStartTime(long gameStartTime) {
-		this.gameStartTime = gameStartTime;
-	}
 	public long getGameServerId() {
 		return gameServerId;
 	}

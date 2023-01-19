@@ -1,12 +1,13 @@
 package com.ab.quiz.tasks;
 
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
@@ -16,15 +17,17 @@ import com.ab.quiz.common.GetTask;
 import com.ab.quiz.common.Request;
 import com.ab.quiz.common.TAGS;
 import com.ab.quiz.constants.CustomerCareReqType;
+import com.ab.quiz.constants.MoneyCreditStatus;
 import com.ab.quiz.constants.MoneyPayBackMode;
 import com.ab.quiz.constants.QuizConstants;
-import com.ab.quiz.constants.MoneyCreditStatus;
 import com.ab.quiz.db.GameHistoryDBHandler;
 import com.ab.quiz.helper.CCUtils;
 import com.ab.quiz.helper.LazyScheduler;
-import com.ab.quiz.pojo.CancelGameRefundStatus;
+import com.ab.quiz.pojo.ClientSlotMoneyStatusGiver;
 import com.ab.quiz.pojo.CustomerTicket;
 import com.ab.quiz.pojo.GameSlotMoneyStatus;
+import com.ab.quiz.pojo.MoneyStatusInput;
+import com.ab.quiz.pojo.MoneyStatusOutput;
 import com.ab.quiz.pojo.MoneyUpdaterGameDetails;
 
 public class MoneyUpdaterResponseHandler implements Runnable {
@@ -32,15 +35,23 @@ public class MoneyUpdaterResponseHandler implements Runnable {
 	private static final Logger logger = LogManager.getLogger(MoneyUpdaterResponseHandler.class);
 	private static MoneyUpdaterResponseHandler instance = null;
 	
-	private HashMap<String,Integer> winMoneyCreditedSatus = new HashMap<>();
-	// for cancelled games
-	private HashMap<String,Integer> refundMoneyCreditedSatus = new HashMap<>();
-	private Map<Long, List<MoneyUpdaterGameDetails>> slotGamesStartTimeVsPaymentGD = new HashMap<>();
-	 
+	private HashMap<Integer,Integer> requestIdVsRetryCount = new HashMap<>();
 	
-	private HashMap<Long,Integer> slotGamePlayedTimeVsRetryCount = new HashMap<>();
-	private HashMap<Long,Integer> slotGamePlayedTimeVsOperationType = new HashMap<>();
+	private List<ClientSlotMoneyStatusGiver> clientServers = new ArrayList<>();
+	private List<ClientSlotMoneyStatusGiver> freeGameServers = new ArrayList<>();
 	
+	private String WIN_MONEY_SUCCESS_MSG = "Win Money Amount Rs.%d for GameId: %s Credited successfuly .";
+	private String WIN_MONEY_FAIL_MSG = "Win Money Amount Rs.%d for GameId: %s NOT Credited successfully. \n" 
+					+ "Customer Ticket Created for this issue. Please verify in Customer Tickets view";
+	private String WIN_MONEY_FREE_GAME_MSG = "No Win Money for free game. Win Money Credit result will be shown for paid games. \n"
+					+ "If not credited for some reason, Customer Ticket is created automatically and \n"
+					+ " resolved within 3-5 days";
+	
+	private String REFUND_SUCCESS_MSG = "Game with GameId: %s Cancelled as min 3 users not joined. \n" 
+			+ "Ticket Money Amount Rs.%d Credited successfuly.";
+	private String REFUND_FAIL_MSG = "Game with GameId: %s Cancelled as min 3 users not joined. \n" 
+			+ "Ticket Money Amount Rs.%d NOT credited successfully. \n"
+			+ "Customer Ticket Created for this issue. Please verify in Customer Tickets view";
 	
 	private MoneyUpdaterResponseHandler() {
 	}
@@ -53,235 +64,227 @@ public class MoneyUpdaterResponseHandler implements Runnable {
 		return instance;
 	}
 	
-	public void addToPaymentInProgressShortGameDetails(long slotGameStartTime, 
-			List<MoneyUpdaterGameDetails> paymentGD, int operationType) {
+	public void addtoMoneyUpdateQueue(ClientSlotMoneyStatusGiver statusServer, ClientSlotMoneyStatusGiver freeGameServer) {
+		statusServer.setMoneyOverallStatus(MoneyCreditStatus.IN_PROGRESS.getId());
+		clientServers.add(statusServer);
 		
-		slotGamePlayedTimeVsOperationType.put(slotGameStartTime, operationType);
-		slotGamesStartTimeVsPaymentGD.put(slotGameStartTime, paymentGD);
+		if (freeGameServer != null) {
+			freeGameServer.setMoneyOverallStatus(MoneyCreditStatus.IN_PROGRESS.getId());
+			freeGameServers.add(freeGameServer);
+		}
 	}
 	
 	@Override
 	public void run() {
 		try {
-			String serverPrefixTrackKey = "server" + QuizConstants.MY_SERVER_ID;
-			
-			GetTask<GameSlotMoneyStatus[]> slotGamesStatusTask = Request.getGamesSlotMoneyStatus(serverPrefixTrackKey);
+			GetTask<GameSlotMoneyStatus[]> slotGamesStatusTask = Request.getGamesSlotMoneyStatus(QuizConstants.MY_SERVER_ID);
 			GameSlotMoneyStatus[] thisServerStatus = (GameSlotMoneyStatus[]) slotGamesStatusTask.execute();
 			
-			String datePattern = "dd:MMM:yyyy-HH:mm:ss";
-			SimpleDateFormat simpleDateFormat = new SimpleDateFormat();
-			simpleDateFormat.applyPattern(datePattern);
-			
-			Map<String,Integer> winGamesprintInReadFormat = new HashMap<>();
-			Map<String,Integer> refundGamesprintInReadFormat = new HashMap<>();
-			HashMap<String,GameSlotMoneyStatus> serverKeyVsGameSlotMoneyStatus = new HashMap<>();
-			
-			for (int index = 0; index < thisServerStatus.length; index++) {
-				GameSlotMoneyStatus gameStatusObj = thisServerStatus[index];
-				serverKeyVsGameSlotMoneyStatus.put(gameStatusObj.getTrackKey(), gameStatusObj);
-				String timeStr = thisServerStatus[index].getTrackKey();
-				timeStr = timeStr.substring(timeStr.indexOf('-') + 1);
-				long timeLong = Long.parseLong(timeStr);
-				timeStr = simpleDateFormat.format(new Date(timeLong));
-				if (gameStatusObj.getOperationType() == 1) {
-					// Winners Money
-					winGamesprintInReadFormat.put(timeStr, gameStatusObj.getMoneyCreditedStatus());
-				} else if (gameStatusObj.getOperationType() == 2) {
-					// Cancel games Refund Money
-					refundGamesprintInReadFormat.put(timeStr, gameStatusObj.getMoneyCreditedStatus());
-				}
-			}
-			logger.info("{} Money Credited Status for {} : {}", TAGS.WIN_MONEY, 
-					serverPrefixTrackKey, winMoneyCreditedSatus);
-			logger.info("{} Money Credited Status for {} : {}", TAGS.WIN_MONEY, 
-					serverPrefixTrackKey, winGamesprintInReadFormat);
-			logger.info("{} Money Refund Status for {} : {}", TAGS.REFUND_MONEY, 
-					serverPrefixTrackKey, refundMoneyCreditedSatus);
-			logger.info("{} Money Refund Status for {} : {}", TAGS.REFUND_MONEY, 
-					serverPrefixTrackKey, refundGamesprintInReadFormat);
-			
-			List<Long> todelKeys = new ArrayList<>();
-			Set<Map.Entry<Long, Integer>> slotVsOperationType = 
-					slotGamePlayedTimeVsOperationType.entrySet(); 
-			
-			 
-			for (Map.Entry<Long, Integer> eachEntry : slotVsOperationType) {
-				
-				long gameSlotTime = eachEntry.getKey();
-				int operationType = eachEntry.getValue();
-				
-				String gameSlotKey = serverPrefixTrackKey + "-" + eachEntry.getKey();
-				String tag = TAGS.WIN_MONEY;
-				if (operationType == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
-					tag = TAGS.REFUND_MONEY;
-				}
-				
-				HashMap<String,Integer> currentMap = winMoneyCreditedSatus;
-				if (operationType == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
-					currentMap = refundMoneyCreditedSatus;
-				}
-				
-				Integer status = currentMap.get(gameSlotKey);
-				List<MoneyUpdaterGameDetails> gameSlotGameDetails = 
-						slotGamesStartTimeVsPaymentGD.get(gameSlotTime);
-				String printGameIdsStr = getPrintableGameIdsStr(gameSlotGameDetails);
-				
-				
-				if (status == null) {
-					todelKeys.add(gameSlotTime);
-					currentMap.put(gameSlotKey, MoneyCreditStatus.ALL_FAIL.getId());
-					recordMissing(gameSlotTime, 
-							gameSlotGameDetails, MoneyCreditStatus.ALL_FAIL, operationType, 
-							tag, printGameIdsStr);
+			for (ClientSlotMoneyStatusGiver statusGiver : clientServers) {
+				if (statusGiver.getProcessedTime() > 0) {
 					continue;
-				} 
-				else if (status == MoneyCreditStatus.IN_PROGRESS.getId()) {
-					Integer retryCount = slotGamePlayedTimeVsRetryCount.get(gameSlotTime);
-					if (retryCount == null) {
-						retryCount = new Integer(0);
-					}
-					retryCount++;
-					slotGamePlayedTimeVsRetryCount.put(gameSlotTime, retryCount);
-					if (retryCount == 4) {
-						logger.error(QuizConstants.ERROR_PREFIX_START);
-						logger.info("{} Submitted slot payment record but retries timedout for game time {} and game ids {}",
-								tag,
-								new Date(gameSlotTime), printGameIdsStr);
-						logger.error(QuizConstants.ERROR_PREFIX_END);
-						todelKeys.add(gameSlotTime);
-						currentMap.put(gameSlotKey, MoneyCreditStatus.ALL_FAIL.getId());
-						missedPayment(gameSlotTime, gameSlotGameDetails, 
-								MoneyCreditStatus.ALL_FAIL, operationType, tag);
-					}
-				} else if (status == MoneyCreditStatus.ALL_FAIL.getId()) {
-					logger.error(QuizConstants.ERROR_PREFIX_START);
-					logger.info("{} Submitted slot payment record but all failed for game time {} and game ids {}",
-							tag,
-							new Date(gameSlotTime), printGameIdsStr);
-					logger.error(QuizConstants.ERROR_PREFIX_END);
-					todelKeys.add(gameSlotTime);
-					currentMap.put(gameSlotKey, MoneyCreditStatus.ALL_FAIL.getId());
-					missedPayment(gameSlotTime, gameSlotGameDetails, 
-							MoneyCreditStatus.ALL_FAIL, operationType, tag);
-				} else if (status == MoneyCreditStatus.ALL_SUCCESS.getId()) {
-					todelKeys.add(gameSlotTime);
-					currentMap.put(gameSlotKey, MoneyCreditStatus.ALL_SUCCESS.getId());
-					
-					List<Long> gameIds = new ArrayList<>();
-					for (MoneyUpdaterGameDetails gd : gameSlotGameDetails) {
-						if (gameIds.contains(gd.getGameServerId())) {
-							gameIds.add(gd.getGameServerId());
-						}
-					}
-					
-					List<Integer> creditStatus = new ArrayList<>();
-					for (int index = 0; index < gameIds.size(); index ++) {
-						creditStatus.add(status);
-					}
-					if (gameIds.size() > 0) {
-						GameHistoryDBHandler.getInstance().bulkUpdateStatus(gameIds, creditStatus, 5);
-					}
-					
-				} else if (status == MoneyCreditStatus.PARTIAL_RESULTS.getId()) {
-					todelKeys.add(gameSlotTime);
-					currentMap.put(gameSlotKey, MoneyCreditStatus.ALL_FAIL.getId());
-					
-					List<Long> gameIds = new ArrayList<>();
-					for (MoneyUpdaterGameDetails gd : gameSlotGameDetails) {
-						if (!gameIds.contains(gd.getGameServerId())) {
-							gameIds.add(gd.getGameServerId());
-						}
-					}
-					
-					List<Long> patialSuccessGameIds = new ArrayList<>();
-					GameSlotMoneyStatus responseObj = serverKeyVsGameSlotMoneyStatus.get(gameSlotKey);
-					
-					int tktType = CustomerCareReqType.ADDED_MONEY_NOT_UPDATED.getId();
-					if (operationType == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
-						tktType = CustomerCareReqType.CANCELLED_GAME_MONEY_NOT_ADDED.getId();
-					}
-					
-					List<CustomerTicket> ccTickets = new ArrayList<>();
-					List<Integer> responseUniqueIds = responseObj.getUniqueIds();
-					List<Integer> responseDBResults = responseObj.getDbResultsIds();
-					for (int resultIndex = 0; resultIndex < responseDBResults.size(); resultIndex++) {
-						if (responseDBResults.get(resultIndex) == 0) {
-							for (MoneyUpdaterGameDetails matchInputObj : gameSlotGameDetails) {
-								if (matchInputObj.getUniqueId() == responseUniqueIds.get(resultIndex)) {
-									if (!patialSuccessGameIds.contains(matchInputObj.getGameServerId())) {
-										patialSuccessGameIds.add(matchInputObj.getGameServerId());
-									}
-								}
-								matchInputObj.setCreditResult(-1);
-								
-								HashMap<String,String> ccExtraDetailMap = new HashMap<>();
-					            ccExtraDetailMap.put(CCUtils.ISSUE_DATE_KEY, new Date(matchInputObj.getGameStartTime()).toString());
-					            ccExtraDetailMap.put(CCUtils.ISSUE_GAMEID_KEY, String.valueOf(matchInputObj.getGameClientId()));
-					            ccExtraDetailMap.put(CCUtils.ISSUE_GAMEID_SERVER_KEY, String.valueOf(matchInputObj.getGameServerId()));
-					            ccExtraDetailMap.put(CCUtils.ISSUE_AMT_KEY, String.valueOf(matchInputObj.getAmount()));
-					            
-						        String ccExtraDetails = CCUtils.encodeCCExtraValues(ccExtraDetailMap);
-						        ccTickets.add(CCUtils.createdCCTicket(tktType, matchInputObj.getUserId(), ccExtraDetails));
-							}
-						}
-					}
-					
-					List<Integer> creditStatus = new ArrayList<>();
-					for (int index = 0; index < gameIds.size(); index ++) {
-						if (patialSuccessGameIds.contains(gameIds.get(index))) {
-							creditStatus.add(MoneyCreditStatus.ALL_FAIL.getId());
-						} else {
-							creditStatus.add(MoneyCreditStatus.ALL_SUCCESS.getId());
-						}
-					}
-					if (gameIds.size() > 0) {
-						GameHistoryDBHandler.getInstance().bulkUpdateStatus(gameIds, creditStatus, 5);
-					}
-					
-					if (ccTickets.size() > 0) {
-						LazyScheduler.getInstance().submit(new CreateCustomerTickets(ccTickets), 15, TimeUnit.SECONDS);
-					}
 				}
 				
-				logger.info("{} Post Money Credited Status for {} : {}", TAGS.WIN_MONEY, 
-						serverPrefixTrackKey, winMoneyCreditedSatus);
-				logger.info("{} Post Money Credited Status for {} : {}", TAGS.WIN_MONEY, 
-						serverPrefixTrackKey, winGamesprintInReadFormat);
-				logger.info("{} Post Money Refund Status for {} : {}", TAGS.REFUND_MONEY, 
-						serverPrefixTrackKey, refundMoneyCreditedSatus);
-				logger.info("{} Post Money Refund Status for {} : {}", TAGS.REFUND_MONEY, 
-						serverPrefixTrackKey, refundGamesprintInReadFormat);
-				
-				if (todelKeys.size() > 0) {
-					// Delete the completed slot entries
-					for (Long slotTime : todelKeys) {
-						slotGamePlayedTimeVsRetryCount.remove(slotTime);
-						slotGamePlayedTimeVsOperationType.remove(slotTime); 
+				boolean isRecordFound = false;
+				for (int index = 0; index < thisServerStatus.length; index ++) {
+					GameSlotMoneyStatus statusObj = thisServerStatus[index]; 
+					if (statusObj.getRequestId() == statusGiver.getRequestId()) {
+						isRecordFound = true;
+						int requestObjectStatus = statusObj.getMoneyCreditedStatus();
+						statusGiver.setMoneyOverallStatus(requestObjectStatus);
+						
+						if (requestObjectStatus == MoneyCreditStatus.IN_PROGRESS.getId()) {
+							handleInProgressState(statusGiver, statusObj);
+						} else if (requestObjectStatus == MoneyCreditStatus.ALL_FAIL.getId()) {
+							handleAllFailState(statusGiver, statusObj);
+						} else if (requestObjectStatus == MoneyCreditStatus.ALL_SUCCESS.getId()) {
+							handleAllSuccessState(statusGiver, statusObj);
+						} else if (requestObjectStatus == MoneyCreditStatus.PARTIAL_RESULTS.getId()) {
+							handlePartialCase(statusGiver, statusObj);
+						}
 					}
 				}
-				
-				cleanupOldEntries();
+				if (!isRecordFound) {
+					statusGiver.setMoneyOverallStatus(MoneyCreditStatus.IN_PROGRESS.getId());
+					handleInProgressState(statusGiver, null);
+				}
 			}
+			
+			printStatus();
+			cleanupOldEntries();
 		}
 		catch(Exception ex) {
 			logger.error(QuizConstants.ERROR_PREFIX_START);
-			logger.error("{} Exception in run method while fetching the winners money update records from backend", 
+			logger.error("{} Payment Exception in run method while fetching the money update records from backend", 
 					TAGS.WIN_MONEY);
 			logger.error(ex);
 			logger.error(QuizConstants.ERROR_PREFIX_END);
 		}
 	}
 	
-	private void recordMissing(long gameStartTime, List<MoneyUpdaterGameDetails> gameUpdateDetails,
-			MoneyCreditStatus gameCompletedStatus, int operationType, 
-			String tagName, String printGameInfo) {
+	private void printStatus() {
+		StringBuilder winMoneyDetais = new StringBuilder();
+		StringBuilder refundMoneyDetais = new StringBuilder();
+		String datePattern = "dd:MMM:yyyy-HH:mm:ss";
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat();
+		simpleDateFormat.applyPattern(datePattern);
 		
+		for (ClientSlotMoneyStatusGiver statusGiver : clientServers) {
+			StringBuilder strBuillder = winMoneyDetais;
+			if (statusGiver.getOperationType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+				strBuillder = refundMoneyDetais;
+			}
+			strBuillder.append("Request Id:");
+			strBuillder.append(statusGiver.getRequestId());
+			strBuillder.append(" Game Slot Time:");
+			strBuillder.append(simpleDateFormat.format(new Date(statusGiver.getGameSlotTime())));
+			strBuillder.append(" Money Credited Status:");
+			strBuillder.append(statusGiver.getMoneyOverallStatus());
+			strBuillder.append(" Status Elapsed Time:");
+			strBuillder.append(simpleDateFormat.format(new Date(statusGiver.getProcessedTime() + (10 * 60 * 1000))));
+		}
+		logger.info("{} Payment prints {}", TAGS.WIN_MONEY, winMoneyDetais.toString());
+		logger.info("{} Payment prints {}", TAGS.REFUND_MONEY, refundMoneyDetais.toString());
+	}
+	
+	private void handlePartialCase(ClientSlotMoneyStatusGiver statusServer, GameSlotMoneyStatus statusObject) 
+			throws SQLException {
+		
+		String tag = TAGS.WIN_MONEY;
+		if (statusServer.getOperationType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+			tag = TAGS.REFUND_MONEY;
+		}
+		statusServer.setProcessedTime(System.currentTimeMillis());
+		
+		List<Long> gameIds = new ArrayList<>();
+		for (MoneyUpdaterGameDetails gd : statusServer.getSlotMoneyGD()) {
+			if (!gameIds.contains(gd.getGameServerId())) {
+				gameIds.add(gd.getGameServerId());
+			}
+		}
+		
+		List<Long> patialSuccessGameIds = new ArrayList<>();
+		
+		int tktType = CustomerCareReqType.ADDED_MONEY_NOT_UPDATED.getId();
+		if (statusServer.getOperationType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+			tktType = CustomerCareReqType.CANCELLED_GAME_MONEY_NOT_ADDED.getId();
+		}
+		
+		List<CustomerTicket> ccTickets = new ArrayList<>();
+		List<Integer> responseUniqueIds = statusObject.getUniqueIds();
+		List<Integer> responseDBResults = statusObject.getDbResultsIds();
+		for (int resultIndex = 0; resultIndex < responseDBResults.size(); resultIndex++) {
+			if (responseDBResults.get(resultIndex) == 0) {
+				for (MoneyUpdaterGameDetails matchInputObj : statusServer.getSlotMoneyGD()) {
+					if (matchInputObj.getUniqueId() == responseUniqueIds.get(resultIndex)) {
+						if (!patialSuccessGameIds.contains(matchInputObj.getGameServerId())) {
+							patialSuccessGameIds.add(matchInputObj.getGameServerId());
+						}
+					}
+					matchInputObj.setCreditResult(MoneyCreditStatus.ALL_FAIL.getId());
+					
+					HashMap<String,String> ccExtraDetailMap = new HashMap<>();
+		            ccExtraDetailMap.put(CCUtils.ISSUE_DATE_KEY, new Date(statusServer.getGameSlotTime()).toString());
+		            ccExtraDetailMap.put(CCUtils.ISSUE_GAMEID_KEY, String.valueOf(matchInputObj.getGameClientId()));
+		            ccExtraDetailMap.put(CCUtils.ISSUE_GAMEID_SERVER_KEY, String.valueOf(matchInputObj.getGameServerId()));
+		            ccExtraDetailMap.put(CCUtils.ISSUE_AMT_KEY, String.valueOf(matchInputObj.getAmount()));
+		            
+			        String ccExtraDetails = CCUtils.encodeCCExtraValues(ccExtraDetailMap);
+			        ccTickets.add(CCUtils.createdCCTicket(tktType, matchInputObj.getUserId(), ccExtraDetails));
+				}
+			}
+		}
+		
+		List<Integer> creditStatus = new ArrayList<>();
+		for (int index = 0; index < gameIds.size(); index ++) {
+			if (patialSuccessGameIds.contains(gameIds.get(index))) {
+				creditStatus.add(MoneyCreditStatus.ALL_FAIL.getId());
+			} else {
+				creditStatus.add(MoneyCreditStatus.ALL_SUCCESS.getId());
+			}
+		}
+		if (gameIds.size() > 0) {
+			GameHistoryDBHandler.getInstance().bulkUpdateStatus(gameIds, creditStatus, 5);
+		}
+		
+		if (ccTickets.size() > 0) {
+			LazyScheduler.getInstance().submit(new CreateCustomerTickets(ccTickets), 5, TimeUnit.SECONDS);
+		}
+		
+	}
+	
+	private void handleAllSuccessState(ClientSlotMoneyStatusGiver statusServer, GameSlotMoneyStatus statusObject) 
+			throws SQLException {
+		
+		String tag = TAGS.WIN_MONEY;
+		if (statusServer.getOperationType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+			tag = TAGS.REFUND_MONEY;
+		}
+		statusServer.setProcessedTime(System.currentTimeMillis());
+		
+		String printGameIdsStr = getPrintableGameIdsStr(statusServer.getSlotMoneyGD());
+		logger.info("{} Payment All success for game time {} and game ids {}",
+				tag,
+				new Date(statusServer.getGameSlotTime()), printGameIdsStr);
+		List<Long> gameIds = new ArrayList<>();
+		for (MoneyUpdaterGameDetails gd : statusServer.getSlotMoneyGD()) {
+			if (gameIds.contains(gd.getGameServerId())) {
+				gameIds.add(gd.getGameServerId());
+			}
+		}
+		
+		List<Integer> creditStatus = new ArrayList<>();
+		for (int index = 0; index < gameIds.size(); index ++) {
+			creditStatus.add(statusServer.getMoneyOverallStatus());
+		}
+		
+		if (gameIds.size() > 0) {
+			GameHistoryDBHandler.getInstance().bulkUpdateStatus(gameIds, creditStatus, 5);
+		}
+	}
+	
+	private void handleAllFailState(ClientSlotMoneyStatusGiver statusServer, GameSlotMoneyStatus statusObject) {
+		String tag = TAGS.WIN_MONEY;
+		if (statusServer.getOperationType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+			tag = TAGS.REFUND_MONEY;
+		}
+		String printGameIdsStr = getPrintableGameIdsStr(statusServer.getSlotMoneyGD());
 		logger.error(QuizConstants.ERROR_PREFIX_START);
-		logger.info("{} Staus missing for slotTime {} and game ids {}", tagName, 
-				new Date(gameStartTime), printGameInfo);
+		logger.info("{} Payment All failed for game time {} and game ids {}",
+				tag,
+				new Date(statusServer.getGameSlotTime()), printGameIdsStr);
 		logger.error(QuizConstants.ERROR_PREFIX_END);
-		missedPayment(gameStartTime, gameUpdateDetails, 
-				MoneyCreditStatus.ALL_FAIL, operationType, tagName);
+		statusServer.setProcessedTime(System.currentTimeMillis());
+		missedPayment(statusServer.getGameSlotTime(), statusServer.getSlotMoneyGD(), 
+				MoneyCreditStatus.ALL_FAIL, statusServer.getOperationType(), tag);
+
+	}
+	
+	private void handleInProgressState(ClientSlotMoneyStatusGiver statusServer, GameSlotMoneyStatus statusObject) {
+		int requestId = statusServer.getRequestId();
+		Integer retryCount = requestIdVsRetryCount.get(requestId);
+		if (retryCount == null) {
+			retryCount = new Integer(0);
+		}
+		retryCount++;
+		requestIdVsRetryCount.put(requestId, retryCount);
+		String tag = TAGS.WIN_MONEY;
+		if (statusServer.getOperationType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+			tag = TAGS.REFUND_MONEY;
+		}
+		if (retryCount == 5) {
+			String printGameIdsStr = getPrintableGameIdsStr(statusServer.getSlotMoneyGD());
+			logger.error(QuizConstants.ERROR_PREFIX_START);
+			logger.info("{} Payment Timeout for retries for game time {} and game ids {}",
+					tag,
+					new Date(statusServer.getGameSlotTime()), printGameIdsStr);
+			logger.error(QuizConstants.ERROR_PREFIX_END);
+			
+			statusServer.setProcessedTime(System.currentTimeMillis());
+			missedPayment(statusServer.getGameSlotTime(), statusServer.getSlotMoneyGD(), 
+					MoneyCreditStatus.ALL_FAIL, statusServer.getOperationType(), tag);
+		}
+		
 	}
 	
 	private void missedPayment(long slotTime, 
@@ -320,7 +323,7 @@ public class MoneyUpdaterResponseHandler implements Runnable {
 		        ccTickets.add(CCUtils.createdCCTicket(tktType, gd.getUserId(), ccExtraDetails)); 
 			}
 			
-			LazyScheduler.getInstance().submit(new CreateCustomerTickets(ccTickets), 15, TimeUnit.SECONDS);
+			LazyScheduler.getInstance().submit(new CreateCustomerTickets(ccTickets), 5, TimeUnit.SECONDS);
 			
 			if (gameIds.size() > 0) {
 				GameHistoryDBHandler.getInstance().bulkUpdateStatus(gameIds, creditStatus, 5);
@@ -328,7 +331,7 @@ public class MoneyUpdaterResponseHandler implements Runnable {
 		
 		} catch(Exception ex) {
 			logger.error(QuizConstants.ERROR_PREFIX_START);
-			logger.error("{} Exception handling missed status case", tag);
+			logger.error("{} Exception handling timeout status case", tag);
 			logger.error(ex);
 			logger.error(QuizConstants.ERROR_PREFIX_END);
 		}
@@ -355,97 +358,132 @@ public class MoneyUpdaterResponseHandler implements Runnable {
 		return strBuilder.toString();
 	}
 	
-	public int getWinMoneyCreditedStatus(String trackKey) {
-		Integer status = winMoneyCreditedSatus.get(trackKey);
-		if (status == null) {
-			String timeStr = trackKey;
-			timeStr = timeStr.substring(timeStr.indexOf('-') + 1);
-			long timeLong = Long.parseLong(timeStr);
-			if (slotGamesStartTimeVsPaymentGD.get(timeLong) == null) {
-				// If all the games in a slot time are free or cancelled then this case comes
-				return MoneyCreditStatus.ALL_SUCCESS.getId();
+	public MoneyStatusOutput getStatus(MoneyStatusInput input) {
+		
+		logger.info("In get Status");
+		MoneyStatusOutput output = new MoneyStatusOutput();
+		output.setMessage(null);
+		output.setStatus(-1);
+		
+		if (QuizConstants.getBackServerStatus()) {
+			output.setStatus(MoneyCreditStatus.ALL_FAIL.getId());
+			if (input.getOperType() == MoneyPayBackMode.WIN_MONEY.getId()) {
+				output.setMessage(WIN_MONEY_FAIL_MSG);
+			} else {
+				output.setMessage(REFUND_FAIL_MSG);
 			}
-			return MoneyCreditStatus.IN_PROGRESS.getId();
-		} else { 
-			return status;
+			logger.info("In back server status down");
+			return output;
 		}
-	}
-	
-	public CancelGameRefundStatus getGameRefundStatus(String trackKey, long uid, 
-			long gameSlotStartTime) {
 		
-		List<MoneyUpdaterGameDetails> list = slotGamesStartTimeVsPaymentGD.get(gameSlotStartTime);
-		
-		CancelGameRefundStatus refundStatus = new CancelGameRefundStatus();
-		refundStatus.setUid(uid);
-		if (list == null) {
-			refundStatus.setStatus(MoneyCreditStatus.ALL_FAIL.getId());
-			return refundStatus;
-		} else {
-			for (MoneyUpdaterGameDetails obj : list) {
-				if (obj.getUserId() == uid) {
-					refundStatus.setClientGameId(obj.getGameClientId());
-					refundStatus.setStatus(obj.getCreditResult());
+		if (input.getOperType() == MoneyPayBackMode.WIN_MONEY.getId()) {
+			// Display a message for free game in win money category
+			for (ClientSlotMoneyStatusGiver freeGameHandler : freeGameServers) {
+				if (freeGameHandler.getOperationType() == input.getOperType()) {
+					long timeDiff = freeGameHandler.getGameSlotTime() - input.getGameSlotTime();
+					if (timeDiff < 0) {
+						timeDiff = -1 * timeDiff;
+					}
+					if (timeDiff <= (10 * 1000)) {
+						List<MoneyUpdaterGameDetails> gdDetails = freeGameHandler.getSlotMoneyGD();
+						for (MoneyUpdaterGameDetails gdObject : gdDetails) {
+							if (gdObject.getUserId() == input.getUid()) {
+								output.setStatus(MoneyCreditStatus.ALL_SUCCESS.getId());
+								output.setMessage(WIN_MONEY_FREE_GAME_MSG);
+								
+								output.setGamePlayedTime(freeGameHandler.getGameSlotTime());
+								
+								output.setServerGameId(gdObject.getGameServerId());
+								output.setClientGameId(gdObject.getGameClientId());
+								output.setAmount(gdObject.getAmount());
+								
+								logger.info("In win money free game");
+								return output;
+							}
+						}
+					}
 				}
 			}
 		}
 		
-		Integer status = refundMoneyCreditedSatus.get(trackKey);
-		if (status == null) {
-			refundStatus.setStatus(MoneyCreditStatus.IN_PROGRESS.getId());
-		} else if (status != MoneyCreditStatus.PARTIAL_RESULTS.getId()) {
-			refundStatus.setStatus(status);
-		}
 		
-		return refundStatus;
+		for (ClientSlotMoneyStatusGiver statusServer : clientServers) {
+			logger.info("In real status");
+			if (statusServer.getOperationType() == input.getOperType()) {
+				logger.info("In timeDiff : {} and {}" + statusServer.getGameSlotTime(), input.getGameSlotTime());
+				logger.info("In timeDiff : {} and {}" + new Date(statusServer.getGameSlotTime()), 
+						new Date(input.getGameSlotTime()));
+				long timeDiff = statusServer.getGameSlotTime() - input.getGameSlotTime();
+				if (timeDiff < 0) {
+					timeDiff = -1 * timeDiff;
+				}
+				logger.info("In timeDiff :" + timeDiff);
+				if (timeDiff <= (10 * 1000)) {
+					logger.info("In timeDiff < 10 sec:" + timeDiff);
+					for (MoneyUpdaterGameDetails gd : statusServer.getSlotMoneyGD()) {
+						if (gd.getUserId() == input.getUid()) {
+							logger.info("Found matching entry:" + input.getUid());
+							int status = statusServer.getMoneyOverallStatus();
+							if (status == MoneyCreditStatus.PARTIAL_RESULTS.getId()) {
+								status = gd.getCreditResult();
+							}
+							output.setStatus(status);
+							if (status == MoneyCreditStatus.IN_PROGRESS.getId()) {
+								output.setMessage(null);
+							} else if (status == MoneyCreditStatus.ALL_SUCCESS.getId()) {
+								if (input.getOperType() == MoneyPayBackMode.WIN_MONEY.getId()) {
+									output.setMessage(String.format(WIN_MONEY_SUCCESS_MSG, gd.getAmount(), String.valueOf(gd.getGameClientId())));
+								} else if (input.getOperType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+									output.setMessage(String.format(REFUND_SUCCESS_MSG, String.valueOf(gd.getGameClientId()),gd.getAmount()));
+								}
+							} else if (status == MoneyCreditStatus.ALL_FAIL.getId()) {
+								if (input.getOperType() == MoneyPayBackMode.WIN_MONEY.getId()) {
+									output.setMessage(String.format(WIN_MONEY_FAIL_MSG, gd.getAmount(), String.valueOf(gd.getGameClientId())));
+								} else if (input.getOperType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+									output.setMessage(String.format(REFUND_FAIL_MSG, String.valueOf(gd.getGameClientId()),gd.getAmount()));
+								}
+							}
+							output.setGamePlayedTime(statusServer.getGameSlotTime());
+							
+							output.setServerGameId(gd.getGameServerId());
+							output.setClientGameId(gd.getGameClientId());
+							output.setAmount(gd.getAmount());
+							return output;
+						}
+					}
+					
+				}
+			}
+		}
+		return output;
 	}
 	
 	private void cleanupOldEntries() {
-		Set<Map.Entry<String, Integer>> slotVsWinMoneySet = winMoneyCreditedSatus.entrySet();
-		List<String> toDelKeys = new ArrayList<>();
-		for (Map.Entry<String, Integer> eachEntry : slotVsWinMoneySet) {
-			String timeStr = eachEntry.getKey();
-			timeStr = timeStr.substring(timeStr.lastIndexOf('-') + 1);
-			long timeLong = Long.parseLong(timeStr);
-			long currentTime = System.currentTimeMillis();
-			if ((currentTime - timeLong) >= 10 * 60 * 1000) {
-				toDelKeys.add(eachEntry.getKey());
+		logger.info("{} Size of the ClientServer insatnces before cleanup {}", TAGS.WIN_MONEY, clientServers.size());
+		Iterator<ClientSlotMoneyStatusGiver> iterator = clientServers.iterator();
+		while (iterator.hasNext()) {
+			ClientSlotMoneyStatusGiver instance = iterator.next();
+			long processedTime = instance.getProcessedTime();
+			if (processedTime > 0) {
+				long diff = System.currentTimeMillis() - instance.getProcessedTime();
+				if (diff >= (10 * 60 * 1000)) {
+					iterator.remove();
+				}
 			}
 		}
-		
-		for (String delKey : toDelKeys) {
-			winMoneyCreditedSatus.remove(delKey);
-		}
-		toDelKeys.clear();
-		
-		Set<Map.Entry<String, Integer>> slotVsCancelMoneySet = refundMoneyCreditedSatus.entrySet();
-		for (Map.Entry<String, Integer> eachEntry : slotVsCancelMoneySet) {
-			String timeStr = eachEntry.getKey();
-			timeStr = timeStr.substring(timeStr.lastIndexOf('-') + 1);
-			long timeLong = Long.parseLong(timeStr);
-			long currentTime = System.currentTimeMillis();
-			if ((currentTime - timeLong) >= 10 * 60 * 1000) {
-				toDelKeys.add(eachEntry.getKey());
+		logger.info("{} Size of the ClientServer insatnces after cleanup {}", TAGS.WIN_MONEY, clientServers.size());
+		logger.info("{} Size of the Free ClientServer insatnces before cleanup {}", TAGS.WIN_MONEY, freeGameServers.size());
+		iterator = freeGameServers.iterator();
+		while (iterator.hasNext()) {
+			ClientSlotMoneyStatusGiver instance = iterator.next();
+			long processedTime = instance.getProcessedTime();
+			if (processedTime > 0) {
+				long diff = System.currentTimeMillis() - instance.getProcessedTime();
+				if (diff >= (10 * 60 * 1000)) {
+					iterator.remove();
+				}
 			}
 		}
-		for (String delKey : toDelKeys) {
-			refundMoneyCreditedSatus.remove(delKey);
-		}
-		toDelKeys.clear();
-		
-		Set<Map.Entry<Long, List<MoneyUpdaterGameDetails>>> slotVsGD = 
-				slotGamesStartTimeVsPaymentGD.entrySet();
-		List<Long> toDelLongKeys = new ArrayList<>();
-		for (Map.Entry<Long, List<MoneyUpdaterGameDetails>> eachEntry : slotVsGD) {
-			long timeLong = eachEntry.getKey();
-			long currentTime = System.currentTimeMillis();
-			if ((currentTime - timeLong) >= 10 * 60 * 1000) {
-				toDelLongKeys.add(eachEntry.getKey());
-			}
-		}
-		for (Long delKey : toDelLongKeys) {
-			slotGamesStartTimeVsPaymentGD.remove(delKey);
-		}
-		toDelLongKeys.clear();
+		logger.info("{} Size of the Free ClientServer insatnces after cleanup {}", TAGS.WIN_MONEY, freeGameServers.size());
 	}
 }

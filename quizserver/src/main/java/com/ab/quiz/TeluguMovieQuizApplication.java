@@ -116,7 +116,7 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 			LazyScheduler.getInstance().submitRepeatedTask(new DeleteOldRecords(), initialDelay, 
 					24 * 60 * 1000, TimeUnit.MILLISECONDS);
 			LazyScheduler.getInstance().submitRepeatedTask(MoneyUpdaterResponseHandler.getInstance(), 0, 
-					1 * 60 * 1000, TimeUnit.MILLISECONDS);
+					30 * 1000, TimeUnit.MILLISECONDS);
 			LazyScheduler.getInstance().submitRepeatedTask(new DeleteUselessOTPTask(), initialDelay, 
 					24 * 60 * 1000, TimeUnit.MILLISECONDS);
 			
