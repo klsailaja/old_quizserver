@@ -1,31 +1,11 @@
 package com.ab.quiz.constants;
 
-public class QuizConstants {
-	
-	public static int MY_SERVER_ID = 1;
-	
-	public static int CLOSED_WD_RECEIPTS_DURATION = 10;
-	
-	public static int GAMES_HISTORY_DURATION = 10;
-	
-	public static final String FROM_MAIL_ID = "satyahasini25@gmail.com";
-	
-	public static final String VERIFY_MAIL_ID_SUBJECT = "4-digit Money Withdrawal Code";
-	
-	public static final String VERIFY_MAIL_ID_SENDER_NAME = "TeluguQuiz";
-	
-	public static final String VERIFY_MAIL_ID_BODY = "Your 4-digit verification code : %s";
-	
-	public static final String VERIFY_MAIL_CONTENTS = "<html><p>Your 4-digit withdrawal code : <b>%s</b>" 
-				+ "<br><br>Thanks<br>"
-				+ VERIFY_MAIL_ID_SENDER_NAME
-				+ "</p></html>";
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
 
-	public static final int SPECIAL_CODE_MAX_COUNT = 100;
-	
-	public static int SERVER_CLIENT_TIME_DIFF = 15;
-	
-	public static int SERVER_CLIENT_TIME_DIFF_IN_SECS = SERVER_CLIENT_TIME_DIFF * 1000;
+public class QuizConstants {
 	
 	public static final String ERROR_PREFIX_START = "ERROR_START:***********************";
 	
@@ -57,16 +37,41 @@ public class QuizConstants {
 	
 	public static final int MAX_QUESTIONS_PER_GAME = 10;
 	
-	public static int TESTMODE = 0;
+	private static final String OS_ROOT = "D:";
+	
+	private static final String QUIZ_SERVER_PROP_FILE = OS_ROOT + File.separator + "QuizHome" 
+			+ File.separator + "Conf" + File.separator + "QuizServer.prop";
+	
+	public static int MY_SERVER_ID;
+	
+	public static int CLOSED_WD_RECEIPTS_DURATION;
+	
+	public static int GAMES_HISTORY_DURATION;
+	
+	public static String FROM_MAIL_ID;
+	
+	public static String VERIFY_MAIL_ID_SUBJECT;
+	
+	public static String VERIFY_MAIL_ID_SENDER_NAME;
+	
+	public static String VERIFY_MAIL_ID_BODY;
+	
+	public static String VERIFY_MAIL_CONTENTS;
+
+	public static int SERVER_CLIENT_TIME_DIFF;
+	
+	public static int SERVER_CLIENT_TIME_DIFF_IN_SECS;
+	
+	public static int TESTMODE;
 	
 	// Chat Related settings
-	public static int DELETE_OLD_MSGS_TIME_PERIOD = 30;
+	public static int DELETE_OLD_MSGS_TIME_PERIOD;
 	
-	public static long DELETE_OLD_MSGS_TIME_PERIOD_IN_MILLIS = DELETE_OLD_MSGS_TIME_PERIOD * 60 * 1000;
+	public static long DELETE_OLD_MSGS_TIME_PERIOD_IN_MILLIS;
 	
-	public static int LOGGED_IN_USERS_COUNT_UPDATE_TIME_INTERVAL = 30;
+	public static int LOGGED_IN_USERS_COUNT_UPDATE_TIME_INTERVAL;
 	
-	public static long LOGGED_IN_USERS_COUNT_UPDATE_TIME_INTERVAL_IN_MILLIS = LOGGED_IN_USERS_COUNT_UPDATE_TIME_INTERVAL * 60 * 1000;
+	public static long LOGGED_IN_USERS_COUNT_UPDATE_TIME_INTERVAL_IN_MILLIS;
 	
 
 	public static int MIXED_MODE_QUESTION_DIFFICULTY_LEVEL = 2; // 2 - means easy
@@ -84,18 +89,64 @@ public class QuizConstants {
 	public static int CEEBRITY_MODE_PICS_QUESTIONS_COUNT = -1;
 	
 	public static void initialize() {
-		if (APP_SERVER_MODE == 1) {
-			MIX_MODE_TEXT_QUESTIONS_COUNT = 8;
-			CEEBRITY_MODE_TEXT_QUESTIONS_COUNT = 8;
-		} else if (APP_SERVER_MODE == 2) {
-			MIX_MODE_TEXT_QUESTIONS_COUNT = 4;
-			CEEBRITY_MODE_TEXT_QUESTIONS_COUNT = 4;
-		} else if (APP_SERVER_MODE == 3) {
-			MIX_MODE_TEXT_QUESTIONS_COUNT = 10;
-			CEEBRITY_MODE_TEXT_QUESTIONS_COUNT = 10;
+		
+		try {
+			FileInputStream reader = new FileInputStream(QUIZ_SERVER_PROP_FILE);
+			Properties props = new Properties();
+			props.load(reader);
+			
+			String value = props.getProperty("MY_SERVER_ID", "1");
+			MY_SERVER_ID = Integer.parseInt(value);
+			
+			value = props.getProperty("CLOSED_WD_RECEIPTS_DURATION", "10");
+			CLOSED_WD_RECEIPTS_DURATION = Integer.parseInt(value);
+			
+			value = props.getProperty("GAMES_HISTORY_DURATION", "10");
+			GAMES_HISTORY_DURATION = Integer.parseInt(value);
+			
+			value = props.getProperty("SERVER_CLIENT_TIME_DIFF", "15");
+			SERVER_CLIENT_TIME_DIFF = Integer.parseInt(value);
+			SERVER_CLIENT_TIME_DIFF_IN_SECS = SERVER_CLIENT_TIME_DIFF * 1000;
+			
+			value = props.getProperty("TESTMODE", "1");
+			TESTMODE = Integer.parseInt(value);
+			
+			value = props.getProperty("DELETE_OLD_MSGS_TIME_PERIOD", "15");
+			DELETE_OLD_MSGS_TIME_PERIOD = Integer.parseInt(value);
+			DELETE_OLD_MSGS_TIME_PERIOD_IN_MILLIS = DELETE_OLD_MSGS_TIME_PERIOD * 60 * 1000;
+			
+			value = props.getProperty("LOGGED_IN_USERS_COUNT_UPDATE_TIME_INTERVAL", "30");
+			LOGGED_IN_USERS_COUNT_UPDATE_TIME_INTERVAL = Integer.parseInt(value);
+			LOGGED_IN_USERS_COUNT_UPDATE_TIME_INTERVAL_IN_MILLIS = LOGGED_IN_USERS_COUNT_UPDATE_TIME_INTERVAL * 60 * 1000;
+			
+			FROM_MAIL_ID = props.getProperty("FROM_MAIL_ID", "satyahasini25@gmail.com");
+			VERIFY_MAIL_ID_SUBJECT = props.getProperty("VERIFY_MAIL_ID_SUBJECT", "4-digit Verification Code");
+			VERIFY_MAIL_ID_SENDER_NAME = props.getProperty("VERIFY_MAIL_ID_SENDER_NAME", "TeluguQuiz");
+			VERIFY_MAIL_ID_BODY = props.getProperty("VERIFY_MAIL_ID_BODY", "Your 4-digit verification code : %s");
+			VERIFY_MAIL_CONTENTS = "<html><p>Your 4-digit verification code : <b>%s</b>" 
+					+ "<br><br>Thanks<br>"
+					+ VERIFY_MAIL_ID_SENDER_NAME
+					+ "</p></html>";
+			
+			value = props.getProperty("APP_SERVER_MODE", "2");
+			APP_SERVER_MODE = Integer.parseInt(value);
+			
+			if (APP_SERVER_MODE == 1) {
+				MIX_MODE_TEXT_QUESTIONS_COUNT = 8;
+				CEEBRITY_MODE_TEXT_QUESTIONS_COUNT = 8;
+			} else if (APP_SERVER_MODE == 2) {
+				MIX_MODE_TEXT_QUESTIONS_COUNT = 4;
+				CEEBRITY_MODE_TEXT_QUESTIONS_COUNT = 4;
+			} else if (APP_SERVER_MODE == 3) {
+				MIX_MODE_TEXT_QUESTIONS_COUNT = 10;
+				CEEBRITY_MODE_TEXT_QUESTIONS_COUNT = 10;
+			}
+			MIX_MODE_PICS_QUESTIONS_COUNT = MAX_QUESTIONS_PER_GAME - MIX_MODE_TEXT_QUESTIONS_COUNT;
+			CEEBRITY_MODE_PICS_QUESTIONS_COUNT = MAX_QUESTIONS_PER_GAME - CEEBRITY_MODE_TEXT_QUESTIONS_COUNT;
+			
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		MIX_MODE_PICS_QUESTIONS_COUNT = MAX_QUESTIONS_PER_GAME - MIX_MODE_TEXT_QUESTIONS_COUNT;
-		CEEBRITY_MODE_PICS_QUESTIONS_COUNT = MAX_QUESTIONS_PER_GAME - CEEBRITY_MODE_TEXT_QUESTIONS_COUNT;
 	}
 	
 	private static boolean backend_server_down = false;

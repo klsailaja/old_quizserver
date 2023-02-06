@@ -2,6 +2,7 @@ package com.ab.quiz;
 
 import java.sql.SQLException;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
@@ -110,6 +111,8 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 			calendar.set(Calendar.SECOND, 0);
 			calendar.set(Calendar.AM_PM, Calendar.AM);
 			
+			logger.info("Purge old records task scheduled at {}", new Date(calendar.getTimeInMillis()));
+			
 			long initialDelay = calendar.getTimeInMillis() - System.currentTimeMillis();
 			//initialDelay = 0;
 			
@@ -119,6 +122,8 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 					30 * 1000, TimeUnit.MILLISECONDS);
 			LazyScheduler.getInstance().submitRepeatedTask(new DeleteUselessOTPTask(), initialDelay, 
 					24 * 60 * 1000, TimeUnit.MILLISECONDS);
+			
+			logger.info("TestMode is {}", QuizConstants.TESTMODE);
 			
 			if (QuizConstants.TESTMODE == 1) {
 				TestUsersTask task = new TestUsersTask();
