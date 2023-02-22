@@ -2,7 +2,9 @@ package com.ab.quiz.handlers;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,13 +46,13 @@ public class GameHandler {
 	// This map maintains the UserId Vs Boss Id
 	private Map<Long, Long> userIdVsBossId = new HashMap<>();
 	
-	private Map<Long, Integer> userCreditedStatus = new HashMap<>();
 	private boolean isGameCancellationDone;
 	
 	
 	private static final Logger logger = LogManager.getLogger(GameHandler.class);
 	private Object lock = new Object();
 	private List<PrizeDetail> gamePrizeDetails;
+	private List<String> enrolledPlayerNames = new ArrayList<>();
 	
 	public GameHandler(GameDetails gameDetails) {
 		this.gameDetails = gameDetails;
@@ -86,6 +88,14 @@ public class GameHandler {
 		
 		synchronized (lock) {
 			userProfileIdVsSummary.put(userProfileId, player);
+			
+			enrolledPlayerNames.clear();
+			Iterator<PlayerSummary> psList = userProfileIdVsSummary.values().iterator();
+			while (psList.hasNext()) {
+				enrolledPlayerNames.add(psList.next().getUserName());
+			}
+			Collections.sort(enrolledPlayerNames);
+			gameDetails.setEnrolledPlayerNames(enrolledPlayerNames);
 		}
 		
 		userProfileIdVsAnswers.put(userProfileId, new ArrayList<PlayerAnswer>());
@@ -106,6 +116,14 @@ public class GameHandler {
 		PlayerSummary player = null;
 		synchronized (lock) {
 			player = userProfileIdVsSummary.remove(userProfileId);
+			
+			enrolledPlayerNames.clear();
+			Iterator<PlayerSummary> psList = userProfileIdVsSummary.values().iterator();
+			while (psList.hasNext()) {
+				enrolledPlayerNames.add(psList.next().getUserName());
+			}
+			Collections.sort(enrolledPlayerNames);
+			gameDetails.setEnrolledPlayerNames(enrolledPlayerNames);
 		}
 		if (player == null) { // This user never joined
 			logger.debug("False");
@@ -135,14 +153,6 @@ public class GameHandler {
 			enrolledUids.add(entry.getKey());
 		}
 		return enrolledUids;
-	}
-	
-	public Map<Long, Integer> getRevertedStatus() {
-		return userCreditedStatus;
-	}
-	
-	public void putRevertedStatus(long uid, Integer state) {
-		userCreditedStatus.put(uid, state);
 	}
 	
 	public void cancelGame(UsersCompleteMoneyDetails moneyDetails, List<Long> cancelledUserIds) throws SQLException, Exception {
@@ -312,13 +322,5 @@ public class GameHandler {
 
 	public void setGameCancellationDone(boolean isGameCancellationDone) {
 		this.isGameCancellationDone = isGameCancellationDone;
-	}
-	
-	public void setMoneyRevertStatus(int state) {
-		// -1 - processing, 1 - fail, 2 - success
-		Set<Map.Entry<Long, PlayerSummary>> setValues = userProfileIdVsSummary.entrySet();
-		for (Map.Entry<Long, PlayerSummary> eachEntry : setValues) {
-			userCreditedStatus.put(eachEntry.getKey(), state);
-		}
 	}
 }
