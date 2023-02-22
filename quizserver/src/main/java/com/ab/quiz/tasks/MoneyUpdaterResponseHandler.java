@@ -3,6 +3,7 @@ package com.ab.quiz.tasks;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -21,6 +22,7 @@ import com.ab.quiz.constants.MoneyCreditStatus;
 import com.ab.quiz.constants.MoneyPayBackMode;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.db.GameHistoryDBHandler;
+import com.ab.quiz.handlers.GameManager;
 import com.ab.quiz.helper.CCUtils;
 import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.pojo.ClientSlotMoneyStatusGiver;
@@ -374,6 +376,29 @@ public class MoneyUpdaterResponseHandler implements Runnable {
 			}
 			logger.info("In back server status down");
 			return output;
+		}
+		
+		if (input.getOperType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTimeInMillis(input.getGameSlotTime());
+			
+			int minute = calendar.get(Calendar.MINUTE);
+			int gameMode = -1;  
+			if (minute % 2 == 0) {
+				gameMode = 1;
+			} else {
+				gameMode = 2;
+			}
+			try {
+				GameManager.getInstance().processCancelGamesRefund(gameMode);
+			} catch (Exception ex) {
+				logger.error(QuizConstants.ERROR_PREFIX_START);
+				logger.error("{} Payment Exception in run method while fetching the money update records from backend", 
+						TAGS.WIN_MONEY);
+				logger.error(ex);
+				logger.error(QuizConstants.ERROR_PREFIX_END);
+				return output;
+			}
 		}
 		
 		if (input.getOperType() == MoneyPayBackMode.WIN_MONEY.getId()) {

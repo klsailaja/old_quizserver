@@ -1,14 +1,14 @@
 package com.ab.quiz.pojo;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GameStatus {
 	long gameId;
-	int currentCount;
 	int gameStatus;
 	int viewId;
-	Map <Long, Integer> userAccountRevertStatus;
-	
+	List<String> enrolledPlayerNames = new ArrayList<>();
+
 	public int getViewId() {
 		return viewId;
 	}
@@ -22,22 +22,16 @@ public class GameStatus {
 	public void setGameId(long gameId) {
 		this.gameId = gameId;
 	}
-	public int getCurrentCount() {
-		return currentCount;
-	}
-	public void setCurrentCount(int currentCount) {
-		this.currentCount = currentCount;
-	}
 	public int getGameStatus() {
 		return gameStatus;
 	}
 	public void setGameStatus(int gameStatus) {
 		this.gameStatus = gameStatus;
 	}
-	public Map<Long, Integer> getUserAccountRevertStatus() {
-		return userAccountRevertStatus;
+	public List<String> getEnrolledPlayerNames() {
+		return enrolledPlayerNames;
 	}
-	public void setUserAccountRevertStatus(Map<Long, Integer> userAccountRevertStatus) {
-		this.userAccountRevertStatus = userAccountRevertStatus;
+	public void setEnrolledPlayerNames(List<String> enrolledPlayerNames) {
+		this.enrolledPlayerNames = enrolledPlayerNames;
 	}
 }

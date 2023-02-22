@@ -16,6 +16,14 @@ public class UserProfile {
 	private int forgotPasswdUsed;
 	private String serverIpAddress;
 	private int serverPortNumber;
+	private long serverIndex;
+	
+	public long getServerIndex() {
+		return serverIndex;
+	}
+	public void setServerIndex(long serverIndex) {
+		this.serverIndex = serverIndex;
+	}
 	
 		
 	public int getLoggedIn() {

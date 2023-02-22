@@ -179,7 +179,7 @@ public class GameManager {
 		
 		GameStatus gameStatus = new GameStatus();
 		gameStatus.setGameId(gameId);
-		gameStatus.setCurrentCount(gameHandler.getEnrolledUserCount());
+		gameStatus.setEnrolledPlayerNames(gameHandler.getGameDetails().getEnrolledPlayerNames());
 		gameStatus.setGameStatus(1); // Game is alive
 		
 		long currentTime = System.currentTimeMillis();
@@ -190,7 +190,6 @@ public class GameManager {
 				gameStatus.setGameStatus(2); // Game is alive and lock period is reached..
 				if (gameHandler.getEnrolledUserCount() < 3) {
 					gameStatus.setGameStatus(-1);
-					gameStatus.setUserAccountRevertStatus(null);
 				}
 			}
 		}
@@ -429,13 +428,13 @@ public class GameManager {
 						logger.error("{} Exception while crediting the game tkt rate", tag, ex);
 						logger.error(QuizConstants.ERROR_PREFIX_END);
 						exceptionThrown = true;
-						for (GameHandler cancelGameHandler : cancelledGames) {
+						/*for (GameHandler cancelGameHandler : cancelledGames) {
 							if (cancelGameHandler.isFreeGame()) {
 								cancelGameHandler.setMoneyRevertStatus(MoneyCreditStatus.ALL_SUCCESS.getId());
 							} else {
 								cancelGameHandler.setMoneyRevertStatus(MoneyCreditStatus.ALL_FAIL.getId());
 							}
-						}
+						}*/
 					}
 					
 					
@@ -451,7 +450,6 @@ public class GameManager {
 							}
 							for (GameHandler cancelGameHandler : cancelledGames) {
 								if (cancelGameHandler.isUserEnrolled(canceledUserId)) {
-									cancelGameHandler.putRevertedStatus(canceledUserId, revertState);
 									if (revertState == MoneyCreditStatus.ALL_FAIL.getId()) {
 										HashMap<String,String> ccExtraDetailMap = new HashMap<>();
 							            ccExtraDetailMap.put(CCUtils.ISSUE_DATE_KEY, 
@@ -477,11 +475,10 @@ public class GameManager {
 					GameStatus gameStatus = new GameStatus();
 					gameStatus.setGameId(cancelGameHandler.getGameDetails().getGameId());
 					gameStatus.setViewId(cancelGameHandler.getGameDetails().getTempGameId());
-					gameStatus.setCurrentCount(cancelGameHandler.getEnrolledUserCount());
+					gameStatus.setEnrolledPlayerNames(cancelGameHandler.getGameDetails().getEnrolledPlayerNames());
 					gameStatus.setGameStatus(-1);	// Cancelled
-					gameStatus.setUserAccountRevertStatus(cancelGameHandler.getRevertedStatus());
 					logger.info("{} Cancelled Game Server Id: {} Client Id: {} and status: {}", tag, 
-							gameStatus.getGameId(), gameStatus.getViewId(), gameStatus.getUserAccountRevertStatus());
+							gameStatus.getGameId(), gameStatus.getViewId());
 				
 					gameIdToGameStatus.put(gameStatus.getGameId(), gameStatus);
 				}
@@ -528,7 +525,7 @@ public class GameManager {
 			GameStatus gameStatus = new GameStatus();
 			gameStatus.setGameId(gameHandler.getGameDetails().getGameId());
 			gameStatus.setViewId(gameHandler.getGameDetails().getTempGameId());
-			gameStatus.setCurrentCount(gameHandler.getEnrolledUserCount());
+			gameStatus.setEnrolledPlayerNames(gameHandler.getGameDetails().getEnrolledPlayerNames());
 			gameStatus.setGameStatus(1);  // Still active
 			
 			gameIdToGameStatus.put(gameStatus.getGameId(), gameStatus);
