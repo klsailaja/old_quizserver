@@ -21,7 +21,6 @@ import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.exceptions.InternalException;
 import com.ab.quiz.exceptions.NotAllowedException;
 import com.ab.quiz.handlers.GameManager;
-import com.ab.quiz.helper.CelebritySpecialHandler;
 import com.ab.quiz.pojo.CelebrityFullDetails;
 import com.ab.quiz.pojo.ChatGameDetails;
 import com.ab.quiz.pojo.GameDetails;
@@ -191,7 +190,7 @@ public class GamesController extends BaseController {
 		return GameManager.getInstance().getCelebrityFullDetails();
 	}
 	
-	@RequestMapping(value = "/upcoming/{timeHour}", method = RequestMethod.GET, produces = "application/json") 
+	/*@RequestMapping(value = "/upcoming/{timeHour}", method = RequestMethod.GET, produces = "application/json") 
 	public @ResponseBody List<String> getUpcomingCelebrityNames(@PathVariable("timeHour") int hour) {
 		
 		int hour1 = hour + 1;
@@ -233,7 +232,7 @@ public class GamesController extends BaseController {
 		
 		System.out.println(results);
 		return results;
-	}
+	}*/
 	
 	
 	@RequestMapping(value = "/chat/{gametype}", method = RequestMethod.GET, produces = "application/json")

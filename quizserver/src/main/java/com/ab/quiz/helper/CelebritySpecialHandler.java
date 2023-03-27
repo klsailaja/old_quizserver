@@ -3,6 +3,7 @@ package com.ab.quiz.helper;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -23,6 +24,7 @@ public class CelebritySpecialHandler {
 	private static final Logger logger = LogManager.getLogger(CelebritySpecialHandler.class);
 	private static CelebritySpecialHandler instance = null;
 	private Properties props;
+	private int lastProcessedDate = -1;
 	
 	private CelebritySpecialHandler() {
 	}
@@ -38,27 +40,40 @@ public class CelebritySpecialHandler {
 	
 	private void initialize() {
 		
-		String fileName = "celebrity.txt";
-		ClassLoader classLoader = getClass().getClassLoader();
-		InputStream inputStream = classLoader.getResourceAsStream(fileName);
+		Calendar c = Calendar.getInstance();
+		int currentDate = c.get(Calendar.DATE);
 		
-	    try {
-	    	props = new Properties();
-	    	props.load(inputStream);
-	    } catch(FileNotFoundException fnfe) {
-	    	logger.error("File Not Found ", fnfe);
-	    } catch(IOException ioe) {
-	    	logger.error("IO Exception ", ioe);
-	    } finally {
-	    	try {
-				inputStream.close();
-			} catch (IOException e) {
-				logger.error("IO Exception while closing the inputStream", e);
-			}
-	    }
+		if (currentDate != lastProcessedDate) {
+			lastProcessedDate = currentDate;
+			
+			SimpleDateFormat dateFormat = new SimpleDateFormat("E");
+			String dayOfWeek = dateFormat.format(c.getTime()).toLowerCase();
+			String fileName = "celebrity_" + dayOfWeek + ".txt";
+			
+			System.out.println("fileName: " + fileName);
+			
+			ClassLoader classLoader = getClass().getClassLoader();
+			InputStream inputStream = classLoader.getResourceAsStream(fileName);
+			
+		    try {
+		    	props = new Properties();
+		    	props.load(inputStream);
+		    } catch(FileNotFoundException fnfe) {
+		    	logger.error("File Not Found ", fnfe);
+		    } catch(IOException ioe) {
+		    	logger.error("IO Exception ", ioe);
+		    } finally {
+		    	try {
+					inputStream.close();
+				} catch (IOException e) {
+					logger.error("IO Exception while closing the inputStream", e);
+				}
+		    }
+		}
 	}
 	
 	public List<String> getUniqueCelebrityNames(int hour, int maxSize) throws NotAllowedException {
+		initialize();
 		List<String> celebrityList = new ArrayList<>();
 		String hourStr = String.valueOf(hour);
 		
@@ -83,6 +98,7 @@ public class CelebritySpecialHandler {
 	}
 	
 	public List<CelebrityDetails> getCelebrityDetails(long gameStartTime, int maxSize) throws NotAllowedException {
+		initialize();
 		List<CelebrityDetails> details = new ArrayList<>();
 		String hour = getHourIn24HrsFormat(gameStartTime);
 		
@@ -102,7 +118,7 @@ public class CelebritySpecialHandler {
 	}
 	
 	public List<UpcomingCelebrity> getUpcomingCelebrityDetails(int maxSize) {
-		
+		initialize();
 		long currentTime = System.currentTimeMillis();
 		String hour = getHourIn24HrsFormat(currentTime);
 		int hourInt = Integer.valueOf(hour);

@@ -106,6 +106,7 @@ public class WithdrawOperationsController extends BaseController {
 			boolean exists = ((otpDBEntry.getMailId() != null) && otpDBEntry.getMailId().equals(eMail)); 
 			
 			String passwd = VerifyWDOTPDBHandler.getInstance().getRandomPasswd(4);
+			logger.info("This is in wDGenerateOTP {}", passwd);
 			String passwdHash = VerifyWDOTPDBHandler.getPasswordHash(passwd);
 			
 			OTPDetails otpDetails = new OTPDetails();

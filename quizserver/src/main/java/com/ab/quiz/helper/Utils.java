@@ -3,6 +3,7 @@ package com.ab.quiz.helper;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -215,7 +216,7 @@ public class Utils {
 		System.out.println("totalAmt :" + totalAmt);
 		
 		long totalLanguages = 5;
-		long totalModes = 3;
+		long totalModes = 4;
 		long totalTimeCovers = 2;
 		long totalServers = 20;
 		long finalTotalPerDay = totalAmt * totalModes * totalTimeCovers * totalServers * totalLanguages;    
@@ -249,5 +250,10 @@ public class Utils {
 		System.out.println("Total share is " + (totalOurShare));
 		long totalAmt = (totalOurShare * 2 * 144);
 		System.out.println("totalAmt :" + totalAmt);*/
+		
+		Calendar c = Calendar.getInstance();
+		SimpleDateFormat dateFormat = new SimpleDateFormat("E");
+		String dayOfWeek = dateFormat.format(c.getTime()).toLowerCase();
+		System.out.println(dayOfWeek);
 	}
 }
