@@ -89,6 +89,8 @@ public class QuizConstants {
 	
 	public static int CEEBRITY_MODE_PICS_QUESTIONS_COUNT = -1;
 	
+	private static boolean isMoneyMode;
+	
 	public static void initialize() {
 		
 		try {
@@ -157,5 +159,12 @@ public class QuizConstants {
 	}
 	public static boolean getBackServerStatus() {
 		return backend_server_down;
+	}
+	
+	public static void setMoneyMode(boolean moneyMode) {
+		isMoneyMode = moneyMode;
+	}
+	public static boolean getMoneyMode() {
+		return isMoneyMode;
 	}
 }

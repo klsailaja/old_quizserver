@@ -20,14 +20,17 @@ import com.ab.quiz.common.Request;
 import com.ab.quiz.common.TAGS;
 import com.ab.quiz.constants.MoneyPayBackMode;
 import com.ab.quiz.constants.QuizConstants;
+import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.UserMoneyOperType;
 import com.ab.quiz.exceptions.InternalException;
 import com.ab.quiz.exceptions.NotAllowedException;
+import com.ab.quiz.helper.Utils;
+import com.ab.quiz.pojo.LoadMoney;
 import com.ab.quiz.pojo.MoneyStatusInput;
 import com.ab.quiz.pojo.MoneyStatusOutput;
 import com.ab.quiz.pojo.MoneyTransaction;
-import com.ab.quiz.pojo.TransferRequest;
+import com.ab.quiz.pojo.MyTransaction;
 import com.ab.quiz.pojo.UserMoney;
 import com.ab.quiz.pojo.UsersCompleteMoneyDetails;
 import com.ab.quiz.tasks.MoneyUpdaterResponseHandler;
@@ -71,23 +74,42 @@ public class UserMoneyController extends BaseController {
 		}
 	}
 	
-	@RequestMapping(value = "/money/{userProfileId}/load/{amt}", method = RequestMethod.POST, produces = "application/json")
-	public @ResponseBody boolean loadMoney(@PathVariable("userProfileId") long userProfileId, @PathVariable("amt") int amt,
-			@RequestBody TransferRequest transferReq)
+	@RequestMapping(value = "/money/load", method = RequestMethod.POST, produces = "application/json")
+	public @ResponseBody boolean addMoney(@RequestBody LoadMoney loadObject)
 			throws InternalException {
+		
+		logger.info("This is in addMoney for uid : {} and amount : {}", loadObject.getUid(), loadObject.getAmount());
 		
 		UsersCompleteMoneyDetails completeDetails = new UsersCompleteMoneyDetails();
 		String logTag = TAGS.UPDATE_USER + " AddMoneyFromUser : sid : " 
-				+ QuizConstants.MY_SERVER_ID + " : uid :" + userProfileId;
+				+ QuizConstants.MY_SERVER_ID + " : uid :" + loadObject.getUid();
 		completeDetails.setLogTag(logTag);
 		
 		List<MoneyTransaction> loadMoneyTransactions = new ArrayList<>();
 		
 		MoneyTransaction loadTransaction = new MoneyTransaction();
-		loadTransaction.setUserProfileId(userProfileId);
+		loadTransaction.setUserProfileId(loadObject.getUid());
 		loadTransaction.setAccountType(UserMoneyAccountType.LOADED_MONEY);
 		loadTransaction.setOperType(UserMoneyOperType.ADD);
-		loadTransaction.setAmount(amt);
+		
+		
+		String transactionDesc = null;
+		int spentNumber = -1;
+		
+		if (QuizConstants.getMoneyMode()) {
+			transactionDesc = "Added Money : Rs." + loadObject.getAmount();
+			loadTransaction.setAmount(loadObject.getAmount());
+			spentNumber = loadObject.getAmount();
+		} else {
+			transactionDesc = "Bought " + loadObject.getCoinCount() + " Coins for : Rs." + loadObject.getAmount();
+			spentNumber = loadObject.getCoinCount();
+		}
+		MyTransaction transaction = Utils.getTransactionPojo(loadObject.getUid(), 
+				System.currentTimeMillis(), (int)spentNumber, TransactionType.CREDITED.getId(), 
+				UserMoneyAccountType.LOADED_MONEY.getId(), -1, -1, transactionDesc, null);
+		loadTransaction.setTransaction(transaction);
+		
+		loadMoneyTransactions.add(loadTransaction);
 		
 		completeDetails.setUsersMoneyTransactionList(loadMoneyTransactions);
 		
@@ -105,10 +127,10 @@ public class UserMoneyController extends BaseController {
 			return clientResult;
 		} catch (Exception ex) {
 			logger.error(QuizConstants.ERROR_PREFIX_START);
-			logger.error("{} Exception in loadMoney", logTag);
+			logger.error("{} Exception in addMoney", logTag);
 			logger.error("Exception is: ", ex);
 			logger.error(QuizConstants.ERROR_PREFIX_END);
-			throw new InternalException("Server Error in loadMoney");
+			throw new InternalException("Server Error while adding money");
 		}
 	}
 	
