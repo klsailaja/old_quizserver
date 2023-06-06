@@ -5,6 +5,7 @@ import java.sql.SQLException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.web.client.HttpClientErrorException;
 
 import com.ab.quiz.common.GetTask;
 import com.ab.quiz.common.PostTask;
@@ -171,7 +172,12 @@ public class WDHandler {
 			}
 		} catch(Exception ex) {
 			logger.error(ex);
-			throw new NotAllowedException("Backend issue");
+			String errMessage = "Please retry after some time. Backend issue";
+			if (ex instanceof HttpClientErrorException) {
+                HttpClientErrorException clientExp = (HttpClientErrorException) ex;
+                errMessage = clientExp.getResponseBodyAsString();
+            }
+			throw new NotAllowedException(errMessage);
 		}
 		return true;
 	}

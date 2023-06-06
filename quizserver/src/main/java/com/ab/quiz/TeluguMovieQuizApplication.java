@@ -12,18 +12,16 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import com.ab.quiz.tasks.DeleteUselessOTPTask;
-import com.ab.quiz.tasks.MoneyUpdaterResponseHandler;
 import com.ab.quiz.common.GetTask;
-import com.ab.quiz.common.PostTask;
 import com.ab.quiz.common.Request;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.db.ConnectionPool;
 import com.ab.quiz.helper.GamesGenerator;
 import com.ab.quiz.helper.LazyScheduler;
 import com.ab.quiz.helper.WinMsgHandler;
-import com.ab.quiz.pojo.UsersCompleteMoneyDetails;
 import com.ab.quiz.tasks.DeleteOldRecords;
+import com.ab.quiz.tasks.DeleteUselessOTPTask;
+import com.ab.quiz.tasks.MoneyUpdaterResponseHandler;
 import com.ab.quiz.tasks.TestUsersTask;
 
 

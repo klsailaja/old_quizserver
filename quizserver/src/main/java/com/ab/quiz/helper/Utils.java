@@ -186,7 +186,7 @@ public class Utils {
     }
 	
 	public static void main(String[] args) {
-		int[] rates = {20, 50, 50, 75, 100, 50, 50, 75, 100, 125};
+		int[] rates = {20, 50, 50, 75, 75, 50, 50, 75, 100, 125};
 		int[] players = {3,4,5,6,7,8,9,10};
 		int totalOurShare = 0;
 		int avgShare = 0;

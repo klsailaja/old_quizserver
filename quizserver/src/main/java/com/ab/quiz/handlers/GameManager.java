@@ -24,7 +24,7 @@ import com.ab.quiz.common.Request;
 import com.ab.quiz.common.TAGS;
 import com.ab.quiz.constants.CustomerCareReqType;
 import com.ab.quiz.constants.MoneyCreditStatus;
-import com.ab.quiz.constants.MoneyPayBackMode;
+import com.ab.quiz.constants.MoneyUpdateTypes;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
@@ -300,7 +300,7 @@ public class GameManager {
 						UsersCompleteMoneyDetails completeDetails = slotTimeVsCompleteDetails.get(eachEntry.getKey());
 						completeDetails.setServerId(QuizConstants.MY_SERVER_ID);
 						completeDetails.setRequestId(GameIdGenerator.getInstance().getMoneyUpdateReuestId());
-						completeDetails.setOperationType(MoneyPayBackMode.REFUND_CANCEL_GAMES.getId());
+						completeDetails.setOperationType(MoneyUpdateTypes.REFUND_CANCEL_GAMES.getId());
 						
 						String logTag = TAGS.REFUND_MONEY + " CancelGamesMoney : sid : " + QuizConstants.MY_SERVER_ID 
 								+ " : RequestId :" + completeDetails.getRequestId()
@@ -652,8 +652,13 @@ public class GameManager {
 		
 		
 		try {
-			
+			long gameStartTime = gameHandler.getGameDetails().getStartTime();
+			String logTag = TAGS.MONEY_UPDATER + " Join game oper " + " : SlotTime : " + new Date(gameStartTime).toString()
+					+ " gamesid : " + gameHandler.getGameDetails().getGameId()
+					+ " cid : " + gameHandler.getGameDetails().getTempGameId()
+					+ " sid " + QuizConstants.MY_SERVER_ID + " : uid :" + gameOper.getUserProfileId();
 			UsersCompleteMoneyDetails completeDetails = new UsersCompleteMoneyDetails();
+			completeDetails.setLogTag(logTag);
 			completeDetails.setCheckMoney(true);
 			
 			KYCEntry kycEntity = KYCHandler.getInstance().getKYCEntry(gameOper.getUserProfileId());
@@ -766,7 +771,14 @@ public class GameManager {
 				return gameHandler.withdraw(gameOper.getUserProfileId());
 			}
 			
+			String logTag = TAGS.MONEY_UPDATER + " UnJoin game oper " + " : SlotTime : " 
+					+ new Date(gameHandler.getGameDetails().getStartTime()).toString()
+					+ " gamesid : " + gameHandler.getGameDetails().getGameId()
+					+ " cid : " + gameHandler.getGameDetails().getTempGameId()
+					+ " sid " + QuizConstants.MY_SERVER_ID + " : uid :" + gameOper.getUserProfileId();
 			UsersCompleteMoneyDetails completeDetails = new UsersCompleteMoneyDetails();
+			completeDetails.setLogTag(logTag);
+
 			List<MoneyTransaction> unjoinMoneyTransactions = new ArrayList<>();
 			
 			MoneyTransaction unjoinTransaction = new MoneyTransaction();

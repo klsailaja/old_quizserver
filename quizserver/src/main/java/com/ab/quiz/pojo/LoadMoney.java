@@ -4,7 +4,7 @@ public class LoadMoney {
     private long uid;
     private int amount;
     private int coinCount;
-    private boolean moneyMoney;
+    private boolean isMoney;
 
     public long getUid() {
         return uid;
@@ -31,10 +31,10 @@ public class LoadMoney {
     }
 
     public boolean isMoneyMoney() {
-        return moneyMoney;
+        return isMoney;
     }
 
     public void setMoneyMoney(boolean moneyMoney) {
-        this.moneyMoney = moneyMoney;
+        this.isMoney = moneyMoney;
     }
 }

@@ -13,7 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.ab.quiz.common.TAGS;
 import com.ab.quiz.constants.CustomerCareReqType;
-import com.ab.quiz.constants.MoneyPayBackMode;
+import com.ab.quiz.constants.MoneyUpdateTypes;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.handlers.GameHandler;
 import com.ab.quiz.pojo.ClientSlotMoneyStatusGiver;
@@ -75,7 +75,7 @@ public class PaymentTask implements Runnable {
 		UsersCompleteMoneyDetails winnerMoneyCompleteDetails = new UsersCompleteMoneyDetails();
 		winnerMoneyCompleteDetails.setServerId(QuizConstants.MY_SERVER_ID);
 		winnerMoneyCompleteDetails.setRequestId(GameIdGenerator.getInstance().getMoneyUpdateReuestId());
-		winnerMoneyCompleteDetails.setOperationType(MoneyPayBackMode.WIN_MONEY.getId());
+		winnerMoneyCompleteDetails.setOperationType(MoneyUpdateTypes.WIN_MONEY.getId());
 		
 		MoneyUpdateRequest request = new MoneyUpdateRequest(CustomerCareReqType.WIN_MONEY_NOT_ADDED.getId(),
 				winnerMoneyCompleteDetails);

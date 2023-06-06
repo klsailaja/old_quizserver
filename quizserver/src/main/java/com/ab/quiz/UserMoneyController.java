@@ -13,12 +13,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
 import com.ab.quiz.common.GetTask;
 import com.ab.quiz.common.PostTask;
 import com.ab.quiz.common.Request;
 import com.ab.quiz.common.TAGS;
-import com.ab.quiz.constants.MoneyPayBackMode;
+import com.ab.quiz.constants.MoneyUpdateTypes;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
@@ -130,7 +132,15 @@ public class UserMoneyController extends BaseController {
 			logger.error("{} Exception in addMoney", logTag);
 			logger.error("Exception is: ", ex);
 			logger.error(QuizConstants.ERROR_PREFIX_END);
-			throw new InternalException("Server Error while adding money");
+			String errMessage = "Server Error while adding money";
+			if (ex instanceof HttpClientErrorException) {
+                HttpClientErrorException clientExp = (HttpClientErrorException) ex;
+                errMessage = clientExp.getResponseBodyAsString();
+            } else if (ex instanceof HttpServerErrorException) {
+                HttpServerErrorException serverExp = (HttpServerErrorException) ex;
+                errMessage = serverExp.getResponseBodyAsString();
+            }
+			throw new NotAllowedException(errMessage);
 		}
 	}
 	
@@ -138,7 +148,7 @@ public class UserMoneyController extends BaseController {
 	public @ResponseBody MoneyStatusOutput getGamesSlotMoneyStatus(@RequestBody MoneyStatusInput statusInput) 
 			throws InternalException {
 		String tag = TAGS.WIN_MONEY;
-		if (statusInput.getOperType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+		if (statusInput.getOperType() == MoneyUpdateTypes.REFUND_CANCEL_GAMES.getId()) {
 			tag = TAGS.REFUND_MONEY;
 		}
 		logger.info("{} Slot Money Status Query received for uid : {} game start time : {}", tag, 

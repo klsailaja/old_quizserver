@@ -19,7 +19,7 @@ import com.ab.quiz.common.Request;
 import com.ab.quiz.common.TAGS;
 import com.ab.quiz.constants.CustomerCareReqType;
 import com.ab.quiz.constants.MoneyCreditStatus;
-import com.ab.quiz.constants.MoneyPayBackMode;
+import com.ab.quiz.constants.MoneyUpdateTypes;
 import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.db.GameHistoryDBHandler;
 import com.ab.quiz.handlers.GameManager;
@@ -133,7 +133,7 @@ public class MoneyUpdaterResponseHandler implements Runnable {
 		
 		for (ClientSlotMoneyStatusGiver statusGiver : clientServers) {
 			StringBuilder strBuillder = winMoneyDetais;
-			if (statusGiver.getOperationType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+			if (statusGiver.getOperationType() == MoneyUpdateTypes.REFUND_CANCEL_GAMES.getId()) {
 				strBuillder = refundMoneyDetais;
 			}
 			strBuillder.append("Request Id:");
@@ -153,7 +153,7 @@ public class MoneyUpdaterResponseHandler implements Runnable {
 			throws SQLException {
 		
 		String tag = TAGS.WIN_MONEY;
-		if (statusServer.getOperationType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+		if (statusServer.getOperationType() == MoneyUpdateTypes.REFUND_CANCEL_GAMES.getId()) {
 			tag = TAGS.REFUND_MONEY;
 		}
 		statusServer.setProcessedTime(System.currentTimeMillis());
@@ -168,7 +168,7 @@ public class MoneyUpdaterResponseHandler implements Runnable {
 		List<Long> patialSuccessGameIds = new ArrayList<>();
 		
 		int tktType = CustomerCareReqType.ADDED_MONEY_NOT_UPDATED.getId();
-		if (statusServer.getOperationType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+		if (statusServer.getOperationType() == MoneyUpdateTypes.REFUND_CANCEL_GAMES.getId()) {
 			tktType = CustomerCareReqType.CANCELLED_GAME_MONEY_NOT_ADDED.getId();
 		}
 		
@@ -219,7 +219,7 @@ public class MoneyUpdaterResponseHandler implements Runnable {
 			throws SQLException {
 		
 		String tag = TAGS.WIN_MONEY;
-		if (statusServer.getOperationType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+		if (statusServer.getOperationType() == MoneyUpdateTypes.REFUND_CANCEL_GAMES.getId()) {
 			tag = TAGS.REFUND_MONEY;
 		}
 		statusServer.setProcessedTime(System.currentTimeMillis());
@@ -247,7 +247,7 @@ public class MoneyUpdaterResponseHandler implements Runnable {
 	
 	private void handleAllFailState(ClientSlotMoneyStatusGiver statusServer, GameSlotMoneyStatus statusObject) {
 		String tag = TAGS.WIN_MONEY;
-		if (statusServer.getOperationType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+		if (statusServer.getOperationType() == MoneyUpdateTypes.REFUND_CANCEL_GAMES.getId()) {
 			tag = TAGS.REFUND_MONEY;
 		}
 		String printGameIdsStr = getPrintableGameIdsStr(statusServer.getSlotMoneyGD());
@@ -271,7 +271,7 @@ public class MoneyUpdaterResponseHandler implements Runnable {
 		retryCount++;
 		requestIdVsRetryCount.put(requestId, retryCount);
 		String tag = TAGS.WIN_MONEY;
-		if (statusServer.getOperationType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+		if (statusServer.getOperationType() == MoneyUpdateTypes.REFUND_CANCEL_GAMES.getId()) {
 			tag = TAGS.REFUND_MONEY;
 		}
 		if (retryCount == 5) {
@@ -298,7 +298,7 @@ public class MoneyUpdaterResponseHandler implements Runnable {
 				gameCompletedStatus.getId(), gameCompletedStatus.name());
 		
 		int tktType = CustomerCareReqType.WIN_MONEY_NOT_ADDED.getId();
-		if (operationType == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+		if (operationType == MoneyUpdateTypes.REFUND_CANCEL_GAMES.getId()) {
 			tktType = CustomerCareReqType.CANCELLED_GAME_MONEY_NOT_ADDED.getId();
 		}
 		
@@ -369,7 +369,7 @@ public class MoneyUpdaterResponseHandler implements Runnable {
 		
 		if (QuizConstants.getBackServerStatus()) {
 			output.setStatus(MoneyCreditStatus.ALL_FAIL.getId());
-			if (input.getOperType() == MoneyPayBackMode.WIN_MONEY.getId()) {
+			if (input.getOperType() == MoneyUpdateTypes.WIN_MONEY.getId()) {
 				output.setMessage(WIN_MONEY_FAIL_MSG);
 			} else {
 				output.setMessage(REFUND_FAIL_MSG);
@@ -378,7 +378,7 @@ public class MoneyUpdaterResponseHandler implements Runnable {
 			return output;
 		}
 		
-		if (input.getOperType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+		if (input.getOperType() == MoneyUpdateTypes.REFUND_CANCEL_GAMES.getId()) {
 			Calendar calendar = Calendar.getInstance();
 			calendar.setTimeInMillis(input.getGameSlotTime());
 			
@@ -401,7 +401,7 @@ public class MoneyUpdaterResponseHandler implements Runnable {
 			}
 		}
 		
-		if (input.getOperType() == MoneyPayBackMode.WIN_MONEY.getId()) {
+		if (input.getOperType() == MoneyUpdateTypes.WIN_MONEY.getId()) {
 			// Display a message for free game in win money category
 			for (ClientSlotMoneyStatusGiver freeGameHandler : freeGameServers) {
 				if (freeGameHandler.getOperationType() == input.getOperType()) {
@@ -456,15 +456,15 @@ public class MoneyUpdaterResponseHandler implements Runnable {
 							if (status == MoneyCreditStatus.IN_PROGRESS.getId()) {
 								output.setMessage(null);
 							} else if (status == MoneyCreditStatus.ALL_SUCCESS.getId()) {
-								if (input.getOperType() == MoneyPayBackMode.WIN_MONEY.getId()) {
+								if (input.getOperType() == MoneyUpdateTypes.WIN_MONEY.getId()) {
 									output.setMessage(String.format(WIN_MONEY_SUCCESS_MSG, gd.getAmount(), String.valueOf(gd.getGameClientId())));
-								} else if (input.getOperType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+								} else if (input.getOperType() == MoneyUpdateTypes.REFUND_CANCEL_GAMES.getId()) {
 									output.setMessage(String.format(REFUND_SUCCESS_MSG, String.valueOf(gd.getGameClientId()),gd.getAmount()));
 								}
 							} else if (status == MoneyCreditStatus.ALL_FAIL.getId()) {
-								if (input.getOperType() == MoneyPayBackMode.WIN_MONEY.getId()) {
+								if (input.getOperType() == MoneyUpdateTypes.WIN_MONEY.getId()) {
 									output.setMessage(String.format(WIN_MONEY_FAIL_MSG, gd.getAmount(), String.valueOf(gd.getGameClientId())));
-								} else if (input.getOperType() == MoneyPayBackMode.REFUND_CANCEL_GAMES.getId()) {
+								} else if (input.getOperType() == MoneyUpdateTypes.REFUND_CANCEL_GAMES.getId()) {
 									output.setMessage(String.format(REFUND_FAIL_MSG, String.valueOf(gd.getGameClientId()),gd.getAmount()));
 								}
 							}
