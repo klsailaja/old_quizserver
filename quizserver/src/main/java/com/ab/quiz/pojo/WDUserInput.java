@@ -3,8 +3,24 @@ package com.ab.quiz.pojo;
 public class WDUserInput {
 	private long userProfileId; 
 	private int requestType; 
-	private int amount; 
+	private int amount;
+	private int coinCount;
+	private boolean moneyMode;
 	private long openedTime;
+	
+	public int getCoinCount() {
+		return coinCount;
+	}
+	public void setCoinCount(int coinCount) {
+		this.coinCount = coinCount;
+	}
+	public boolean isMoneyMode() {
+		return moneyMode;
+	}
+	public void setMoneyMode(boolean moneyMode) {
+		this.moneyMode = moneyMode;
+	}
+	
 	
 	public long getUserProfileId() {
 		return userProfileId;

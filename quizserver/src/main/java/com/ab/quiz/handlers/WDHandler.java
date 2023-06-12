@@ -11,6 +11,7 @@ import com.ab.quiz.common.GetTask;
 import com.ab.quiz.common.PostTask;
 import com.ab.quiz.common.Request;
 import com.ab.quiz.constants.PhonePaymentTypes;
+import com.ab.quiz.constants.QuizConstants;
 import com.ab.quiz.constants.TransactionType;
 import com.ab.quiz.constants.UserMoneyAccountType;
 import com.ab.quiz.constants.WithdrawReqState;
@@ -72,15 +73,32 @@ public class WDHandler {
 			throw new NotAllowedException("Invalid user");
 		}
 		logger.info("The user money DB entry is {}", userMoneyDb);
-	
+		
+		// Start
 		long accountMoney = userMoneyDb.getAmount();
-	
-		logger.info("Withdraw Amount and Account Money {} and {}", wdUserInput.getAmount(), accountMoney);
-	
-		if (wdUserInput.getAmount() > accountMoney) {
-			throw new NotAllowedException("Withdraw Amount is more than available amount");
+		if (!QuizConstants.getMoneyMode()) {
+			logger.info("Withdraw Coins: {} wd money: {} and Account Coins {}", wdUserInput.getCoinCount(), 
+					wdUserInput.getAmount(), accountMoney);
+			if (wdUserInput.getCoinCount() > accountMoney) {
+				throw new NotAllowedException("Withdraw Coins is more than available coins");
+			}
+			
+		} else {
+			logger.info("Withdraw money: {} and Account Money {}", wdUserInput.getCoinCount(), 
+					wdUserInput.getAmount(), accountMoney);
+			if (wdUserInput.getAmount() > accountMoney) {
+				throw new NotAllowedException("Withdraw Amount is more than available amount");
+			}
 		}
-		if (userMoneyDb.getWinAmount() > 50000) {
+		// End
+		
+		long maxYearProfitForKyc = userMoneyDb.getWinAmount() + userMoneyDb.getReferAmount(); 
+		if (!QuizConstants.getMoneyMode()) {
+			// You get win amount 
+			maxYearProfitForKyc = (maxYearProfitForKyc * 10)/100;
+		}
+		
+		if (maxYearProfitForKyc > 50000) {
 			KYCEntry kycDocStatus = KYCHandler.getInstance().getKYCEntry(userProfileId);
 			if (!kycDocStatus.getStatus().equalsIgnoreCase("approved")) {
 				throw new NotAllowedException("Please complete the KYC Process to proceed");
@@ -131,6 +149,7 @@ public class WDHandler {
 		WDUserInput wdUserInput = wdInputObject.getWithdrawUserInput();
 		WithdrawReqByPhone byPhoneReq = wdInputObject.getByPhoneDetails();
 		WithdrawReqByBank byBankReq = wdInputObject.getByBankDetails();
+		// Just triming the details here
 		if (byPhoneReq != null) {
 			byPhoneReq.setAccountHolderName(byPhoneReq.getAccountHolderName().trim());
 			byPhoneReq.setPhNumber(byPhoneReq.getPhNumber().trim());
@@ -158,6 +177,9 @@ public class WDHandler {
 		
 		wdMoneyDetails.setUid(wdUserInput.getUserProfileId());
 		wdMoneyDetails.setWdAmt(wdUserInput.getAmount());
+		if (!QuizConstants.getMoneyMode()) {
+			wdMoneyDetails.setWdAmt(wdUserInput.getCoinCount());
+		}
 		wdMoneyDetails.setWdType(WithdrawReqState.OPEN.getId());
 		wdMoneyDetails.setTransaction(transaction);
 		

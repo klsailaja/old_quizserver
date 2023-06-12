@@ -45,6 +45,7 @@ import com.ab.quiz.pojo.WithdrawRequestsHolder;
 		REQTYPE INT NOT NULL,
 		ACCOUNTDETAILSID BIGINT NOT NULL,
 		AMOUNT INT NOT NULL,
+		COINCOUNT INT NOT NULL,
 		OPENEDTIME BIGINT NOT NULL,
 		CLOSEDTIME BIGINT NULL,
 		RECEIPTID BIGINT NULL,
@@ -69,6 +70,7 @@ public class WithdrawDBHandler {
 	private static String REQUEST_TYPE = "REQTYPE";
 	private static String ACDETAILS_ID = "ACCOUNTDETAILSID";
 	private static String AMOUNT = "AMOUNT";
+	private static String COINCOUNT = "COINCOUNT";
 	private static String REQUEST_OPENED_TIME = "OPENEDTIME";
 	private static String REQUEST_CLOSED_TIME = "CLOSEDTIME";
 	private static String TRANSACTION_RECEIPT_ID = "RECEIPTID";
@@ -97,9 +99,10 @@ public class WithdrawDBHandler {
 	private static final String CREATE_WITHDRAW_ENTRY = "INSERT INTO " + TABLE_NAME
 			+ "(" + REFID + "," + USER_PROFILE_ID + "," 
 			+ STATUS + "," + REQUEST_TYPE + "," + ACDETAILS_ID + ","  
-			+ AMOUNT + "," + REQUEST_OPENED_TIME + "," + REQUEST_CLOSED_TIME + ","
+			+ AMOUNT + "," + COINCOUNT + "," 
+			+ REQUEST_OPENED_TIME + "," + REQUEST_CLOSED_TIME + ","
 			+ TRANSACTION_RECEIPT_ID + "," + CLOSED_CMTS + ") VALUES"
-			+ "(?,?,?,?,?,?,?,?,?,?)";
+			+ "(?,?,?,?,?,?,?,?,?,?,?)";
 	
 	private static final String MAX_WITHDRAW_REQ_ID = "SELECT MAX(ID) FROM " + TABLE_NAME;
 	private static final String GET_WITHDRAW_ENTRY_BY_REF_ID = "SELECT * FROM " + TABLE_NAME + " WHERE " + REFID + " = ?";
@@ -271,6 +274,7 @@ public class WithdrawDBHandler {
 					wdRequest.setRequestType(rs.getInt(REQUEST_TYPE));
 					wdRequest.setAccountDetailsId(rs.getInt(ACDETAILS_ID));
 					wdRequest.setAmount(rs.getInt(AMOUNT));
+					wdRequest.setCoinCount(rs.getInt(COINCOUNT));
 					wdRequest.setOpenedTime(rs.getLong(REQUEST_OPENED_TIME));
 					wdRequest.setClosedTime(rs.getLong(REQUEST_CLOSED_TIME));
 					wdRequest.setReceiptId(rs.getLong(TRANSACTION_RECEIPT_ID));
@@ -314,14 +318,19 @@ public class WithdrawDBHandler {
 		long time = System.currentTimeMillis();
 		String comments = "Withdraw Request Processed. Receipt Attached for " + wdRequest.getRefId();
 		
+		int coinOrAmount = wdRequest.getAmount();
+		if (!QuizConstants.getMoneyMode()) {
+			coinOrAmount = wdRequest.getCoinCount();
+		}
+		
 		MyTransaction transaction = Utils.getTransactionPojo(wdRequest.getUserProfileId(), time, 
-				wdRequest.getAmount(), TransactionType.CLOSED.getId(), 
+				coinOrAmount, TransactionType.CLOSED.getId(), 
 				wdRequest.getFromAccType(), -1, -1, comments, null);
 		
 		WithdrawMoney wdMoneyDetails = new WithdrawMoney();
 		
 		wdMoneyDetails.setUid(wdRequest.getUserProfileId());
-		wdMoneyDetails.setWdAmt(wdRequest.getAmount());
+		wdMoneyDetails.setWdAmt(coinOrAmount);
 		wdMoneyDetails.setWdType(WithdrawReqState.CLOSED.getId());
 		wdMoneyDetails.setTransaction(transaction);
 		
@@ -395,8 +404,13 @@ public class WithdrawDBHandler {
 			throw new NotAllowedException("This Request not owned by you");
 		}
 		
+		int coinOrAmount = wdRequest.getAmount();
+		if (!QuizConstants.getMoneyMode()) {
+			coinOrAmount = wdRequest.getCoinCount();
+		}
+		
 		MyTransaction transaction = Utils.getTransactionPojo(userProfileId, System.currentTimeMillis(), 
-				wdRequest.getAmount(), TransactionType.CREDITED.getId(), 
+				coinOrAmount, TransactionType.CREDITED.getId(), 
 				UserMoneyAccountType.LOADED_MONEY.getId(), -1, -1, "Withdraw Request Cancelled", null);
 		WithdrawMoney wdMoneyDetails = new WithdrawMoney();
 		
@@ -493,12 +507,12 @@ public class WithdrawDBHandler {
 			ps.setInt(4, wdUserInput.getRequestType());
 			ps.setLong(5, wdDetailsId);
 			ps.setInt(6, wdUserInput.getAmount());
-			
+			ps.setInt(7, wdUserInput.getCoinCount());
 			long currentTime = System.currentTimeMillis();
-			ps.setLong(7, currentTime);
-			ps.setNull(8, Types.NULL);
+			ps.setLong(8, currentTime);
 			ps.setNull(9, Types.NULL);
 			ps.setNull(10, Types.NULL);
+			ps.setNull(11, Types.NULL);
 			
 			int result = ps.executeUpdate();
 			logger.debug("In createWithDrawReq create op result : {}", result);
@@ -600,6 +614,7 @@ public class WithdrawDBHandler {
 					dataItem.setRequestType(rs.getInt(REQUEST_TYPE));
 					dataItem.setAccountDetailsId(rs.getLong(ACDETAILS_ID));
 					dataItem.setAmount(rs.getInt(AMOUNT));
+					dataItem.setAmount(rs.getInt(COINCOUNT));
 					dataItem.setOpenedTime(rs.getLong(REQUEST_OPENED_TIME));
 					dataItem.setClosedTime(rs.getLong(REQUEST_CLOSED_TIME));
 					dataItem.setReceiptId(rs.getLong(TRANSACTION_RECEIPT_ID));

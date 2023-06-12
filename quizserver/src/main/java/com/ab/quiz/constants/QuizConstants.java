@@ -18,7 +18,7 @@ public class QuizConstants {
 	public static final int MAX_TOTAL_GAMES_MIXED = MAX_LIVE_SLOTS * GAMES_RATES_IN_ONE_SLOT_MIXED.length;
 	
 	// There is a copy of this var in core server too. Please update there too.
-	public static final int[] GAMES_RATES_IN_ONE_SLOT_SPECIAL = {0, 25, 50, 75, 100, 150, 25, 50, 75, 100, 150};
+	public static final int[] GAMES_RATES_IN_ONE_SLOT_SPECIAL = {0, 50, 50, 75, 100, 125, 50, 50, 75, 100, 125};
 	
 	public static final int MAX_TOTAL_GAMES_SPECIAL = MAX_LIVE_SLOTS * GAMES_RATES_IN_ONE_SLOT_SPECIAL.length;
 	

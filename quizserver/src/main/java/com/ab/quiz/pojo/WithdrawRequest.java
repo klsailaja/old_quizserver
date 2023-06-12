@@ -9,6 +9,7 @@ public class WithdrawRequest {
 	private int requestType; // from user
 	private long accountDetailsId;
 	private int amount; // from user
+	private int coinCount; // from user
 	private long openedTime; // from user
 	private long closedTime;
 	private long receiptId;
@@ -78,6 +79,12 @@ public class WithdrawRequest {
 	}
 	public void setAmount(int amount) {
 		this.amount = amount;
+	}
+	public int getCoinCount() {
+		return coinCount;
+	}
+	public void setCoinCount(int coinCount) {
+		this.coinCount = coinCount;
 	}
 	public long getOpenedTime() {
 		return openedTime;
