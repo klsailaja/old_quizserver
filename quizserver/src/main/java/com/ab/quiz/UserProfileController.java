@@ -185,12 +185,16 @@ public class UserProfileController extends BaseController {
 		return "false";
 	}
 	
+	/* This method fetches the win/wd messages of the closed group when userId is valid one. When -1 is sent,
+	 * generic win/wd messages are fetched.
+	 * */
 	@RequestMapping(value = "/wd/messages/{userId}/{maxCount}", method = RequestMethod.GET, produces = "application/json")
 	public @ResponseBody List<String> getRecentWinWDMessages(@PathVariable long userId, @PathVariable int maxCount) 
 			throws NotAllowedException, InternalException {
 	
-		logger.info("In getRecentWinWDMessages with userId {} and {}", userId, maxCount);
+		logger.debug("{} In getRecentWinWDMessages with userId {} and {}", TAGS.FETCH_WIN_WD_MSG, userId, maxCount);
 		try {
+			// If no user id then return generic messages.
 			List<String> combinedMsgs = WinMsgHandler.getInstance().getCombinedMessages();
 			if (userId == -1) {
 				return combinedMsgs;
@@ -201,9 +205,10 @@ public class UserProfileController extends BaseController {
 			
 			List<Long> closedGroupMembersIds = frdsDetails.getClosedUserIdSet();
 			List<String> closedGroupMembersNames = frdsDetails.getClosedUserNameList();
-			logger.info("The closed friends for uid : {} ids size is {}", userId, closedGroupMembersIds.size());
-			logger.info(closedGroupMembersIds);
-			logger.info(closedGroupMembersNames);
+			logger.debug("{} The closed friends for uid : {} ids size is {}", TAGS.FETCH_WIN_WD_MSG,
+					userId, closedGroupMembersIds.size());
+			logger.info("{} closedGroupMembersIds: ", TAGS.FETCH_WIN_WD_MSG, closedGroupMembersIds);
+			logger.info("{} closedGroupMembersNames: ", TAGS.FETCH_WIN_WD_MSG, closedGroupMembersNames);
 			
 			if (closedGroupMembersIds.size() > 0) {
 				
@@ -267,10 +272,10 @@ public class UserProfileController extends BaseController {
 						closedGrpUsersMsgs.add(combinedMsgs.get(totalIndex));
 					}
 				}
-				logger.info("closedGrpUsersMsgs size {}", closedGrpUsersMsgs.size());
+				logger.debug("{} closedGrpUsersMsgs size {}", TAGS.FETCH_WIN_WD_MSG, closedGrpUsersMsgs.size());
 				return closedGrpUsersMsgs;
 			}
-			logger.info("combinedMsgs {}", combinedMsgs.size());
+			logger.debug("{} combinedMsgs {}", TAGS.FETCH_WIN_WD_MSG, combinedMsgs.size());
 			return combinedMsgs;
 		} catch (Exception ex) {
 			logger.error(QuizConstants.ERROR_PREFIX_START);
