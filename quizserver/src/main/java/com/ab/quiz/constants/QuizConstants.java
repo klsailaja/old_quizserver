@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import com.ab.quiz.exceptions.NotAllowedException;
+
 public class QuizConstants {
 	
 	public static final String ERROR_PREFIX_START = "ERROR_START:***********************";
@@ -91,6 +93,13 @@ public class QuizConstants {
 	
 	private static boolean isMoneyMode;
 	
+	public static int COIN_BUY_RATE = -1;
+	public static int COIN_SELL_RATE = -1;
+	
+	public static String DATABASE_NAME = null;
+	public static long TEST_MIXTYPE_START_UID = -1;
+	public static long TEST_SPECIAL_START_UID = -1;
+	
 	public static void initialize() {
 		
 		try {
@@ -100,6 +109,15 @@ public class QuizConstants {
 			
 			String value = props.getProperty("MY_SERVER_ID", "1");
 			MY_SERVER_ID = Integer.parseInt(value);
+			
+			value = props.getProperty("DB_NAME", "");
+			DATABASE_NAME = value;
+			
+			value = props.getProperty("TEST_MIXTYPE_START_UID", "-1");
+			TEST_MIXTYPE_START_UID = Long.parseLong(value);
+			
+			value = props.getProperty("TEST_SPECIAL_START_UID", "-1");
+			TEST_SPECIAL_START_UID = Long.parseLong(value);
 			
 			value = props.getProperty("CLOSED_WD_RECEIPTS_DURATION", "10");
 			CLOSED_WD_RECEIPTS_DURATION = Integer.parseInt(value);
@@ -166,5 +184,36 @@ public class QuizConstants {
 	}
 	public static boolean getMoneyMode() {
 		return isMoneyMode;
+	}
+	
+	public static void setCoreServerConfig(Properties coreServerProps) {
+		String TESTMODE_KEY = "TESTMODE";
+		String MONEY_MODE_KEY = "MONEY_MODE";
+		String COIN_BUY_RATE_KEY = "COIN_BUY_RATE";
+		String COIN_SELL_RATE_KEY = "COIN_SELL_RATE";
+		
+		String value = coreServerProps.getProperty(MONEY_MODE_KEY);
+		if (value == null) {
+			throw new NotAllowedException("MONEY_MODE value missing from Core Server");
+		}
+		isMoneyMode = value.equals("1");
+		
+		value = coreServerProps.getProperty(TESTMODE_KEY);
+		if (value == null) {
+			throw new NotAllowedException("TESTMODE value missing from Core Server");
+		}
+		TESTMODE = Integer.parseInt(value);
+		
+		value = coreServerProps.getProperty(COIN_BUY_RATE_KEY);
+		if (value == null) {
+			throw new NotAllowedException("COIN_BUY_RATE value missing from Core Server");
+		}
+		COIN_BUY_RATE = Integer.parseInt(value);
+		
+		value = coreServerProps.getProperty(COIN_SELL_RATE_KEY);
+		if (value == null) {
+			throw new NotAllowedException("COIN_SELL_RATE value missing from Core Server");
+		}
+		COIN_SELL_RATE = Integer.parseInt(value);
 	}
 }

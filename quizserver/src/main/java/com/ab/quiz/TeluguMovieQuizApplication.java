@@ -3,6 +3,7 @@ package com.ab.quiz;
 import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
@@ -30,6 +31,11 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 	
 	private static final Logger logger = LogManager.getLogger(TeluguMovieQuizApplication.class);
 	
+	private static String DB_NAME = null;
+	private static int MY_SERVER_ID = -1;
+	private static long TEST_MIXTYPE_START_UID = -1;
+	private static long TEST_SPECIAL_START_UID = -1;
+	
 	public static void main(String[] args) {
 		
 		for (String arg:args) {
@@ -37,24 +43,25 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
             	arg = arg.trim();
             	int pos = arg.lastIndexOf("=");
             	int idInt = Integer.parseInt(arg.substring(pos + 1));
-            	QuizConstants.MY_SERVER_ID = idInt;
-            	System.out.println("My id is :" + QuizConstants.MY_SERVER_ID);
+            	MY_SERVER_ID = idInt; 
+            	System.out.println("My id is :" + idInt);
             } else if (arg.indexOf("db") > -1) {
             	arg = arg.trim();
             	int pos = arg.lastIndexOf("=");
             	String dbName = arg.substring(pos + 1);
-            	ConnectionPool.JDBC_DB_URL = ConnectionPool.JDBC_DB_URL.replace("${server_quiz_db}", dbName);
-            	System.out.println("JDBC Url :" + ConnectionPool.JDBC_DB_URL);
-            } else if (arg.indexOf("uid1") > -1) {
+            	DB_NAME = dbName; 
+            	System.out.println("JDBC DB Name :" + DB_NAME);
+            } else if (arg.indexOf("mix_uid") > -1) {
             	arg = arg.trim();
             	int pos = arg.lastIndexOf("=");
             	long uid1 = Long.parseLong(arg.substring(pos + 1));
-            	TestUsersTask.startUIDValue1 = uid1;
-            } else if (arg.indexOf("uid2") > -1) {
+            	TEST_MIXTYPE_START_UID = uid1;
+            	
+            } else if (arg.indexOf("special_uid") > -1) {
             	arg = arg.trim();
             	int pos = arg.lastIndexOf("=");
             	long uid2 = Long.parseLong(arg.substring(pos + 1));
-            	TestUsersTask.startUIDValue2 = uid2;
+            	TEST_SPECIAL_START_UID = uid2;
             }
 		}
 		
@@ -66,12 +73,30 @@ public class TeluguMovieQuizApplication implements ApplicationRunner {
 		try {
 			logger.debug("Starting the TeluguMovieQuizApplication application");
 			
-			GetTask<Integer> updateMoneyTask = Request.getMoneyMode();
-			Integer moneyModeEnabled = (Integer) updateMoneyTask.execute();
+			GetTask<Properties> getCoreServerProps = Request.getCoreServerConfigs();
+			Properties coreServerProps = (Properties) getCoreServerProps.execute();
 			
+			// The order of config is coreserver config file first, local file second, override using JVM options
 			QuizConstants.initialize();
 			
-			QuizConstants.setMoneyMode(moneyModeEnabled == 1);
+			QuizConstants.setCoreServerConfig(coreServerProps);
+			
+			if (MY_SERVER_ID != -1) {
+				QuizConstants.MY_SERVER_ID = MY_SERVER_ID;
+			}
+			String finalDbName = QuizConstants.DATABASE_NAME;
+			if (DB_NAME != null) {
+				finalDbName = DB_NAME;
+			}
+			ConnectionPool.JDBC_DB_URL = ConnectionPool.JDBC_DB_URL.replace("${server_quiz_db}", finalDbName);
+			
+			if (TEST_MIXTYPE_START_UID != -1) {
+				TestUsersTask.startUIDValue1 = TEST_MIXTYPE_START_UID;
+			}
+			if (TEST_SPECIAL_START_UID != -1) {
+				TestUsersTask.startUIDValue2 = TEST_SPECIAL_START_UID;
+			}
+			
 			
 			ConnectionPool.getInstance();
 			
