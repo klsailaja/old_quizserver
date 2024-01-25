@@ -54,7 +54,7 @@ public class WithdrawOperationsController extends BaseController {
 			WDHandler wdHandler = WDHandler.getInstance();
 			boolean createResult = wdHandler.placeWithdrawMoneyRequest(wdInput);
 			logger.info("createWithdraw request result is {}", createResult);
-			return new Boolean(createResult);
+			return createResult;
 		} catch (SQLException ex) {
 			logger.error("Exception in createWithdraw", ex);
 			throw new InternalException("Server Error in createWithdraw");
@@ -69,7 +69,7 @@ public class WithdrawOperationsController extends BaseController {
 		try {
 			boolean result = WDHandler.getInstance().cancelWithdrawRequest(userProfileId, wdrefid);
 			logger.info("cancelWithdrawReq request result is {}", result);
-			return new Boolean(result);
+			return result;
 		} catch (SQLException ex) {
 			logger.error("Exception in cancelWithdrawReq", ex);
 			throw new InternalException("Server Error in cancelWithdrawReq");

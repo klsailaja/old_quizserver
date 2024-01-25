@@ -66,7 +66,7 @@ public class NumberTest {
 		return primes;
 	}
 	
-	private long findLCM(List<Integer> nums) {
+	/*private long findLCM(List<Integer> nums) {
 		long lcm = nums.get(0);
 		long gcd = nums.get(0);
 
@@ -77,7 +77,7 @@ public class NumberTest {
 			lcm = (lcm * nums.get(i)) / gcd;
 		}
 		return lcm;
-	}
+	}*/
 	
 	public static long findGCD(long a, long b) {
 		// base condition

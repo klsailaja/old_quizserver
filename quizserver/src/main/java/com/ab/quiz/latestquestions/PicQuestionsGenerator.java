@@ -48,17 +48,17 @@ public class PicQuestionsGenerator {
 	
 	public static void main(String[] args) throws Exception {
 		
-		String movieInputPath = "D:\\Projects\\Games\\PicsBased\\PicMovieDetails.xlsx";
+		String movieInputPath = "D:\\QuizApp\\AppInstalls\\Games\\PicsBased\\PicMovieDetails.xlsx";
 		
 		fillupMoviesDB(movieInputPath);
 		
-		String celebritiesInputPath = "D:\\Projects\\Games\\PicsBased\\PicCelebrities.txt";
+		String celebritiesInputPath = "D:\\QuizApp\\AppInstalls\\Games\\PicsBased\\PicCelebrities.txt";
 		formCelebrityList(celebritiesInputPath);
 		
-		String questionListFileName = "D:\\Projects\\Games\\PicsBased\\PicMovieQuestionsTemplate.txt";
+		String questionListFileName = "D:\\QuizApp\\AppInstalls\\Games\\PicsBased\\PicMovieQuestionsTemplate.txt";
 		formQuestionList(questionListFileName);
 		
-		String extraOptionsFileName = "D:\\Projects\\Games\\PicsBased\\PicMovieExtraOptions.txt";
+		String extraOptionsFileName = "D:\\QuizApp\\AppInstalls\\Games\\PicsBased\\PicMovieExtraOptions.txt";
 		formExtraOptions(extraOptionsFileName);
 		
 		fillupAnswers();
@@ -1045,7 +1045,7 @@ public class PicQuestionsGenerator {
 	private static void formQuestions() throws Exception {
 		
 		// Get the file reference
-    	Path path = Paths.get("D:\\Projects\\Games\\PicsBased\\Pics.txt");
+    	Path path = Paths.get("D:\\QuizApp\\AppInstalls\\Games\\PicsBased\\Pics.txt");
     	int qCount = 0;
     	BufferedWriter writer = Files.newBufferedWriter(path);
     	

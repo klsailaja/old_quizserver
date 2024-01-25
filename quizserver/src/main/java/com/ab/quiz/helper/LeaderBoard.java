@@ -25,13 +25,13 @@ public class LeaderBoard {
 		
 		Collections.sort(playerSummaryList, new Comparator<PlayerSummary>() {
 			public int compare(final PlayerSummary summary1, final PlayerSummary summary2) {
-				Integer correctQuestionCount1 = new Integer(summary1.getCorrectCount());
-				Integer correctQuestionCount2 = new Integer(summary2.getCorrectCount());
+				Integer correctQuestionCount1 = summary1.getCorrectCount();
+				Integer correctQuestionCount2 = summary2.getCorrectCount();
 				int c = correctQuestionCount1.compareTo(correctQuestionCount2);
 				c = c * -1;
 				if (c == 0) {
-					Long totalTimeTake1 = new Long(summary1.getTotalTime());
-					Long totalTimeTake2 = new Long(summary2.getTotalTime());
+					Long totalTimeTake1 = summary1.getTotalTime();
+					Long totalTimeTake2 = summary2.getTotalTime();
 					c = totalTimeTake1.compareTo(totalTimeTake2);
 				}
 				return c;

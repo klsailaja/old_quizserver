@@ -37,18 +37,19 @@ public class QuestionsGenerator {
 	
 	public static void main(String[] args) throws Exception {
 		
-		String movieInputPath = "D:\\Projects\\Games\\PlainMovies\\MovieDetails.xlsx";
+		
+		String movieInputPath = "D:\\QuizApp\\AppInstalls\\Games\\PlainMovies\\MovieDetails.xlsx";
 		//writeToExcelFile(movieInputPath);
 		
 		fillupMoviesDB(movieInputPath);
 		
-		String celebritiesInputPath = "D:\\Projects\\Games\\PlainMovies\\Celebrities.txt";
+		String celebritiesInputPath = "D:\\QuizApp\\AppInstalls\\Games\\PlainMovies\\Celebrities.txt";
 		formCelebrityList(celebritiesInputPath);
 		
-		String questionListFileName = "D:\\Projects\\Games\\PlainMovies\\MovieQuestionsTemplate.txt";
+		String questionListFileName = "D:\\QuizApp\\AppInstalls\\Games\\PlainMovies\\MovieQuestionsTemplate.txt";
 		formQuestionList(questionListFileName);
 		
-		String extraOptionsFileName = "D:\\Projects\\Games\\PlainMovies\\MovieExtraOptions.txt";
+		String extraOptionsFileName = "D:\\QuizApp\\AppInstalls\\Games\\PlainMovies\\MovieExtraOptions.txt";
 		formExtraOptions(extraOptionsFileName);
 		
 		fillupAnswers();
@@ -1220,7 +1221,7 @@ public class QuestionsGenerator {
 	private static void formQuestions() throws Exception {
 		
 		// Get the file reference
-    	Path path = Paths.get("D:\\Projects\\Games\\PlainMovies\\Plain.txt");
+    	Path path = Paths.get("D:\\QuizApp\\AppInstalls\\Games\\PlainMovies\\Plain.txt");
     	int qCount = 0;
     	BufferedWriter writer = Files.newBufferedWriter(path);
     	int movieDifficultLevel = 1;

@@ -79,7 +79,7 @@ public class GameManager {
 		lock.writeLock().lock();
 		for (GameHandler gameHandler : gameHandlers) {
 			long gameId = gameHandler.getGameDetails().getGameId();
-			Long keyLong = new Long(gameId);
+			Long keyLong = gameId;
 			gameIdToGameHandler.put(keyLong, gameHandler);
 		}
 		lock.writeLock().unlock();

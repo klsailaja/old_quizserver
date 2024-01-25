@@ -168,7 +168,7 @@ public class CustomerCareController extends BaseController {
 		try {
 			boolean result = CCHandler.getInstance().cancelCustomerCareTicket(userProfileId, ccrefid);
 			//logger.info("cancelCCReq request result is {}", result);
-			return new Boolean(result);
+			return result;
 		} catch (SQLException ex) {
 			logger.error(QuizConstants.ERROR_PREFIX_START);
 			logger.error("Exception in cancelCCReq", ex);

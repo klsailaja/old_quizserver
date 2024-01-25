@@ -266,7 +266,7 @@ public class MoneyUpdaterResponseHandler implements Runnable {
 		int requestId = statusServer.getRequestId();
 		Integer retryCount = requestIdVsRetryCount.get(requestId);
 		if (retryCount == null) {
-			retryCount = new Integer(0);
+			retryCount = 0;
 		}
 		retryCount++;
 		requestIdVsRetryCount.put(requestId, retryCount);
